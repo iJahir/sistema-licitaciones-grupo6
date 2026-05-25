@@ -1,0 +1,185 @@
+<div class="user-form-premium-container">
+  <header class="form-header-premium">
+    <div class="header-back">
+      <button class="btn-back-premium" routerLink="/usuarios">
+        <i class="fas fa-arrow-left"></i>
+        <span>Regresar a la lista</span>
+      </button>
+    </div>
+    <div class="header-main-title">
+      <div class="chip-status">{{ isEdit ? 'MODO EDICIÓN' : 'NUEVO REGISTRO' }}</div>
+      <h1>{{ isEdit ? 'Perfil de Usuario' : 'Registro de Usuario' }}</h1>
+      <p class="subtitle">{{ isEdit ? 'Actualice la información de seguridad y contacto del colaborador' : 'Configure una nueva cuenta de acceso al sistema' }}</p>
+    </div>
+  </header>
+
+  <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()" class="premium-glass-form">
+    <!-- SECCIÓN: IDENTIDAD -->
+    <div class="form-card-section">
+      <div class="section-badge">
+        <i class="fas fa-id-card"></i>
+        <span>IDENTIDAD Y CONTACTO</span>
+      </div>
+      
+      <div class="premium-fields-grid with-avatar">
+        <!-- AVATAR UPLOAD -->
+        <div class="avatar-upload-block">
+          <div class="current-avatar-premium" [style.background-color]="usuarioForm.get('enabled')?.value ? '#3b82f6' : '#94a3b8'">
+            <img *ngIf="photoPreview" [src]="photoPreview" alt="Preview">
+            <span *ngIf="!photoPreview">{{ getInitials() }}</span>
+            <label class="btn-change-photo" for="photoInput">
+              <i class="fas fa-camera"></i>
+            </label>
+            <input type="file" id="photoInput" (change)="onPhotoSelected($event)" accept="image/*" hidden>
+          </div>
+          <span class="avatar-hint">Foto de Perfil</span>
+        </div>
+
+        <div class="form-fields-main">
+          <div class="premium-fields-grid">
+            <div class="field-block">
+              <label for="nombre">Nombre(s)</label>
+              <div class="input-premium-wrapper">
+                <i class="fas fa-user icon-field"></i>
+                <input id="nombre" type="text" formControlName="nombre" placeholder="Ej: Roberto">
+              </div>
+              <p class="error-text" *ngIf="usuarioForm.get('nombre')?.touched && usuarioForm.get('nombre')?.invalid">Requerido</p>
+            </div>
+
+            <div class="field-block">
+              <label for="apellido">Apellido(s)</label>
+              <div class="input-premium-wrapper">
+                <i class="fas fa-signature icon-field"></i>
+                <input id="apellido" type="text" formControlName="apellido" placeholder="Ej: Martínez">
+              </div>
+              <p class="error-text" *ngIf="usuarioForm.get('apellido')?.touched && usuarioForm.get('apellido')?.invalid">Requerido</p>
+            </div>
+
+            <div class="field-block">
+              <label for="email">Correo Profesional</label>
+              <div class="input-premium-wrapper">
+                <i class="fas fa-envelope icon-field"></i>
+                <input id="email" type="email" formControlName="email" placeholder="roberto.m@empresa.com">
+              </div>
+              <p class="error-text" *ngIf="usuarioForm.get('email')?.touched && usuarioForm.get('email')?.invalid">Email inválido</p>
+            </div>
+
+            <div class="field-block">
+              <label for="username">Username de Acceso</label>
+              <div class="input-premium-wrapper">
+                <i class="fas fa-at icon-field"></i>
+                <input id="username" type="text" formControlName="username" placeholder="roberto_m">
+              </div>
+              <p class="error-text" *ngIf="usuarioForm.get('username')?.touched && usuarioForm.get('username')?.invalid">Mínimo 3 caracteres</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: SEGURIDAD (Solo para nuevos) -->
+    <div class="form-card-section animate-slide" *ngIf="!isEdit">
+      <div class="section-badge security">
+        <i class="fas fa-shield-alt"></i>
+        <span>CREDENCIALES DE ACCESO</span>
+      </div>
+      
+      <div class="premium-fields-grid">
+        <div class="field-block">
+          <label for="password">Contraseña Inicial</label>
+          <div class="input-premium-wrapper">
+            <i class="fas fa-key icon-field"></i>
+            <input id="password" type="password" formControlName="password" placeholder="••••••••">
+          </div>
+          <p class="error-text" *ngIf="usuarioForm.get('password')?.touched && usuarioForm.get('password')?.invalid">Requerida</p>
+        </div>
+
+        <div class="field-block">
+          <label for="confirmPassword">Verificar Contraseña</label>
+          <div class="input-premium-wrapper">
+            <i class="fas fa-lock icon-field"></i>
+            <input id="confirmPassword" type="password" formControlName="confirmPassword" placeholder="••••••••">
+          </div>
+          <p class="error-text" *ngIf="usuarioForm.hasError('mismatch') && usuarioForm.get('confirmPassword')?.touched">No coinciden</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: ROLES Y PERMISOS -->
+    <div class="form-card-section">
+      <div class="section-badge config">
+        <i class="fas fa-user-shield"></i>
+        <span>CONFIGURACIÓN DE PRIVILEGIOS</span>
+      </div>
+      
+      <div class="config-premium-layout">
+        <div class="roles-selection-panel">
+          <label class="panel-label">ROLES DEL SISTEMA</label>
+          <div class="premium-checkbox-list">
+            <div class="check-node" *ngFor="let role of rolesOptions" [class.selected]="isRoleSelected(role.value)">
+              <div class="check-box-ui">
+                <input type="checkbox" [id]="role.value" 
+                       [checked]="isRoleSelected(role.value)"
+                       (change)="onRoleChange(role.value, $any($event.target).checked)">
+                <div class="check-mark"><i class="fas fa-check"></i></div>
+              </div>
+              <label [for]="role.value">
+                <span class="role-name-ui">{{ role.label }}</span>
+                <span class="role-desc-ui">Otorga permisos de {{ role.label.toLowerCase() }}</span>
+              </label>
+            </div>
+          </div>
+          <p class="error-text" *ngIf="usuarioForm.get('roles')?.touched && usuarioForm.get('roles')?.invalid">Seleccione un rol</p>
+        </div>
+
+        <div class="meta-options-panel">
+          <div class="select-block-premium">
+            <label for="areaId">Departamento Asignado</label>
+            <div class="select-premium-ui">
+              <i class="fas fa-building icon-select"></i>
+              <select id="areaId" formControlName="areaId">
+                <option [ngValue]="null">General (Sin área)</option>
+                <option *ngFor="let area of areas" [value]="area.id">
+                  {{ area.nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="switches-premium-group">
+            <div class="switch-premium-node">
+              <div class="switch-info">
+                <span class="sw-title">Estado de Cuenta</span>
+                <span class="sw-desc">{{ usuarioForm.get('enabled')?.value ? 'El usuario tiene acceso activo' : 'Acceso suspendido temporalmente' }}</span>
+              </div>
+              <label class="ios-switch">
+                <input type="checkbox" formControlName="enabled">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="switch-premium-node">
+              <div class="switch-info">
+                <span class="sw-title">Seguridad Forzada</span>
+                <span class="sw-desc">Cambio de clave obligatorio al entrar</span>
+              </div>
+              <label class="ios-switch">
+                <input type="checkbox" formControlName="requiereCambioPassword">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="form-actions-premium">
+      <button type="button" class="btn-cancel-premium" routerLink="/usuarios">Cancelar</button>
+      <button type="submit" class="btn-submit-premium" [disabled]="usuarioForm.invalid || saving">
+        <i class="fas fa-save" *ngIf="!saving"></i>
+        <i class="fas fa-circle-notch fa-spin" *ngIf="saving"></i>
+        <span>{{ saving ? 'Procesando...' : (isEdit ? 'Actualizar Perfil' : 'Registrar Colaborador') }}</span>
+      </button>
+    </footer>
+  </form>
+</div>

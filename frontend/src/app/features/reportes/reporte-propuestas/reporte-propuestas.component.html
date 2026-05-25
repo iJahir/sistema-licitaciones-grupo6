@@ -1,0 +1,204 @@
+<div class="ranking-premium-container">
+  <!-- HEADER EJECUTIVO -->
+  <header class="ranking-header">
+    <div class="header-left">
+      <div class="ranking-badge">BENCHMARKING EMPRESARIAL</div>
+      <h1 class="title-primary">Ranking de Propuestas</h1>
+      <p class="subtitle-secondary">Análisis comparativo de competitividad, calidad técnica y solvencia</p>
+    </div>
+    <div class="header-right">
+      <button class="btn-premium-export" (click)="openFormatSelector()">
+        <i class="fas fa-file-export"></i>
+        <span>Exportar Reporte</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD DE MÉTRICAS -->
+  <div class="metrics-dashboard">
+    <div class="metric-card-modern">
+      <div class="m-icon blue"><i class="fas fa-layer-group"></i></div>
+      <div class="m-content">
+        <span class="m-label">Ofertas Recibidas</span>
+        <h2 class="m-value">{{ reportData?.totalPropuestas || 0 }}</h2>
+      </div>
+    </div>
+    
+    <div class="metric-card-modern">
+      <div class="m-icon gold"><i class="fas fa-trophy"></i></div>
+      <div class="m-content">
+        <span class="m-label">Promedio de Calidad</span>
+        <h2 class="m-value">{{ reportData?.promedioPuntaje | number:'1.1-1' }} <small>/ 100</small></h2>
+      </div>
+    </div>
+
+    <div class="metric-card-modern">
+      <div class="m-icon emerald"><i class="fas fa-hand-holding-usd"></i></div>
+      <div class="m-content">
+        <span class="m-label">Flujo Total Ofertado</span>
+        <h2 class="m-value">{{ reportData?.montoTotalOfertado | currency:'USD':'symbol':'1.0-0' }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE FILTROS CORTÉS -->
+  <div class="filters-ranking-row">
+    <div class="filter-item">
+      <label><i class="fas fa-project-diagram"></i> Segmentar por Licitación</label>
+      <div class="select-premium">
+        <select [(ngModel)]="filters.licitacionId" (change)="applyFilters()">
+          <option value="">Todas las Licitaciones Activas</option>
+          <option *ngFor="let lic of licitaciones" [value]="lic.id">{{ lic.titulo }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-item">
+      <label><i class="fas fa-check-double"></i> Estado de la Oferta</label>
+      <div class="select-premium">
+        <select [(ngModel)]="filters.estado" (change)="applyFilters()">
+          <option value="">Cualquier Estado</option>
+          <option value="BORRADOR">📁 Borrador</option>
+          <option value="ENVIADA">📨 Enviada</option>
+          <option value="EN_EVALUACION">⚖️ En Evaluación</option>
+          <option value="ACEPTADA">✅ Aceptada</option>
+          <option value="RECHAZADA">❌ Rechazada</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn-reset-modern" (click)="resetFilters()" title="Reiniciar Búsqueda">
+        <i class="fas fa-undo"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- RELACIÓN DE RANKING (TABLA PREMIUM) -->
+  <div class="ranking-table-card">
+    <div class="ranking-table-header">
+       <div class="header-left">
+         <i class="fas fa-medal"></i>
+         <span>Clasificación Técnica por Puntuación</span>
+       </div>
+       <div class="loader-state" *ngIf="isLoading">
+         <div class="spinner-sm"></div>
+         <span>Calculando posiciones...</span>
+       </div>
+    </div>
+
+    <div class="table-frame desktop-only">
+      <table class="table-ranking">
+        <thead>
+          <tr>
+            <th class="text-center w-80">RANGO</th>
+            <th>DETALLE DE LA EMPRESA</th>
+            <th>PROCESO ASOCIADO</th>
+            <th class="text-center">CALIFICACIÓN</th>
+            <th class="text-center">REPUTACIÓN</th>
+            <th class="text-right">OFERTA ECONÓMICA</th>
+            <th>ESTADO</th>
+            <th class="text-center">ANÁLISIS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of reportData?.items; let i = index" [class]="getRankClass(i)">
+            <td class="text-center w-80">
+              <div class="rank-medal-container">
+                <span class="rank-number" *ngIf="i >= 3">{{ i + 1 }}</span>
+                <div class="medal-icon" *ngIf="i < 3">
+                  <i *ngIf="i === 0" class="fas fa-medal medal-gold"></i>
+                  <i *ngIf="i === 1" class="fas fa-medal medal-silver"></i>
+                  <i *ngIf="i === 2" class="fas fa-medal medal-bronze"></i>
+                </div>
+              </div>
+            </td>
+            <td class="company-profile-cell">
+              <div class="comp-info">
+                <span class="comp-name">{{ item.empresa }}</span>
+                <span class="comp-id">Expediente #{{ item.id }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="licitation-tag" [title]="item.licitacionTitulo">
+                {{ item.licitacionTitulo }}
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="score-pill-modern" [style.border-color]="getScoreColor(item.puntaje)">
+                <span class="pts-val">{{ item.puntaje || 0 }}</span>
+                <span class="pts-unit">pts</span>
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="stars-premium">
+                <i class="fas fa-star" *ngFor="let s of [1,2,3,4,5]" 
+                   [class.active]="s <= (item.estrellas || 0)"></i>
+              </div>
+            </td>
+            <td class="text-right">
+              <span class="currency-value">{{ item.monto | currency }}</span>
+            </td>
+            <td>
+              <span class="status-chip" [ngClass]="getStatusClass(item.estado)">
+                {{ item.estado }}
+              </span>
+            </td>
+            <td class="text-center">
+              <button class="btn-action-icon-modern" title="Análisis Detallado de Licitación" (click)="verAnalisis(item.licitacionId)">
+                <i class="fas fa-chart-bar"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Vista Móvil: Cards de Ranking -->
+    <div class="ranking-cards-mobile mobile-only" *ngIf="!isLoading">
+      <div class="prop-ranking-card" *ngFor="let item of reportData?.items; let i = index" [class]="getRankClass(i)">
+        <div class="card-rank-badge">
+          <span *ngIf="i >= 3">#{{ i + 1 }}</span>
+          <i *ngIf="i === 0" class="fas fa-crown gold"></i>
+          <i *ngIf="i === 1" class="fas fa-medal silver"></i>
+          <i *ngIf="i === 2" class="fas fa-medal bronze"></i>
+        </div>
+
+        <div class="card-main-info">
+          <div class="company-header">
+            <span class="comp-name">{{ item.empresa }}</span>
+            <span class="status-chip-sm" [ngClass]="getStatusClass(item.estado)">{{ item.estado }}</span>
+          </div>
+          <div class="lic-info">
+            <i class="fas fa-project-diagram"></i> {{ item.licitacionTitulo }}
+          </div>
+        </div>
+
+        <div class="card-stats-row">
+          <div class="stat-box">
+            <label>Puntaje</label>
+            <div class="val-score">{{ item.puntaje || 0 }} <small>pts</small></div>
+          </div>
+          <div class="stat-box">
+            <label>Oferta</label>
+            <div class="val-currency">{{ item.monto | currency }}</div>
+          </div>
+        </div>
+
+        <div class="card-footer-mobile">
+          <div class="stars-mini">
+            <i class="fas fa-star" *ngFor="let s of [1,2,3,4,5]" [class.active]="s <= (item.estrellas || 0)"></i>
+          </div>
+          <button class="btn-analyze-mobile">Análisis</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-ranking-state" *ngIf="reportData?.items?.length === 0 && !isLoading">
+      <div class="empty-icon"><i class="fas fa-box-open"></i></div>
+      <p>No se encontraron postulaciones vigentes</p>
+      <span>Ajuste los filtros para ampliar la búsqueda histórica</span>
+    </div>
+  </div>
+</div>

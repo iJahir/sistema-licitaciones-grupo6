@@ -1,0 +1,22 @@
+package com.licitaciones.sistema.entity;
+
+public enum RoleName {
+    ROLE_ADMINISTRADOR,
+    ROLE_SUPER_ADMIN,
+    ROLE_GESTOR_LICITACIONES,
+    ROLE_AREA_SOLICITANTE,
+    ROLE_EVALUADOR,
+    ROLE_EVALUADOR_GENERAL,
+    ROLE_EVALUADOR_FINANCIERO,
+    ROLE_EVALUADOR_TECNICO,
+    ROLE_EVALUADOR_LEGAL,
+    ROLE_PROVEEDOR,
+    ROLE_AUDITOR,
+    ROLE_AUTORIDAD,
+    ROLE_OBSERVADOR,
+    // Legacy roles to avoid crashes with existing DB data
+    ROLE_ADMIN,
+    ROLE_USER,
+    ROLE_MODERATOR
+}
+

@@ -1,0 +1,407 @@
+<div class="list-container">
+  <!-- BREADCRUMB HEADER FOR CONTRATOS -->
+  <div class="header-breadcrumb-row fade-in">
+    <div class="breadcrumb-left">
+      <h1>Contratos</h1>
+      <p class="subtitle">Gestión y seguimiento de contratos generados</p>
+    </div>
+  </div>
+
+  <!-- TOP METRICS PANELS (5 Premium Cards) -->
+  <div class="metrics-grid fade-in">
+    <!-- Card 1: Total Contratos -->
+    <div class="metric-glass-card purple-premium">
+      <div class="card-icon"><i class="fa-solid fa-file-contract"></i></div>
+      <div class="card-data">
+        <span class="label">Total Contratos</span>
+        <h3 class="value">{{ kpis.total }}</h3>
+        <span class="subtext">En total</span>
+      </div>
+    </div>
+    <!-- Card 2: Firmados -->
+    <div class="metric-glass-card green">
+      <div class="card-icon"><i class="fa-solid fa-file-signature"></i></div>
+      <div class="card-data">
+        <span class="label">Firmados</span>
+        <h3 class="value">{{ kpis.firmados }}</h3>
+        <span class="subtext">{{ kpis.pctFirmados }}% del total</span>
+      </div>
+    </div>
+    <!-- Card 3: En Ejecución -->
+    <div class="metric-glass-card orange">
+      <div class="card-icon"><i class="fa-regular fa-clock"></i></div>
+      <div class="card-data">
+        <span class="label">En Ejecución</span>
+        <h3 class="value">{{ kpis.enEjecucion }}</h3>
+        <span class="subtext">{{ kpis.pctEnEjecucion }}% del total</span>
+      </div>
+    </div>
+    <!-- Card 4: Finalizados -->
+    <div class="metric-glass-card blue">
+      <div class="card-icon"><i class="fa-solid fa-folder-open"></i></div>
+      <div class="card-data">
+        <span class="label">Finalizados</span>
+        <h3 class="value">{{ kpis.finalizados }}</h3>
+        <span class="subtext">{{ kpis.pctFinalizados }}% del total</span>
+      </div>
+    </div>
+    <!-- Card 5: Rescindidos / Anulados -->
+    <div class="metric-glass-card cancel">
+      <div class="card-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+      <div class="card-data">
+        <span class="label">Rescindidos / Anulados</span>
+        <h3 class="value">{{ kpis.cancelados }}</h3>
+        <span class="subtext">{{ kpis.pctCancelados }}% del total</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTERS PANEL -->
+  <div class="filters-glass-card fade-in delay-1">
+    <div class="filters-grid">
+      <!-- Búsqueda Global -->
+      <div class="filter-group">
+        <label>Búsqueda global</label>
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" [(ngModel)]="filters.search" (keyup)="applyFilters()" class="input-glass" placeholder="Buscar contrato, licitación o proveedor...">
+        </div>
+      </div>
+
+      <!-- Licitación -->
+      <div class="filter-group">
+        <label>Licitación</label>
+        <select [(ngModel)]="filters.licitacion" (change)="applyFilters()" class="select-glass">
+          <option value="">Todas</option>
+          <option *ngFor="let title of uniqueLicitaciones" [value]="title">{{ title }}</option>
+        </select>
+      </div>
+
+      <!-- Proveedor -->
+      <div class="filter-group">
+        <label>Proveedor</label>
+        <select [(ngModel)]="filters.proveedor" (change)="applyFilters()" class="select-glass">
+          <option value="">Todos</option>
+          <option *ngFor="let p of uniqueProveedores" [value]="p">{{ p }}</option>
+        </select>
+      </div>
+
+      <!-- Estado -->
+      <div class="filter-group">
+        <label>Estado</label>
+        <select [(ngModel)]="filters.estado" (change)="applyFilters()" class="select-glass">
+          <option value="">Todos</option>
+          <option *ngFor="let st of uniqueEstados" [value]="st">{{ getFriendlyEstado(st) }}</option>
+        </select>
+      </div>
+
+      <!-- Tipo de Contrato -->
+      <div class="filter-group">
+        <label>Tipo de Contrato</label>
+        <select [(ngModel)]="filters.tipo" (change)="applyFilters()" class="select-glass">
+          <option value="">Todos</option>
+          <option *ngFor="let t of uniqueTipos" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+
+      <!-- Fecha Firma -->
+      <div class="filter-group">
+        <label>Fecha de Firma</label>
+        <input type="date" [(ngModel)]="filters.fechaFirma" (change)="applyFilters()" class="input-glass">
+      </div>
+
+      <!-- Botón Limpiar -->
+      <div class="filter-actions">
+        <button class="btn-clear-filters" (click)="clearFilters()" title="Limpiar Filtros">
+          <i class="fa-solid fa-broom"></i> Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN DOUBLE PANEL GRID (Left: 72%, Right: 28%) -->
+  <div class="dual-panel-layout fade-in delay-2">
+    <!-- LEFT PANEL: CONTRACTS TABLE (72% Width) -->
+    <div class="left-table-panel">
+      <div class="table-responsive-wrapper" *ngIf="!loading && pagedContratos.length > 0">
+        <table class="adj-table">
+          <thead>
+            <tr>
+              <th>ID Contrato</th>
+              <th>Licitación</th>
+              <th>Proveedor</th>
+              <th>Tipo de Contrato</th>
+              <th>Monto del Contrato</th>
+              <th>Fecha de Firma</th>
+              <th>Vigencia</th>
+              <th>Estado</th>
+              <th class="text-center" style="min-width: 140px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of pagedContratos" class="table-row-hover">
+              <!-- ID Contrato -->
+              <td>
+                <span class="code-column link" [routerLink]="['/contratos', c.id]">{{ c.codigo || 'CONT-' + c.id }}</span>
+              </td>
+              <!-- Licitación -->
+              <td>
+                <div class="title-cell-wrapper">
+                  <span class="title-main" [title]="c.licitacion?.titulo">{{ c.licitacion?.titulo }}</span>
+                  <span class="title-sub">LP-2026-{{ c.licitacion?.id | number:'3.0-0' }}</span>
+                </div>
+              </td>
+              <!-- Proveedor -->
+              <td>
+                <div class="provider-cell">
+                  <span class="provider-name">{{ c.propuesta?.empresaNombre || 'Jahir Marroquin' }}</span>
+                  <span class="provider-ruc">RUC: {{ c.propuesta?.ruc || '1098765432001' }}</span>
+                </div>
+              </td>
+              <!-- Tipo de Contrato -->
+              <td>
+                <span class="tipo-badge" [ngClass]="getTipoContratoClass(c.licitacion?.tipo)">
+                  {{ c.licitacion?.tipo || 'Prestación de Servicios' }}
+                </span>
+              </td>
+              <!-- Monto -->
+              <td>
+                <span class="amount-value bold">USD {{ (c.monto || 125000) | number:'1.2-2' }}</span>
+              </td>
+              <!-- Fecha Firma -->
+              <td>
+                <span class="date-display">{{ (c.fechaFirma | date:'dd/MM/yyyy') || 'Pendiente' }}</span>
+              </td>
+              <!-- Vigencia -->
+              <td>
+                <div class="vigencia-cell">
+                  <span class="dates-range">
+                    {{ (c.fechaInicio | date:'dd/MM/yyyy') || 'Pendiente' }}
+                  </span>
+                  <span class="dates-range end-date">
+                    {{ (c.fechaFin | date:'dd/MM/yyyy') || 'Pendiente' }}
+                  </span>
+                </div>
+              </td>
+              <!-- Estado -->
+              <td>
+                <span class="status-badge-premium" [ngClass]="getStatusClass(c.estado)">
+                  {{ getFriendlyEstado(c.estado) }}
+                </span>
+              </td>
+              <!-- Acciones -->
+              <td class="text-center">
+                <div class="actions-group-modern">
+                  <button class="btn-action-circle view" [routerLink]="['/contratos', c.id]" title="Ver Detalle">
+                    <i class="fa-regular fa-eye"></i>
+                  </button>
+                  <button class="btn-action-circle doc" (click)="descargarContratoPdf(c)" title="Descargar Contrato">
+                    <i class="fa-solid fa-file-pdf"></i>
+                  </button>
+                  <button class="btn-action-circle more" (click)="generarReporte()" title="Generar Reporte">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state-modern" *ngIf="pagedContratos.length === 0 && !loading">
+        <div class="empty-icon-box"><i class="fa-solid fa-file-contract"></i></div>
+        <h3>No se encontraron contratos</h3>
+        <p>Ajuste los filtros o intente con otros términos de búsqueda.</p>
+      </div>
+
+      <!-- LOADING STATE -->
+      <div class="loading-overlay" *ngIf="loading">
+        <div class="spinner"></div>
+        <p>Cargando contratos del sistema...</p>
+      </div>
+
+      <!-- PAGINATION FOR CONTRATOS -->
+      <footer class="modern-pagination" *ngIf="totalPages > 0 && !loading && pagedContratos.length > 0">
+        <div class="page-info">
+          Mostrando {{ currentPage * pageSize + 1 }} a {{ getMin((currentPage + 1) * pageSize, totalElements) }} de {{ totalElements }} contratos
+        </div>
+        
+        <div class="page-size-selector">
+          <span>Filas por página</span>
+          <select [(ngModel)]="pageSize" (change)="applyFilters()">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+          </select>
+        </div>
+
+        <div class="page-controls">
+          <button class="btn-page-arrow" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 0">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="btn-page-number" *ngFor="let p of getPageNumbers()" [class.active]="p === currentPage" (click)="changePage(p)">
+            {{ p + 1 }}
+          </button>
+          <button class="btn-page-arrow" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages - 1">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <!-- RIGHT PANEL: EXECUTIVE PANEL (28% Width) -->
+    <div class="right-stats-panel">
+      <!-- Resumen General (Donut chart SVG) -->
+      <div class="stats-glass-card panel-card">
+        <h3 class="panel-card-title">Resumen de Contratos</h3>
+        
+        <div class="donut-chart-container">
+          <div class="donut-chart-wrapper">
+            <svg width="140" height="140" viewBox="0 0 42 42" class="donut-svg">
+              <circle class="donut-hole" cx="21" cy="21" r="15.915" fill="transparent"></circle>
+              <circle class="donut-ring" cx="21" cy="21" r="15.915" fill="transparent" stroke="#f1f5f9" stroke-width="3"></circle>
+              
+              <!-- Pendientes (Purple) -->
+              <circle class="donut-segment segment-pendientes" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#8b5cf6" stroke-width="4.5" 
+                      [attr.stroke-dasharray]="StrokeDashArrayPendientes" 
+                      [attr.stroke-dashoffset]="StrokeDashOffsetPendientes"></circle>
+
+              <!-- Firmados (Green) -->
+              <circle class="donut-segment segment-firmados" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#10b981" stroke-width="4.5" 
+                      [attr.stroke-dasharray]="StrokeDashArrayFirmados" 
+                      [attr.stroke-dashoffset]="StrokeDashOffsetFirmados"></circle>
+
+              <!-- En Ejecución (Blue) -->
+              <circle class="donut-segment segment-proceso" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#3b82f6" stroke-width="4.5" 
+                      [attr.stroke-dasharray]="StrokeDashArrayEnEjecucion" 
+                      [attr.stroke-dashoffset]="StrokeDashOffsetEnEjecucion"></circle>
+
+              <!-- Finalizados (Yellow) -->
+              <circle class="donut-segment segment-desiertas" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#f59e0b" stroke-width="4.5" 
+                      [attr.stroke-dasharray]="StrokeDashArrayFinalizados" 
+                      [attr.stroke-dashoffset]="StrokeDashOffsetFinalizados"></circle>
+
+              <!-- Cancelados (Red) -->
+              <circle class="donut-segment segment-canceladas" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#ef4444" stroke-width="4.5" 
+                      [attr.stroke-dasharray]="StrokeDashArrayCancelados" 
+                      [attr.stroke-dashoffset]="StrokeDashOffsetCancelados"></circle>
+            </svg>
+            <div class="donut-center-label">
+              <span class="donut-num">{{ donutData.total }}</span>
+              <span class="donut-lbl">Total</span>
+            </div>
+          </div>
+          
+          <div class="donut-legends">
+            <div class="legend-row">
+              <span class="dot pend"></span>
+              <span class="legend-lbl">Pendientes</span>
+              <span class="legend-val">{{ donutData.pend }} <span class="pct">({{ donutData.pctPend.toFixed(1) }}%)</span></span>
+            </div>
+            <div class="legend-row">
+              <span class="dot adj"></span>
+              <span class="legend-lbl">Firmados</span>
+              <span class="legend-val">{{ donutData.firm }} <span class="pct">({{ donutData.pctFirm.toFixed(1) }}%)</span></span>
+            </div>
+            <div class="legend-row">
+              <span class="dot proc"></span>
+              <span class="legend-lbl">En ejecución</span>
+              <span class="legend-val">{{ donutData.exec }} <span class="pct">({{ donutData.pctExec.toFixed(1) }}%)</span></span>
+            </div>
+            <div class="legend-row">
+              <span class="dot des"></span>
+              <span class="legend-lbl">Finalizados</span>
+              <span class="legend-val">{{ donutData.fin }} <span class="pct">({{ donutData.pctFin.toFixed(1) }}%)</span></span>
+            </div>
+            <div class="legend-row">
+              <span class="dot canc"></span>
+              <span class="legend-lbl">Rescindidos</span>
+              <span class="legend-val">{{ donutData.canc }} <span class="pct">({{ donutData.pctCanc.toFixed(1) }}%)</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contratos por Licitación list -->
+      <div class="stats-glass-card panel-card text-left mt-3">
+        <h3 class="panel-card-title">Contratos por Licitación</h3>
+        <div class="stats-list">
+          <div class="stats-item" *ngFor="let c of contratos.slice(0, 10)">
+            <div class="item-header">
+              <span class="item-name" [title]="c.licitacion?.titulo">{{ c.licitacion?.titulo }}</span>
+              <span class="item-badge">100%</span>
+            </div>
+            <div class="item-progress"><div class="fill" style="width: 100%;"></div></div>
+          </div>
+          <div class="no-stats-text text-center py-2" *ngIf="contratos.length === 0" style="color: #94a3b8; font-size: 0.8rem; font-weight: 600;">
+            No hay contratos registrados.
+          </div>
+        </div>
+        <a class="view-all-link" [routerLink]="['/licitaciones']">
+          Ver todas las licitaciones <i class="fas fa-arrow-right icon-right"></i>
+        </a>
+      </div>
+
+      <!-- Acciones Rápidas -->
+      <div class="stats-glass-card panel-card text-left mt-3">
+        <h3 class="panel-card-title">Acciones Rápidas</h3>
+        <div class="action-buttons-vertical">
+          <button class="action-btn-premium" (click)="generarContrato()">
+            <span class="icon-wrap bg-blue"><i class="fas fa-plus"></i></span>
+            <span class="label">Generar Contrato</span>
+          </button>
+          
+          <button class="action-btn-premium" (click)="descargarContratoRapido()">
+            <span class="icon-wrap bg-teal"><i class="fa-solid fa-file-pdf"></i></span>
+            <span class="label">Descargar Contrato</span>
+          </button>
+
+          <button class="action-btn-premium" (click)="gestionarVigencias()">
+            <span class="icon-wrap bg-green"><i class="fas fa-signature"></i></span>
+            <span class="label">Gestionar Vigencias</span>
+          </button>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT ACTIVITY TIMELINE ROW AT BOTTOM -->
+  <section class="recent-activity-section fade-in delay-3 mt-4">
+    <div class="section-header-timeline">
+      <h3>Actividad Reciente</h3>
+      <a class="view-timeline-link" (click)="generarReporte()">Ver toda la actividad <i class="fas fa-arrow-right"></i></a>
+    </div>
+    
+    <div class="activity-timeline-row">
+      <!-- Loop over the real contracts -->
+      <div class="timeline-activity-card" *ngFor="let c of contratos.slice(0, 5)">
+        <div class="activity-icon" [ngClass]="{'bg-green-light': c.estado === 'FIRMADO', 'bg-blue-light': c.estado === 'PENDIENTE', 'bg-red-light': c.estado === 'CANCELADO'}">
+          <i class="fa-solid" [ngClass]="{'fa-circle-check': c.estado === 'FIRMADO', 'fa-file-invoice': c.estado === 'PENDIENTE', 'fa-circle-xmark': c.estado === 'CANCELADO'}"></i>
+        </div>
+        <div class="activity-info">
+          <h4>{{ c.estado === 'FIRMADO' ? 'Contrato firmado' : c.estado === 'CANCELADO' ? 'Contrato rescindido' : 'Contrato generado' }}</h4>
+          <p class="activity-detail" [title]="(c.propuesta?.empresaNombre || 'Jahir Marroquin') + ' - ' + c.codigo">
+            {{ c.propuesta?.empresaNombre || 'Jahir Marroquin' }} - {{ c.codigo }}
+          </p>
+          <span class="activity-time">Firma: {{ (c.fechaFirma | date:'dd/MM/yyyy') || 'Pendiente' }}</span>
+        </div>
+      </div>
+      <!-- If there are no contracts -->
+      <div class="timeline-activity-card" *ngIf="contratos.length === 0" style="grid-column: span 5; justify-content: center; align-items: center; padding: 2rem;">
+        <div class="activity-icon bg-blue-light"><i class="fa-solid fa-info-circle"></i></div>
+        <div class="activity-info" style="text-align: center;">
+          <h4>Sin actividad reciente</h4>
+          <p class="activity-detail">No hay contratos registrados en el sistema.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

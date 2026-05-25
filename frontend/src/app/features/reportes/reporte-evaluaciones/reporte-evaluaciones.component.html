@@ -1,0 +1,189 @@
+<div class="eval-premium-container">
+  <!-- HEADER ANALÍTICO -->
+  <header class="eval-header-premium">
+    <div class="header-main">
+      <div class="eval-chip">AUDITORÍA TÉCNICA</div>
+      <h1 class="title-premium">Análisis de Evaluaciones</h1>
+      <p class="subtitle-premium">Monitoreo exhaustivo de criterios, puntajes y veredictos finales</p>
+    </div>
+    <div class="header-extra">
+      <button class="btn-eval-export" (click)="openFormatSelector()">
+        <i class="fas fa-file-invoice"></i>
+        <span>Exportar Reporte</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD DE MÉTRICAS -->
+  <div class="eval-metrics-row">
+    <div class="eval-card blue">
+      <div class="eval-icon-circle">
+        <i class="fas fa-microscope"></i>
+      </div>
+      <div class="eval-data">
+        <span class="eval-label">Controles Ejecutados</span>
+        <h2 class="eval-value">{{ reportData?.totalEvaluaciones || 0 }}</h2>
+      </div>
+    </div>
+
+    <div class="eval-card gold">
+      <div class="eval-icon-circle">
+        <i class="fas fa-medal"></i>
+      </div>
+      <div class="eval-data">
+        <span class="eval-label">Calidad de Oferta</span>
+        <h2 class="eval-value">{{ reportData?.promedioEstrellas | number:'1.1-1' }} <small>/ 5</small></h2>
+      </div>
+    </div>
+
+    <div class="eval-card emerald">
+      <div class="eval-icon-circle">
+        <i class="fas fa-thumbs-up"></i>
+      </div>
+      <div class="eval-data">
+        <span class="eval-label">Veredictos Aptos</span>
+        <h2 class="eval-value">{{ reportData?.cantidadPorResultado?.['APROBADO'] || 0 }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS DE SEGMENTACIÓN -->
+  <div class="eval-filters-premium">
+    <div class="filter-box">
+      <label><i class="fas fa-user-shield"></i> Filtrar por Responsable Téctico</label>
+      <div class="select-wrapper-eval">
+        <select [(ngModel)]="filters.evaluadorId" (change)="applyFilters()">
+          <option value="">Todos los Miembros del Comité</option>
+          <option *ngFor="let ev of evaluadores" [value]="ev.id">{{ ev.nombre }} ({{ ev.username }})</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-side-actions">
+      <button class="btn-refresh-eval" (click)="resetFilters()" title="Resetear Filtros">
+        <i class="fas fa-sync"></i>
+        <span>Ver Todo</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TABLA DE EVALUACIONES PREMIUM -->
+  <div class="eval-table-premium-card">
+    <div class="table-premium-header">
+      <div class="table-title">
+        <i class="fas fa-clipboard-check"></i>
+        <span>Historial de Evaluaciones y Veredictos</span>
+      </div>
+      <div class="status-indicator" *ngIf="isLoading">
+        <div class="dot-typing"></div>
+        <span>Sincronizando datos...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive desktop-only">
+      <table class="table-eval-premium">
+        <thead>
+          <tr>
+            <th class="w-80">REF</th>
+            <th>PROPUESTA / ORGANIZACIÓN</th>
+            <th>EVALUADOR ASIGNADO</th>
+            <th class="text-center">REPUTACIÓN</th>
+            <th class="text-center">PUNTAJE %</th>
+            <th>VEREDICTO</th>
+            <th>FECHA / HORA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of reportData?.items">
+            <td class="w-80">
+              <span class="ref-id">#{{ item.id }}</span>
+            </td>
+            <td>
+              <div class="organization-cell">
+                <span class="prop-title">{{ item.propuesta }}</span>
+                <span class="org-name">{{ item.empresa }}</span>
+              </div>
+            </td>
+            <td class="evaluator-profile-cell">
+              <div class="avatar-group">
+                <div class="avatar-circle">
+                  <span>{{ item.evaluador.substring(0,1) }}</span>
+                </div>
+                <div class="evaluator-name">{{ item.evaluador }}</div>
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="stars-eval-premium">
+                <i class="fas fa-star" *ngFor="let s of getStarArray(5)"
+                   [class.active]="s <= (item.estrellas || 0)"></i>
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="score-breakdown">
+                <span class="main-score">{{ item.puntajeTotal }}/50</span>
+                <div class="progress-mini">
+                  <div class="progress-bar" [style.width.%]="(item.puntajeTotal / 50) * 100"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="decision-badge" [ngClass]="getResultadoClass(item.resultado)">
+                {{ item.resultado }}
+              </span>
+            </td>
+            <td class="date-eval">{{ item.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Vista Móvil: Cards de Evaluación -->
+    <div class="eval-cards-mobile mobile-only" *ngIf="!isLoading">
+      <div class="report-eval-mobile-card glass-card" *ngFor="let item of reportData?.items">
+        <div class="card-mobile-header">
+          <span class="ref-badge">#{{ item.id }}</span>
+          <span class="decision-badge" [ngClass]="getResultadoClass(item.resultado)">{{ item.resultado }}</span>
+        </div>
+        
+        <div class="card-mobile-body">
+          <div class="info-row">
+            <label>Propuesta / Empresa:</label>
+            <span class="value font-bold">{{ item.propuesta }}</span>
+            <span class="org-sub">{{ item.empresa }}</span>
+          </div>
+          
+          <div class="info-row compact">
+            <div class="half">
+              <label>Evaluador:</label>
+              <div class="eval-mini-profile">
+                <div class="mini-avatar">{{ item.evaluador.substring(0,1) }}</div>
+                <span>{{ item.evaluador }}</span>
+              </div>
+            </div>
+            <div class="half text-right">
+              <label>Puntaje:</label>
+              <div class="badge-score">{{ item.puntajeTotal }} <small>/ 50</small></div>
+            </div>
+          </div>
+
+          <div class="info-row footer-data">
+            <div class="stars-mini">
+              <i class="fas fa-star" *ngFor="let s of getStarArray(5)" [class.active]="s <= (item.estrellas || 0)"></i>
+            </div>
+            <span class="date-sm">{{ item.fecha | date:'short' }}</span>
+          </div>
+        </div>
+
+        <div class="card-mobile-footer">
+          <button class="btn-detail-mobile">Ver Rúbrica Detallada</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-eval-state" *ngIf="reportData?.items?.length === 0 && !isLoading">
+      <div class="empty-eval-icon"><i class="fas fa-folder-open"></i></div>
+      <p>Sin registros de evaluación disponibles</p>
+      <span>Ajuste los criterios de búsqueda por evaluador o periodo fiscal</span>
+    </div>
+  </div>
+</div>

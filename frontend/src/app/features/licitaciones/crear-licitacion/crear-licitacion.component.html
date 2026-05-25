@@ -1,0 +1,208 @@
+<div class="form-container">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="title-group">
+      <h1>{{ isEditMode ? 'Editar Licitación' : 'Crear Nueva Licitación' }}</h1>
+      <p>{{ isEditMode ? 'Actualice la información del concurso seleccionado.' : 'Complete todas las secciones para publicar el concurso en el sistema.' }}</p>
+    </div>
+  </header>
+
+  <!-- Wizard Stepper -->
+  <nav class="wizard-stepper">
+    <div *ngFor="let step of steps" 
+         class="step-item" 
+         [class.active]="currentStep === step.id"
+         [class.completed]="currentStep > step.id"
+         (click)="goToStep(step.id)">
+      <div class="step-circle">
+        <span *ngIf="currentStep <= step.id">{{ step.id }}</span>
+        <lucide-icon *ngIf="currentStep > step.id" [name]="IconCheck"></lucide-icon>
+      </div>
+      <span class="step-label">{{ step.title }}</span>
+    </div>
+  </nav>
+
+  <!-- Form Content -->
+  <form [formGroup]="licitacionForm">
+    
+    <!-- STEP 1: INFORMACIÓN GENERAL -->
+    <div class="form-card" *ngIf="currentStep === 1">
+      <legend>Información General</legend>
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Título de la Licitación <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <lucide-icon [name]="IconType"></lucide-icon>
+            <input type="text" formControlName="titulo" placeholder="Ej: Adquisición de Suministros IT 2024">
+          </div>
+          <div *ngIf="licitacionForm.get('titulo')?.touched && licitacionForm.get('titulo')?.invalid" class="error-message">
+            El título es obligatorio (mínimo 5 caracteres).
+          </div>
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Descripción General <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <textarea formControlName="descripcion" placeholder="Breve resumen del objetivo de la licitación..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Área Solicitante <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <lucide-icon [name]="IconBuilding"></lucide-icon>
+            <select formControlName="area" [compareWith]="compareAreas">
+              <option [ngValue]="null">Seleccione área...</option>
+              <option *ngFor="let a of areas" [ngValue]="a">{{ a.nombre }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de Licitación <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <lucide-icon [name]="IconFilter"></lucide-icon>
+            <select formControlName="tipo">
+              <option value="">Seleccione tipo...</option>
+              <option *ngFor="let t of tiposLicitacion" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: BASES Y REQUISITOS -->
+    <div class="form-card" *ngIf="currentStep === 2">
+      <legend>Bases y Requisitos</legend>
+      <div class="form-grid full-width">
+        <div class="form-group">
+          <label>Bases Técnicas y Administrativas <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <textarea formControlName="bases" placeholder="Describa las bases detalladamente..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Requisitos para Proveedores <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <textarea formControlName="requisitos" placeholder="Describa los requisitos mínimos..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: PRESUPUESTO Y DOCUMENTOS -->
+    <div class="form-card" *ngIf="currentStep === 3">
+      <legend>Presupuesto y Documentos</legend>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Presupuesto Estimado (USD) <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <lucide-icon [name]="IconDollarSign"></lucide-icon>
+            <input type="number" formControlName="presupuesto" placeholder="0.00">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Estado Inicial</label>
+          <div class="input-wrapper">
+            <lucide-icon [name]="IconLock"></lucide-icon>
+            <select formControlName="estado">
+              <option [value]="EstadoLicitacion.BORRADOR">Borrador</option>
+              <option [value]="EstadoLicitacion.PUBLICADA">Publicada</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 2rem;">
+        <label style="font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem; display: block;">Anexos y Especificaciones</label>
+        <div class="upload-zone" (click)="triggerFileUpload($event)">
+          <input #fileInput type="file" (change)="onFileSelected($event)" multiple hidden>
+          <div class="upload-icon">
+            <lucide-icon [name]="IconUpload"></lucide-icon>
+          </div>
+          <p>Haga clic para subir archivos o arrástrelos aquí</p>
+          <span class="btn-upload">Explorar archivos</span>
+        </div>
+
+        <div class="file-list" *ngIf="selectedFiles.length > 0">
+          <div *ngFor="let file of selectedFiles; let i = index" class="file-item">
+            <div class="file-info">
+              <lucide-icon [name]="IconFileText"></lucide-icon>
+              <span>{{ file.name }}</span>
+            </div>
+            <button type="button" class="btn-remove" (click)="removeFile(i)">
+              <lucide-icon [name]="IconTrash2"></lucide-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: FECHAS -->
+    <div class="form-card" *ngIf="currentStep === 4">
+      <legend>Fechas Clave</legend>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Fecha de Publicación <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <lucide-icon [name]="IconCalendar"></lucide-icon>
+            <input type="datetime-local" formControlName="fechaPublicacion">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Fecha de Cierre <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <lucide-icon [name]="IconCalendar"></lucide-icon>
+            <input type="datetime-local" formControlName="fechaCierre">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Fecha de Evaluación</label>
+          <div class="input-wrapper">
+            <lucide-icon [name]="IconCalendar"></lucide-icon>
+            <input type="datetime-local" formControlName="fechaEvaluacion">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Fecha de Adjudicación Estimada</label>
+          <div class="input-wrapper">
+            <lucide-icon [name]="IconCalendar"></lucide-icon>
+            <input type="datetime-local" formControlName="fechaAdjudicacion">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wizard Footer -->
+    <footer class="action-footer">
+      <div class="left-btns">
+        <button type="button" class="btn btn-secondary" (click)="cancelar()">
+          <lucide-icon [name]="IconArrowLeft"></lucide-icon>
+          Cancelar
+        </button>
+      </div>
+      
+      <div class="right-btns">
+        <button type="button" class="btn btn-secondary" *ngIf="currentStep > 1" (click)="prevStep()">
+          Anterior
+        </button>
+        
+        <button type="button" class="btn btn-primary" *ngIf="currentStep < 4" (click)="nextStep()" [disabled]="!isStepValid(currentStep)">
+          Siguiente
+        </button>
+
+        <ng-container *ngIf="currentStep === 4">
+          <button type="button" class="btn btn-secondary" (click)="saveDraft()" [disabled]="isSubmitting" *ngIf="!isEditMode">
+            Guardar Borrador
+          </button>
+          <button type="button" class="btn btn-success" (click)="publicarAhora()" [disabled]="isSubmitting">
+            <lucide-icon [name]="IconCheck" style="margin-right: 8px;"></lucide-icon>
+            {{ isEditMode ? 'Guardar Cambios' : 'Publicar Licitación' }}
+          </button>
+        </ng-container>
+      </div>
+    </footer>
+  </form>
+</div>

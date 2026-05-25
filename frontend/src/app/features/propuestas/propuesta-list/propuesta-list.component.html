@@ -1,0 +1,410 @@
+<div class="propuestas-container fade-in">
+  <!-- Page Top Header -->
+  <header class="page-header">
+    <div class="title-group">
+      <div class="breadcrumb-mini">Gestión de propuestas recibidas</div>
+      <h1>Propuestas</h1>
+    </div>
+  </header>
+
+  <!-- KPI cards at the top -->
+  <div class="metrics-grid">
+    <!-- Card 1: Total Propuestas (Blue) -->
+    <div class="metric-glass-card blue">
+      <div class="card-icon"><i class="fa-regular fa-folder"></i></div>
+      <div class="card-data">
+        <span class="label">Total Propuestas</span>
+        <h3 class="value">{{ kpiStats.total }}</h3>
+        <span class="subtext">En total</span>
+      </div>
+    </div>
+    <!-- Card 2: Recibidas (Green) -->
+    <div class="metric-glass-card green">
+      <div class="card-icon"><i class="fa-regular fa-check-circle"></i></div>
+      <div class="card-data">
+        <span class="label">Recibidas</span>
+        <h3 class="value">{{ kpiStats.recibidas }}</h3>
+        <span class="subtext">{{ kpiStats.pctRecibidas }}% del total</span>
+      </div>
+    </div>
+    <!-- Card 3: En Evaluación (Orange) -->
+    <div class="metric-glass-card orange">
+      <div class="card-icon"><i class="fa-regular fa-clock"></i></div>
+      <div class="card-data">
+        <span class="label">En evaluación</span>
+        <h3 class="value">{{ kpiStats.enEvaluacion }}</h3>
+        <span class="subtext">{{ kpiStats.pctEnEvaluacion }}% del total</span>
+      </div>
+    </div>
+    <!-- Card 4: Subsanación (Purple) -->
+    <div class="metric-glass-card purple">
+      <div class="card-icon"><i class="fa-regular fa-file-alt"></i></div>
+      <div class="card-data">
+        <span class="label">Subsanación</span>
+        <h3 class="value">{{ kpiStats.subsanacion }}</h3>
+        <span class="subtext">{{ kpiStats.pctSubsanacion }}% del total</span>
+      </div>
+    </div>
+    <!-- Card 5: Descalificadas (Red/Teal) -->
+    <div class="metric-glass-card teal">
+      <div class="card-icon"><i class="fa-solid fa-ban"></i></div>
+      <div class="card-data">
+        <span class="label">Descalificadas</span>
+        <h3 class="value">{{ kpiStats.descalificadas }}</h3>
+        <span class="subtext">{{ kpiStats.pctDescalificadas }}% del total</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nueva Propuesta Action Button Bar (Right-aligned) -->
+  <div class="page-action-row" *ngIf="isProveedor">
+    <button class="btn-premium primary" (click)="nuevaPropuesta()">
+      <i class="fas fa-plus"></i> Nueva Propuesta
+    </button>
+  </div>
+
+  <!-- Horizontal Advanced Filters Row -->
+  <section class="filters-glass-card">
+    <div class="filters-grid">
+      <!-- Search Input -->
+      <div class="filter-group search">
+        <label>BÚSQUEDA RÁPIDA</label>
+        <div class="input-glass">
+          <input type="text" [(ngModel)]="filters.search" (ngModelChange)="onFilter()" placeholder="Buscar propuesta, participante o licitación...">
+          <i class="fa-solid fa-magnifying-glass search-icon-right"></i>
+        </div>
+      </div>
+      <!-- Licitación dropdown list -->
+      <div class="filter-group">
+        <label>LICITACIÓN</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.licitacion" (change)="onFilter()">
+            <option value="">Todos</option>
+            <option *ngFor="let l of uniqueLicitaciones" [value]="l.id">
+              {{ l.titulo }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <!-- Participante dropdown list -->
+      <div class="filter-group">
+        <label>PARTICIPANTE</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.participante" (change)="onFilter()">
+            <option value="">Todos</option>
+            <option *ngFor="let p of uniqueParticipantes" [value]="p">
+              {{ p }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <!-- Estado dropdown list -->
+      <div class="filter-group">
+        <label>ESTADO</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.estado" (change)="onFilter()">
+            <option value="">Todos</option>
+            <option value="BORRADOR">BORRADOR</option>
+            <option value="ENVIADA">ENVIADA</option>
+            <option value="EN_REVISION">EN_REVISION</option>
+            <option value="VALIDADA">VALIDADA</option>
+            <option value="INCOMPLETA">INCOMPLETA</option>
+            <option value="ACEPTADA">ACEPTADA</option>
+            <option value="RECHAZADA">RECHAZADA</option>
+            <option value="GANADORA">GANADORA</option>
+          </select>
+        </div>
+      </div>
+      <!-- Fecha Recepcion date input -->
+      <div class="filter-group">
+        <label>FECHA RECEPCIÓN</label>
+        <div class="input-glass">
+          <input type="date" [(ngModel)]="filters.fechaRecepcion" (change)="onFilter()">
+        </div>
+      </div>
+      <!-- Actions buttons -->
+      <div class="filter-actions">
+        <button class="btn-glass clear" (click)="clearFilters()">
+          <i class="fa-solid fa-arrow-rotate-left"></i> Limpiar
+        </button>
+        <button class="btn-glass search" (click)="onFilter()">
+          <i class="fa-solid fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Layout Row: Left (Table + Activity) & Right (Cards Summary) -->
+  <div class="main-layout-row">
+    <!-- Left panel (72% width) -->
+    <div class="left-main-panel">
+      <!-- Listado de Propuestas Card -->
+      <div class="premium-glass-card no-padding">
+        <div class="card-header-bar">
+          <h2>Listado de Propuestas</h2>
+        </div>
+
+        <div class="table-responsive" *ngIf="!loading && filteredPropuestas.length > 0">
+          <table class="modern-list-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Licitación</th>
+                <th>Participante</th>
+                <th>Fecha Recepción</th>
+                <th>Estado</th>
+                <th class="text-center">Versión</th>
+                <th>Monto Propuesto</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of filteredPropuestas" class="table-row-hover">
+                <!-- Código column (PRP-2026-xxx) -->
+                <td><span class="code-column">PRP-2026-{{ p.id | number:'3.0-0' }}</span></td>
+                <!-- Licitación Ref column -->
+                <td>
+                  <div class="licitacion-ref-wrapper">
+                    <span class="licitacion-title">{{ p.licitacion?.titulo }}</span>
+                    <span class="licitacion-code">LP-2026-{{ p.licitacion?.id | number:'3.0-0' }}</span>
+                  </div>
+                </td>
+                <!-- Participante column -->
+                <td>
+                  <div class="supplier-cell-mini">
+                    <span class="company-name">{{ p.empresaNombre || 'N/A' }}</span>
+                    <span class="ruc-tag">RUC: {{ p.identificacionRuc }}</span>
+                  </div>
+                </td>
+                <!-- Fecha Recepcion column (Date on top, time below) -->
+                <td>
+                  <div class="date-cell-wrapper">
+                    <span class="date-main">{{ (p.fechaEnvio ? (p.fechaEnvio | date:'dd/MM/yyyy') : 'Pendiente') }}</span>
+                    <span class="date-sub" *ngIf="p.fechaEnvio">{{ p.fechaEnvio | date:'hh:mm a' }}</span>
+                  </div>
+                </td>
+                <!-- Estado badge column -->
+                <td>
+                  <span class="status-badge-premium" [ngClass]="p.estado ? p.estado.toLowerCase().replace('_', '-').trim() : 'borrador'">
+                    {{ getFriendlyEstado(p.estado) }}
+                  </span>
+                </td>
+                <!-- Versión column (Centered pure number) -->
+                <td class="text-center">
+                  <span class="version-number-clean">{{ p.versionActual || 1 }}</span>
+                </td>
+                <!-- Monto Propuesto column (Amount on top, currency code below) -->
+                <td>
+                  <div class="amount-cell-wrapper">
+                    <span class="amount-val">$ {{ p.montoOfertado | number:'1.2-2' }}</span>
+                    <span class="amount-currency">{{ p.moneda || 'USD' }}</span>
+                  </div>
+                </td>
+                <!-- Acciones column (Eye, Download, Three-dots dropdown) -->
+                <td class="text-center">
+                  <div class="actions-group-modern">
+                    <!-- Action 1: View details -->
+                    <button class="btn-action-circle view" [routerLink]="['/propuestas', p.id]" title="Ver Detalle">
+                      <i class="fa-regular fa-eye"></i>
+                    </button>
+                    <!-- Action 2: Download documentation -->
+                    <button class="btn-action-circle doc" (click)="descargarPropuesta(p)" title="Descargar Propuesta">
+                      <i class="fa-solid fa-cloud-arrow-down"></i>
+                    </button>
+                    <!-- Action 3: Reject proposal -->
+                    <button class="btn-action-circle reject" *ngIf="isAdmin && p.estado === 'ENVIADA'" (click)="abrirRechazo(p)" title="Rechazar Propuesta">
+                      <i class="fa-solid fa-ban"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State inside proposals -->
+        <div class="empty-state-modern" *ngIf="filteredPropuestas.length === 0 && !loading">
+          <div class="empty-icon-box"><i class="fas fa-search-minus"></i></div>
+          <h3>No se encontraron registros</h3>
+          <p>Ajuste los filtros o intente con otros términos de búsqueda.</p>
+        </div>
+
+        <!-- Loading State inside proposals -->
+        <div class="loading-state-modern" *ngIf="loading">
+          <div class="premium-spinner"></div>
+          <p>Consultando registros de propuestas...</p>
+        </div>
+
+        <!-- Pagination matching Image 2 -->
+        <footer class="modern-pagination" *ngIf="!loading && filteredPropuestas.length > 0">
+          <div class="page-info">
+            Mostrando 1 a {{ filteredPropuestas.length }} de {{ filteredPropuestas.length }} propuestas
+          </div>
+          <div class="page-controls">
+            <button class="btn-page-arrow" disabled><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="btn-page-number active">1</button>
+            <button class="btn-page-arrow" disabled><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </footer>
+      </div>
+
+      <!-- Últimas Actividades Timeline Section matching Image 2 -->
+      <section class="activities-timeline-card fade-in delay-2">
+        <div class="card-header-bar">
+          <h2>Últimas Actividades</h2>
+        </div>
+        <div class="activities-horizontal-list">
+          <div class="activity-timeline-item" *ngFor="let act of realActivities">
+            <div class="activity-icon-container" [ngClass]="act.class">
+              <i class="fa-solid" [ngClass]="{
+                'fa-check': act.class === 'received' || act.class === 'awarded',
+                'fa-clock': act.class === 'evaluating',
+                'fa-file-alt': act.class === 'pending',
+                'fa-ban': act.class === 'rejected'
+              }"></i>
+            </div>
+            <div class="activity-text-info">
+              <span class="activity-label">{{ act.title }}</span>
+              <span class="activity-desc">{{ act.empresa }} - {{ act.licitacionCode }}</span>
+              <span class="activity-time">{{ act.time }}</span>
+            </div>
+          </div>
+          <div class="empty-activities" *ngIf="realActivities.length === 0" style="padding: 20px; text-align: center; color: #94a3b8; width: 100%;">
+            <i class="fa-solid fa-clock-rotate-left" style="font-size: 24px; margin-bottom: 8px; display: block; opacity: 0.5;"></i>
+            <span>No hay actividades registradas en la base de datos.</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right panel (28% width) -->
+    <div class="right-main-panel">
+      <!-- Card A: Resumen por Estado (SVG Donut Chart) -->
+      <div class="premium-glass-card dashboard-kpi-card">
+        <div class="card-header-bar small">
+          <h2>Resumen por Estado</h2>
+        </div>
+        <div class="donut-chart-container">
+          <div class="donut-svg-wrapper">
+            <svg viewBox="0 0 42 42" class="donut-svg">
+              <circle class="donut-hole" cx="21" cy="21" r="15.915" fill="transparent"></circle>
+              <circle class="donut-ring" cx="21" cy="21" r="15.915" fill="transparent" stroke="#e2e8f0" stroke-width="4"></circle>
+              
+              <!-- Segment 1: Recibidas (Green) -->
+              <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#10b981" stroke-width="4"
+                      [attr.stroke-dasharray]="StrokeDashArrayRecibidas"
+                      [attr.stroke-dashoffset]="StrokeDashOffsetRecibidas"></circle>
+                      
+              <!-- Segment 2: En evaluación (Orange) -->
+              <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#f59e0b" stroke-width="4"
+                      [attr.stroke-dasharray]="StrokeDashArrayEnEvaluacion"
+                      [attr.stroke-dashoffset]="StrokeDashOffsetEnEvaluacion"></circle>
+                      
+              <!-- Segment 3: Subsanación (Purple) -->
+              <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#8b5cf6" stroke-width="4"
+                      [attr.stroke-dasharray]="StrokeDashArraySubsanacion"
+                      [attr.stroke-dashoffset]="StrokeDashOffsetSubsanacion"></circle>
+                      
+              <!-- Segment 4: Descalificadas (Red) -->
+              <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#ef4444" stroke-width="4"
+                      [attr.stroke-dasharray]="StrokeDashArrayDescalificadas"
+                      [attr.stroke-dashoffset]="StrokeDashOffsetDescalificadas"></circle>
+            </svg>
+            <div class="donut-center-labels">
+              <span class="total-count">{{ kpiStats.total }}</span>
+              <span class="total-lbl">Total</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Legend of colors and counts -->
+        <ul class="donut-legend-list">
+          <li>
+            <span class="dot-indicator green"></span>
+            <span class="label">Recibidas</span>
+            <span class="count-pct">{{ kpiStats.recibidas }} ({{ kpiStats.pctRecibidas }}%)</span>
+          </li>
+          <li>
+            <span class="dot-indicator orange"></span>
+            <span class="label">En evaluación</span>
+            <span class="count-pct">{{ kpiStats.enEvaluacion }} ({{ kpiStats.pctEnEvaluacion }}%)</span>
+          </li>
+          <li>
+            <span class="dot-indicator purple"></span>
+            <span class="label">Subsanación</span>
+            <span class="count-pct">{{ kpiStats.subsanacion }} ({{ kpiStats.pctSubsanacion }}%)</span>
+          </li>
+          <li>
+            <span class="dot-indicator red"></span>
+            <span class="label">Descalificadas</span>
+            <span class="count-pct">{{ kpiStats.descalificadas }} ({{ kpiStats.pctDescalificadas }}%)</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Card B: Propuestas por Licitación (Dynamic Progress Bars) -->
+      <div class="premium-glass-card dashboard-kpi-card">
+        <div class="card-header-bar small">
+          <h2>Propuestas por Licitación</h2>
+        </div>
+        <div class="progress-lines-list" *ngIf="propuestasPorLicitacion.length > 0">
+          <div class="progress-line-item" *ngFor="let pl of propuestasPorLicitacion">
+            <div class="line-header">
+              <span class="lic-title">{{ pl.title }}</span>
+              <span class="lic-count">{{ pl.count }}</span>
+            </div>
+            <div class="mini-progress-bar-wrapper">
+              <div class="progress-bar-fill" [style.width.%]="kpiStats.total > 0 ? (pl.count / kpiStats.total * 100) : 0"></div>
+            </div>
+            <span class="lic-code">{{ pl.code }}</span>
+          </div>
+        </div>
+        <div class="empty-progress-state" *ngIf="propuestasPorLicitacion.length === 0">
+          <span>No hay información de licitaciones.</span>
+        </div>
+      </div>
+
+      <!-- Card C: Acciones Rápidas (Button Row) -->
+      <div class="premium-glass-card dashboard-kpi-card" *ngIf="isAdmin || isProveedor">
+        <div class="card-header-bar small">
+          <h2>Acciones Rápidas</h2>
+        </div>
+        <div class="action-buttons-vertical">
+          <button class="action-btn-premium" (click)="nuevaPropuesta()">
+            <span class="icon-wrap bg-blue"><i class="fa-solid fa-plus"></i></span>
+            <span class="label">Nueva Propuesta</span>
+          </button>
+          <button class="action-btn-premium" (click)="importarPropuestas()" *ngIf="isAdmin">
+            <span class="icon-wrap bg-teal"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+            <span class="label">Importar Propuestas</span>
+          </button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXISTING REJECTION REASON MODAL (PRESERVED) -->
+  <div class="modal-overlay" *ngIf="showRejectionModal">
+    <div class="modal-container-modern small">
+      <div class="modal-header-bar">
+        <h2>Rechazar Propuesta</h2>
+        <button class="btn-close" (click)="closeModals()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body-content">
+        <div class="form-group">
+          <label>Motivo de la descalificación o rechazo <span class="required">*</span></label>
+          <textarea class="textarea-rejection" [(ngModel)]="rejectionReason" placeholder="Escriba aquí los detalles o bases incumplidas..."></textarea>
+        </div>
+        <div class="modal-footer-btns">
+          <button class="btn-secondary" (click)="closeModals()" [disabled]="isActionLoading">Cancelar</button>
+          <button class="btn-danger" (click)="confirmarRechazo()" [disabled]="isActionLoading">Confirmar Rechazo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

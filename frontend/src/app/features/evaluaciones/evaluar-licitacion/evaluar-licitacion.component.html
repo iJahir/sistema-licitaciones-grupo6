@@ -1,0 +1,1349 @@
+<div class="eval-form-container" *ngIf="!isLoading">
+  <!-- MODO SOLO CRITERIOS -->
+  <div class="criterios-only-layout fade-in" *ngIf="criteriosOnly" style="padding-bottom: 10rem;">
+    <!-- Breadcrumbs matching the premium design -->
+    <div class="breadcrumbs-modern" style="margin-bottom: 1.5rem;">
+      <span class="crumb">Dashboard</span>
+      <i class="fa-solid fa-chevron-right separator" style="margin: 0 0.5rem; font-size: 0.7rem; color: #94a3b8;"></i>
+      <span class="crumb">Evaluaciones</span>
+      <i class="fa-solid fa-chevron-right separator" style="margin: 0 0.5rem; font-size: 0.7rem; color: #94a3b8;"></i>
+      <span class="crumb active" style="color: #3b82f6; font-weight: 700;">Rúbrica de Criterios</span>
+    </div>
+
+    <div class="header-breadcrumb-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding-top: 0.5rem;">
+      <div style="display: flex; align-items: center; gap: 1.25rem;">
+        <button type="button" class="btn-back-circle" (click)="cancelar()" style="width: 42px; height: 42px; border-radius: 50%; background: #ffffff; border: 1px solid #e2e8f0; color: #475569; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="breadcrumb-header-text">
+          <h1 class="page-title-modern" style="margin: 0; font-size: 1.75rem; font-weight: 900; color: #0f172a; letter-spacing: -0.5px;">
+            Rúbrica de Criterios de Evaluación {{ evaluacionSeleccionada?.evaluador ? '- ' + evaluacionSeleccionada.evaluador.nombre + ' ' + evaluacionSeleccionada.evaluador.apellido : '' }}
+          </h1>
+          <p style="margin: 0.15rem 0 0 0; color: #64748b; font-size: 0.875rem;">Licitación: <strong>{{ licitacion?.titulo }}</strong></p>
+        </div>
+      </div>
+      
+      <!-- Descargar Criterios Button -->
+      <button type="button" class="btn-zip-premium highlight" (click)="descargarCriteriosPdf()" style="margin-left: auto; display: flex; align-items: center; gap: 8px; background: #10b981; color: #ffffff; border: none; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+        <span>Descargar Criterios PDF</span> <i class="fa-solid fa-file-pdf"></i>
+      </button>
+    </div>
+
+    <!-- Center Card containing only the Criteria Table -->
+    <div class="premium-glass-card criterios-card" style="margin-top: 1rem; margin-bottom: 2rem !important; padding: 2.25rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);">
+      
+      <!-- Selector de Evaluadores en modo Rúbrica -->
+      <div class="rubrica-evaluators-selector" style="margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9;" *ngIf="todasEvaluaciones && todasEvaluaciones.length > 0">
+        <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.75rem;">Evaluadores del Expediente</span>
+        <div class="evaluators-chips-row" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button type="button" 
+                  *ngFor="let ev of todasEvaluaciones" 
+                  class="evaluator-chip-btn" 
+                  [class.active]="evaluacionSeleccionada?.evaluador?.id === ev.evaluador?.id" 
+                  (click)="selectEvaluacion(ev)">
+            <div class="avatar-circle">
+              {{ (ev.evaluador?.nombre?.charAt(0) || '') + (ev.evaluador?.apellido?.charAt(0) || 'E') }}
+            </div>
+            <div class="chip-info">
+              <span class="eval-name">{{ (ev.evaluador?.nombre || '') + ' ' + (ev.evaluador?.apellido || '') }}</span>
+              <span class="eval-meta">{{ ev.evaluador?.username || 'Especialista' }} • <strong class="score-num">{{ ev.puntajeTotal || 0 }}/50 pts</strong></span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="card-title-header" style="margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+        <div class="title-icon blue" style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59, 130, 246, 0.08); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+          <i class="fa-solid fa-table-list"></i>
+        </div>
+        <div class="title-text-group">
+          <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #0f172a;">Detalle de Rúbrica y Criterios Técnicos</h3>
+          <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #64748b;">Estos criterios determinan la admisibilidad y puntuación del expediente de la licitación.</p>
+        </div>
+      </div>
+
+      <div class="criterios-scores-list">
+        <div class="criterio-item-row" *ngFor="let q of preguntasActuales; let i = index" style="display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 14px; margin-bottom: 1rem; transition: all 0.2s;">
+          <div class="criterio-info">
+            <span style="font-size: 0.75rem; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">CRITERIO 0{{ i + 1 }}</span>
+            <h4 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #1e293b;">{{ q }}</h4>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #64748b;">{{ getPreguntaDescription(i) }}</p>
+          </div>
+          <div class="criterio-score-badge" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(59, 130, 246, 0.05); border: 1px dashed rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 0.75rem 1rem; border-radius: 10px; font-weight: 800; min-width: 90px;">
+            <span class="val" style="font-size: 1.25rem; font-weight: 900;">{{ getPuntajeIndividual(i + 1) }}</span>
+            <span class="max" style="font-size: 0.7rem; color: #64748b; font-weight: 600; margin-top: -2px;">/ 10 pts</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legal Compliance Footnote in Criteria Mode -->
+      <div class="legal-footnote" style="margin-top: 2rem; padding: 1.25rem; background: rgba(59, 130, 246, 0.04); border-left: 4px solid #3b82f6; border-radius: 0 12px 12px 0;">
+        <h5 style="margin: 0 0 0.25rem 0; font-size: 0.9rem; font-weight: 800; color: #1e3a8a;"><i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i> Declaración de Transparencia y Objetividad</h5>
+        <p style="margin: 0; font-size: 0.82rem; color: #1e40af; line-height: 1.45;">
+          El presente listado de criterios técnicos representa el estándar oficial aprobado para la licitación <strong>{{ licitacion?.titulo }}</strong>. Toda calificación realizada por los miembros del comité técnico debe regirse estrictamente por los puntajes indicados arriba, garantizando la imparcialidad del proceso de adjudicación pública.
+        </p>
+      </div>
+    </div>
+
+    <!-- Premium Card for Qualitative Answers and Observations -->
+    <div class="premium-glass-card qualitative-card" style="margin-top: 2rem; margin-bottom: 8rem !important; padding: 2.25rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);" *ngIf="evaluacionSeleccionada">
+      <div class="card-title-header" style="margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+        <div class="title-icon amber" style="width: 48px; height: 48px; border-radius: 12px; background: rgba(245, 158, 11, 0.08); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+          <i class="fa-regular fa-comment-dots"></i>
+        </div>
+        <div class="title-text-group">
+          <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #0f172a;">Dictamen Cualitativo y Observaciones</h3>
+          <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #64748b;">Evaluación descriptiva detallada registrada por el especialista.</p>
+        </div>
+      </div>
+
+      <div class="qualitative-responses-stack" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- A. Cumplimiento -->
+        <div class="qual-card-read" style="padding: 1.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;">
+          <h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-regular fa-clipboard" style="color: #3b82f6;"></i> A. Cumplimiento de Especificaciones y Requisitos Técnicos
+          </h4>
+          <p style="margin: 0; font-size: 0.875rem; color: #475569; line-height: 1.6; font-style: italic;">
+            {{ evaluacionForm.get('r1')?.value || 'Sin respuesta registrada.' }}
+          </p>
+        </div>
+
+        <!-- B. Fortalezas -->
+        <div class="qual-card-read" style="padding: 1.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;">
+          <h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-regular fa-star" style="color: #10b981;"></i> B. Fortalezas de la Propuesta
+          </h4>
+          <p style="margin: 0; font-size: 0.875rem; color: #475569; line-height: 1.6; font-style: italic;">
+            {{ evaluacionForm.get('r2')?.value || 'Sin respuesta registrada.' }}
+          </p>
+        </div>
+
+        <!-- C. Recomendaciones -->
+        <div class="qual-card-read" style="padding: 1.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;">
+          <h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-regular fa-lightbulb" style="color: #8b5cf6;"></i> C. Recomendación o Sugerencia de Adjudicación
+          </h4>
+          <p style="margin: 0; font-size: 0.875rem; color: #475569; line-height: 1.6; font-style: italic;">
+            {{ evaluacionForm.get('r3')?.value || 'Sin respuesta registrada.' }}
+          </p>
+        </div>
+
+        <!-- D. Dictamen final / Observaciones -->
+        <div class="qual-card-read" style="padding: 1.5rem; background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 16px;">
+          <h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-regular fa-file-lines" style="color: #f59e0b;"></i> D. Observaciones o Dictamen Final
+          </h4>
+          <p style="margin: 0; font-size: 0.875rem; color: #475569; line-height: 1.6; font-weight: 500;">
+            {{ evaluacionForm.get('observaciones')?.value || 'Sin observaciones registradas.' }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Non-sticky footer in Criteria Mode to prevent overlap -->
+    <footer style="margin-top: 2rem; display: flex; justify-content: flex-start; padding: 1.25rem 2rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); width: 100%; box-sizing: border-box; position: relative; z-index: 10;">
+      <button type="button" class="btn-footer-ghost" (click)="cancelar()" style="background: transparent; border: none; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.875rem;">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Volver al Listado de Evaluaciones</span>
+      </button>
+    </footer>
+  </div>
+
+  <!-- CONTENIDO ORIGINAL (SE MUESTRA SI NO ES MODO SOLO CRITERIOS) -->
+  <div class="original-eval-content-wrapper" *ngIf="!criteriosOnly">
+    <!-- BREADCRUMBS MODERNOS (MODO EDICION) -->
+    <div class="breadcrumbs-modern" *ngIf="!isReadOnly">
+    <span class="crumb">Dashboard</span>
+    <i class="fa-solid fa-chevron-right separator"></i>
+    <span class="crumb">Evaluaciones</span>
+    <i class="fa-solid fa-chevron-right separator"></i>
+    <span class="crumb">Calificación Técnica</span>
+    <i class="fa-solid fa-chevron-right separator"></i>
+    <span class="crumb active">Detalle</span>
+  </div>
+
+  <!-- HEADER ATRAS Y TITULO (MODO EVALUADOR DETALLE) -->
+  <div class="header-breadcrumb-row fade-in" *ngIf="isReadOnly" style="display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem; padding-top: 0.5rem;">
+    <button type="button" class="btn-back-circle" (click)="cancelar()" style="width: 42px; height: 42px; border-radius: 50%; background: #ffffff; border: 1px solid #e2e8f0; color: #475569; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+    <div class="breadcrumb-header-text">
+      <div class="breadcrumbs-modern" style="margin-bottom: 0.25rem; padding: 0;">
+        <span class="crumb">Dashboard</span>
+        <i class="fa-solid fa-chevron-right separator"></i>
+        <span class="crumb">Evaluaciones</span>
+        <i class="fa-solid fa-chevron-right separator"></i>
+        <span class="crumb">Evaluador</span>
+        <i class="fa-solid fa-chevron-right separator"></i>
+        <span class="crumb active">Detalle</span>
+      </div>
+      <h1 class="page-title-modern" style="margin: 0; font-size: 1.75rem; font-weight: 900; color: #0f172a; letter-spacing: -0.5px;">Evaluador Detalle</h1>
+    </div>
+  </div>
+
+  <!-- HEADER EJECUTIVO (MODO EDICION) -->
+  <header class="eval-form-header" *ngIf="!isReadOnly">
+    <div class="header-main">
+      <h1>Evaluación Técnica de Propuesta</h1>
+      <p class="subtitle">Expediente #{{ propuestaId }} — Licitación: <strong>{{ licitacion?.titulo }}</strong></p>
+    </div>
+  </header>
+
+  <div class="eval-content-grid">
+    
+    <!-- SECCIÓN 1: COMPARATIVA DE DOCUMENTACIÓN -->
+    <div class="documents-comparison" *ngIf="!isReadOnly">
+      <!-- Tarjeta: Bases Oficiales -->
+      <section class="comparison-card">
+        <div class="tile-header-row">
+          <div class="tile-header-left">
+            <div class="icon-box blue"><i class="fa-solid fa-file-shield"></i></div>
+            <div class="tile-title">
+              <h3>Bases de la Licitación</h3>
+              <span class="tile-meta">Documentación de referencia</span>
+            </div>
+          </div>
+          <button type="button" class="btn-zip-premium" (click)="downloadZip()">
+            <span class="zip-text">ZIP Bases</span> <i class="fa-solid fa-cloud-arrow-down"></i>
+          </button>
+        </div>
+        
+        <div class="file-stack">
+          <div class="file-item-premium" *ngFor="let doc of licitacion?.documentos">
+            <div class="f-preview-icon red"><i class="fa-regular fa-file-pdf"></i></div>
+            <div class="f-info">
+              <span class="f-name">{{ doc.nombreArchivo }}</span>
+              <span class="f-tag">Bases Administrativas</span>
+            </div>
+            <button type="button" class="f-dl-btn" (click)="downloadIndividual(doc.rutaArchivo, doc.nombreArchivo)">
+              <i class="fa-solid fa-arrow-down-long"></i>
+            </button>
+          </div>
+          <div class="empty-files" *ngIf="!licitacion?.documentos?.length">
+            <i class="fa-solid fa-circle-info"></i> Sin documentos adjuntos.
+          </div>
+        </div>
+      </section>
+
+      <!-- Tarjeta: Oferta del Proveedor -->
+      <section class="comparison-card provider">
+        <div class="tile-header-row">
+          <div class="tile-header-left">
+            <div class="icon-box amber"><i class="fa-solid fa-store"></i></div>
+            <div class="tile-title">
+              <h3>Oferta del Proveedor</h3>
+              <span class="tile-meta">{{ propuesta?.empresaNombre || 'Proveedor Postulante' }}</span>
+            </div>
+          </div>
+          <button type="button" class="btn-zip-premium highlight" (click)="downloadIndividual(propuesta.archivoUrl, 'propuesta.pdf')" *ngIf="propuesta?.archivoUrl">
+            <span class="zip-text">ZIP Propuesta</span> <i class="fa-solid fa-cloud-arrow-down"></i>
+          </button>
+        </div>
+
+        <div class="file-stack">
+          <!-- Main Doc -->
+          <div class="file-item-premium main" *ngIf="propuesta?.archivoUrl">
+            <div class="f-preview-icon red"><i class="fa-regular fa-file-pdf"></i></div>
+            <div class="f-info">
+              <span class="f-name">{{ propuesta.archivoUrl.split('/').pop() || 'Propuesta_Tecnica_Economica.pdf' }}</span>
+              <span class="f-tag">Anexo Técnico</span>
+            </div>
+            <button type="button" class="f-dl-btn" (click)="downloadIndividual(propuesta.archivoUrl, 'propuesta_principal.pdf')">
+              <i class="fa-solid fa-arrow-down-long"></i>
+            </button>
+          </div>
+
+          <!-- Attachments if any -->
+          <div class="file-item-premium" *ngFor="let doc of propuesta?.documentos">
+            <div class="f-preview-icon"><i class="fa-regular fa-file-pdf"></i></div>
+            <div class="f-info">
+              <span class="f-name">{{ doc.nombreArchivo }}</span>
+              <span class="f-tag">Documentación Adicional</span>
+            </div>
+            <button type="button" class="f-dl-btn" (click)="downloadIndividual(doc.rutaArchivo, doc.nombreArchivo)">
+              <i class="fa-solid fa-arrow-down-long"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Métrica integrada dentro de la tarjeta de la oferta -->
+        <div class="integrated-metrics-grid">
+          <div class="met-box">
+            <span class="met-lbl">Monto Ofertado</span>
+            <span class="met-val">{{ propuesta?.montoOfertado | number:'1.2-2' }} {{ propuesta?.moneda || 'USD' }}</span>
+          </div>
+          <div class="met-box">
+            <span class="met-lbl">Tiempo de Entrega</span>
+            <span class="met-val">{{ propuesta?.tiempoEntregaDias }} días calendario</span>
+          </div>
+          <div class="met-box">
+            <span class="met-lbl">Área Técnica</span>
+            <span class="met-val highlighting">{{ licitacion?.area?.nombre || 'TI' }}</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- SECCIÓN 3: RÚBRICA DE EVALUACIÓN -->
+    <section class="form-container-premium" [class.readonly-mode]="isReadOnly">
+      <!-- SELECTOR DE CALIFICACIONES (MULTIPLE EVALUADORES) CON DRAG & DROP -->
+      <div class="evaluators-selector-card" *ngIf="(todasEvaluaciones && todasEvaluaciones.length > 0) || isAdmin"
+           [class.drag-active]="isDraggingOver"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)"
+           (drop)="onDrop($event)">
+        
+        <div class="selector-title" style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <i class="fa-solid fa-users-gear icon-title"></i>
+            <div class="title-text">
+              <h3>Evaluadores del Expediente</h3>
+              <p *ngIf="todasEvaluaciones && todasEvaluaciones.length > 0">
+                Este expediente ha sido calificado por {{ todasEvaluaciones.length }} especialistas. Seleccione uno para ver su dictamen:
+              </p>
+              <p *ngIf="!todasEvaluaciones || todasEvaluaciones.length === 0" style="color: #64748b; font-style: italic;">
+                No hay evaluadores asignados a esta propuesta todavía.
+              </p>
+            </div>
+          </div>
+          
+          <!-- Botón premium para Iniciar/Editar Evaluación -->
+          <div *ngIf="isEditable" class="edit-action-container" style="margin-left: auto;">
+            <button type="button" class="btn-zip-premium highlight" (click)="activarEdicion()" style="background: #3b82f6; color: #ffffff; border: none; padding: 0.65rem 1.25rem; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <span>{{ (evaluacionSeleccionada?.id) ? 'Editar Mi Calificación' : 'Iniciar Mi Calificación' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Drag Over Overlay / Empty state -->
+        <div class="drop-zone-empty-state" *ngIf="isAdmin && todasEvaluaciones.length === 0">
+          <div class="dz-pulse-box">
+            <i class="fa-solid fa-hand-holding-hand drop-icon-pulse"></i>
+            <span>Arrastre y suelte un evaluador aquí para asignarlo</span>
+          </div>
+        </div>
+
+        <div class="evaluators-chips-row" *ngIf="todasEvaluaciones && todasEvaluaciones.length > 0">
+          <button type="button" 
+                  *ngFor="let ev of todasEvaluaciones" 
+                  class="evaluator-chip-btn" 
+                  [class.active]="evaluacionSeleccionada?.evaluador?.id === ev.evaluador?.id" 
+                  (click)="selectEvaluacion(ev)">
+            <div class="avatar-circle">
+              {{ (ev.evaluador?.nombre?.charAt(0) || '') + (ev.evaluador?.apellido?.charAt(0) || 'E') }}
+            </div>
+            <div class="chip-info">
+              <span class="eval-name">{{ (ev.evaluador?.nombre || '') + ' ' + (ev.evaluador?.apellido || '') }}</span>
+              <span class="eval-meta">{{ ev.evaluador?.username || 'Especialista' }} • <strong class="score-num">{{ ev.puntajeTotal || 0 }}/50 pts</strong></span>
+            </div>
+            <span class="remove-evaluator-badge" 
+                  *ngIf="isAdmin" 
+                  (click)="desasignarEvaluador($event, ev.evaluador?.id, ev.evaluador?.nombre)">
+              <i class="fa-solid fa-circle-xmark"></i>
+            </span>
+          </button>
+        </div>
+
+        <!-- DIRECTORIO DE EVALUADORES DISPONIBLES (DRAGGABLE) -->
+        <div class="available-evaluators-section" *ngIf="isAdmin && evaluadoresDisponibles.length > 0">
+          <div class="available-header">
+            <i class="fa-solid fa-id-card-clip"></i>
+            <span>Directorio de Evaluadores (Arrastre hacia arriba para asignar):</span>
+          </div>
+          <div class="available-chips-row">
+            <div class="draggable-eval-card" 
+                 *ngFor="let u of evaluadoresDisponibles" 
+                 draggable="true" 
+                 (dragstart)="onDragStart($event, u)">
+              <div class="avail-avatar">
+                {{ u.nombre?.charAt(0) || 'E' }}
+              </div>
+              <div class="avail-info">
+                <span class="avail-name">{{ u.nombre }} {{ u.apellido }}</span>
+                <span class="avail-meta">{{ u.username }}</span>
+              </div>
+              <div class="avail-grip">
+                <i class="fa-solid fa-grip-vertical"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="all-assigned-success" *ngIf="isAdmin && evaluadoresDisponibles.length === 0 && todasEvaluaciones.length > 0">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>Todos los evaluadores del sistema han sido asignados a esta propuesta.</span>
+        </div>
+      </div>
+
+      <form [formGroup]="evaluacionForm" (ngSubmit)="finalize()">
+        
+        <!-- MODO EDICIÓN -->
+        <div class="edit-mode-layout" *ngIf="!isReadOnly">
+          <div class="rubric-header">
+            <div class="r-title">
+              <i class="fa-solid fa-scale-balanced"></i>
+              <h2>Criterios de Evaluación Técnica</h2>
+            </div>
+            <div class="r-score-plate">
+              <div class="score-main">
+                <span class="current">{{ totalPuntaje }}</span>
+                <span class="total">/ 50 pts</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="questions-grid">
+            <div class="question-item-premium" *ngFor="let q of preguntasActuales; let i = index">
+              <div class="q-content-row">
+                <div class="q-left-info">
+                  <span class="q-index">0{{ i + 1 }}</span>
+                  <div class="q-text-stack">
+                    <h4>{{ q }}</h4>
+                    <p class="q-desc">{{ getPreguntaDescription(i) }}</p>
+                  </div>
+                </div>
+
+                <div class="q-center-score">
+                  <span class="score-display-val">{{ evaluacionForm.get('p' + (i + 1))?.value || 0 }} pts</span>
+                </div>
+
+                <div class="q-right-choices">
+                  <label class="choice-label deficiente" [class.selected]="evaluacionForm.get('p' + (i + 1))?.value === 0">
+                    <input type="radio" [formControlName]="'p' + (i + 1)" [value]="0">
+                    <div class="radio-indicator"></div>
+                    <i class="fa-regular fa-face-frown icon-emoji"></i>
+                    <span class="choice-txt">Deficiente <span class="pts-sub">(0 pts)</span></span>
+                  </label>
+
+                  <label class="choice-label promedio" [class.selected]="evaluacionForm.get('p' + (i + 1))?.value === 5">
+                    <input type="radio" [formControlName]="'p' + (i + 1)" [value]="5">
+                    <div class="radio-indicator"></div>
+                    <i class="fa-regular fa-face-meh icon-emoji"></i>
+                    <span class="choice-txt">Promedio <span class="pts-sub">(5 pts)</span></span>
+                  </label>
+
+                  <label class="choice-label excelente" [class.selected]="evaluacionForm.get('p' + (i + 1))?.value === 10">
+                    <input type="radio" [formControlName]="'p' + (i + 1)" [value]="10">
+                    <div class="radio-indicator"></div>
+                    <i class="fa-regular fa-face-smile icon-emoji"></i>
+                    <span class="choice-txt">Excelente <span class="pts-sub">(10 pts)</span></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ANÁLISIS CUALITATIVO -->
+          <div class="qualitative-section-premium">
+            <div class="sub-section-title">
+              <i class="fa-regular fa-comment-dots"></i>
+              <h3>Análisis Cualitativo de la Oferta</h3>
+            </div>
+            
+            <div class="qualitative-list-stack">
+              <!-- Item 1: Cumplimiento y Puntualidad (r1) -->
+              <div class="qualitative-item-card">
+                <div class="qual-left-meta">
+                  <div class="meta-icon-circle blue">
+                    <i class="fa-regular fa-clipboard"></i>
+                  </div>
+                  <div class="meta-text">
+                    <h4>Cumplimiento y Puntualidad</h4>
+                    <p>Ej: Cumple con los plazos, historial de entrega...</p>
+                  </div>
+                </div>
+                <div class="qual-right-input">
+                  <textarea formControlName="r1" placeholder="Escriba su análisis sobre el cumplimiento y puntualidad..." rows="3" class="textarea-field-premium"></textarea>
+                  <div class="char-counter-premium" style="margin-top: 0.25rem; text-align: right;">
+                    {{ evaluacionForm.get('r1')?.value?.length || 0 }}/1000
+                  </div>
+                </div>
+              </div>
+
+              <!-- Item 2: Análisis de Fortalezas y Debilidades (r2) -->
+              <div class="qualitative-item-card">
+                <div class="qual-left-meta">
+                  <div class="meta-icon-circle green">
+                    <i class="fa-regular fa-star"></i>
+                  </div>
+                  <div class="meta-text">
+                    <h4>Análisis de Fortalezas y Debilidades</h4>
+                    <p>Ej: Experiencia técnica, solvencia, puntos débiles...</p>
+                  </div>
+                </div>
+                <div class="qual-right-input">
+                  <textarea formControlName="r2" placeholder="Escriba su análisis de fortalezas y debilidades..." rows="3" class="textarea-field-premium"></textarea>
+                  <div class="char-counter-premium" style="margin-top: 0.25rem; text-align: right;">
+                    {{ evaluacionForm.get('r2')?.value?.length || 0 }}/1000
+                  </div>
+                </div>
+              </div>
+
+              <!-- Item 3: Conclusiones y Recomendación (r3) -->
+              <div class="qualitative-item-card">
+                <div class="qual-left-meta">
+                  <div class="meta-icon-circle purple">
+                    <i class="fa-regular fa-lightbulb"></i>
+                  </div>
+                  <div class="meta-text">
+                    <h4>Conclusiones y Recomendación</h4>
+                    <p>Ej: Se recomienda adjudicar por X motivos...</p>
+                  </div>
+                </div>
+                <div class="qual-right-input">
+                  <textarea formControlName="r3" placeholder="Escriba sus conclusiones y recomendación..." rows="3" class="textarea-field-premium"></textarea>
+                  <div class="char-counter-premium" style="margin-top: 0.25rem; text-align: right;">
+                    {{ evaluacionForm.get('r3')?.value?.length || 0 }}/1000
+                  </div>
+                </div>
+              </div>
+
+              <!-- Item 4: Dictamen Técnico y Observaciones Finales (observaciones) -->
+              <div class="qualitative-item-card">
+                <div class="qual-left-meta">
+                  <div class="meta-icon-circle orange">
+                    <i class="fa-regular fa-file-lines"></i>
+                  </div>
+                  <div class="meta-text">
+                    <h4>Dictamen Técnico y Observaciones Finales</h4>
+                    <p>Justifique su calificación de manera detallada...</p>
+                  </div>
+                </div>
+                <div class="qual-right-input">
+                  <textarea formControlName="observaciones" placeholder="Escriba su dictamen técnico y observaciones finales..." rows="3" class="textarea-field-premium"></textarea>
+                  <div class="char-counter-premium" [class.error]="evaluacionForm.get('observaciones')?.value?.length < 10" style="margin-top: 0.25rem; text-align: right;">
+                    Mínimo 10 caracteres | Actual: {{ evaluacionForm.get('observaciones')?.value?.length || 0 }}
+                  </div>
+                  
+                  <!-- Caja informativa de preguntas clave orientativas para observaciones -->
+                  <div class="dictamen-guidelines-box" style="margin-top: 1rem; padding: 1.25rem; background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 8px; font-size: 0.85rem; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.05);">
+                    <span style="font-weight: 800; color: #b45309; display: flex; align-items: center; gap: 6px; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                      <i class="fa-solid fa-circle-question" style="color: #f59e0b;"></i> Preguntas clave a responder en sus observaciones:
+                    </span>
+                    <ul style="margin: 0; padding-left: 1.2rem; color: #78350f; display: flex; flex-direction: column; gap: 0.35rem; line-height: 1.4;">
+                      <li *ngFor="let q of preguntasActuales" style="font-weight: 500;">{{ q }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RESULTADO FINAL Y ARCHIVO -->
+          <div class="final-result-section">
+            <div class="decision-box-premium">
+              <label class="section-card-label">Resultado de Evaluación</label>
+              <div class="premium-select-wrapper">
+                <select formControlName="resultado">
+                  <option value="PENDIENTE">-- Seleccionar --</option>
+                  <option value="APROBADO">Aprobado</option>
+                  <option value="OBSERVADO">Observado</option>
+                  <option value="RECHAZADO">Rechazado</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="uploader-box-premium">
+              <label class="section-card-label">Informe de Evaluación Firmado (PDF)</label>
+              <div class="premium-uploader-row">
+                <div class="uploader-left-meta">
+                  <span class="file-status-text" [class.has-file]="selectedFile">
+                    {{ selectedFile ? selectedFile.name : 'No se ha seleccionado ningún archivo' }}
+                  </span>
+                </div>
+                
+                <div class="uploader-right-dropzone" [class.has-file]="selectedFile">
+                  <input type="file" (change)="onFileSelected($event)" accept="application/pdf">
+                  <ng-container *ngIf="!selectedFile">
+                    <div class="zone-content">
+                      <i class="fa-solid fa-cloud-arrow-up icon-upload"></i>
+                      <span class="zone-title">Subir informe firmado</span>
+                      <span class="zone-subtitle">Formato PDF, Máx. 10MB</span>
+                    </div>
+                  </ng-container>
+                  <ng-container *ngIf="selectedFile">
+                    <div class="zone-content has-file">
+                      <i class="fa-solid fa-file-pdf icon-pdf"></i>
+                      <span class="zone-title">{{ selectedFile.name }}</span>
+                      <button type="button" class="btn-clear-uploaded" (click)="selectedFile = null; $event.stopPropagation();">×</button>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="declaration-legal">
+            <label class="premium-checkbox">
+              <input type="checkbox" formControlName="sinConflictoInteres">
+              <div class="checkbox-box"></div>
+              <span class="checkbox-text">Declaro que esta evaluación se basa exclusivamente en criterios técnicos y de transparencia institucional.</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- MODO REPORTE (SOLO LECTURA) -->
+        <div class="readonly-mode-layout" *ngIf="isReadOnly">
+          
+          <div class="readonly-premium-dashboard fade-in">
+            
+            <!-- 2. TARJETA PRINCIPAL SUPERIOR (EXPEDIENTE Y METADATOS) -->
+            <div class="main-hero-card-grid" [class.winner-hero-card]="propuesta?.estado?.toUpperCase() === 'GANADORA'">
+              <!-- Info principal de la propuesta -->
+              <div class="proposal-hero-info">
+                <div class="hero-icon-container" 
+                     [style.background]="propuesta?.estado?.toUpperCase() === 'GANADORA' ? '#fffbeb' : '#def7ec'" 
+                     [style.color]="propuesta?.estado?.toUpperCase() === 'GANADORA' ? '#d97706' : '#03543f'">
+                  <i class="fa-solid fa-file-invoice-dollar" style="font-size: 1.6rem;"></i>
+                </div>
+                <div class="hero-details">
+                  <div class="title-badge-row">
+                    <h2 class="hero-proposal-title" style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">
+                      {{propuesta?.nombre || propuesta?.empresaNombre || 'Suministro de Laptops de Alto Rendimiento'}}
+                    </h2>
+                    <span class="status-badge-premium text-uppercase" [ngClass]="getStatusClass(propuesta?.estado)">
+                      {{propuesta?.estado || 'EN_EVALUACION'}}
+                    </span>
+                  </div>
+                  <p class="hero-licitacion-ref" style="margin: 0.15rem 0 0.4rem 0; color: #64748b; font-size: 0.85rem; font-weight: 500;">
+                    Licitación: {{licitacion?.codigo || licitacion?.titulo || 'LP-2026-015'}}
+                  </p>
+                  <div class="hero-meta-row" style="font-size: 0.8rem; color: #475569; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <span class="meta-item">
+                      Entidad Contratante: <strong>Municipalidad Provincial de Arequipa</strong>
+                    </span>
+                    <span class="meta-separator" style="color: #cbd5e1;">•</span>
+                    <span class="meta-item">
+                      Fecha de Cierre: <strong>{{licitacion?.fechaCierre ? (licitacion.fechaCierre | date:'dd/MM/yyyy, HH:mm') : '03/05/2026, 14:00'}}</strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Grid de metadatos de 4 columnas a la derecha -->
+              <div class="hero-meta-columns-grid">
+                <div class="meta-col">
+                  <span class="meta-lbl">Código de Postulación</span>
+                  <span class="meta-val highlighted">POST-2026-015-{{propuesta?.id | number:'3.0-0'}}</span>
+                </div>
+                
+                <div class="meta-col">
+                  <span class="meta-lbl">Fecha de Envío</span>
+                  <span class="meta-val">
+                    <i class="fa-regular fa-calendar icon-val"></i> 
+                    {{propuesta?.fechaEnvio ? (propuesta.fechaEnvio | date:'dd/MM/yyyy, HH:mm') : '30/04/2026, 11:25'}}
+                  </span>
+                </div>
+
+                <div class="meta-col">
+                  <span class="meta-lbl">Estado Actual</span>
+                  <span class="meta-val status-dot-wrapper">
+                    <span class="status-dot green"></span>
+                    {{getFriendlyEstado(propuesta?.estado)}}
+                  </span>
+                </div>
+
+                <div class="meta-col">
+                  <span class="meta-lbl">Vigencia de la Oferta</span>
+                  <span class="meta-val">
+                    <i class="fa-regular fa-calendar-check icon-val"></i> 
+                    {{propuesta?.tiempoEntregaDias || 90}} días
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. SECCIÓN DE PESTAÑAS (TABS) -->
+            <div class="tabs-navigation-container">
+              <button type="button" class="tab-nav-btn" [class.active]="activeTab === 'resumen'" (click)="selectTab('resumen')">
+                <i class="fa-regular fa-file-lines icon-tab"></i> Resumen
+              </button>
+              <button type="button" class="tab-nav-btn" [class.active]="activeTab === 'documentos'" (click)="selectTab('documentos')">
+                <i class="fa-solid fa-folder-open icon-tab"></i> Documentos
+              </button>
+              <button type="button" class="tab-nav-btn" [class.active]="activeTab === 'oferta'" (click)="selectTab('oferta')">
+                <i class="fa-solid fa-hand-holding-dollar icon-tab"></i> Oferta Económica
+              </button>
+              <button type="button" class="tab-nav-btn" [class.active]="activeTab === 'requisitos'" (click)="selectTab('requisitos')">
+                <i class="fa-solid fa-clipboard-check icon-tab"></i> Requisitos
+              </button>
+              <button type="button" class="tab-nav-btn" [class.active]="activeTab === 'observaciones'" (click)="selectTab('observaciones')">
+                <i class="fa-regular fa-comments icon-tab"></i> Observaciones
+              </button>
+              <button type="button" class="tab-nav-btn" [class.active]="activeTab === 'historial'" (click)="selectTab('historial')">
+                <i class="fa-solid fa-clock-rotate-left icon-tab"></i> Historial
+              </button>
+            </div>
+
+            <!-- 4. CONTENIDO DE LAS PESTAÑAS (TAB CONTENT) -->
+            <div class="tab-content-container">
+
+              <!-- ==================== TAB: RESUMEN ==================== -->
+              <div class="grid-two-columns fade-in" *ngIf="activeTab === 'resumen'">
+                
+                <!-- Columna Izquierda: Información del Postulante + Resumen de la Postulación + Resumen de Puntajes -->
+                <div class="left-panel-stack">
+                  
+                  <!-- Card: Información del Postulante -->
+                  <div class="premium-detail-card">
+                    <div class="card-title-header">
+                      <div class="title-icon blue">
+                        <i class="fa-regular fa-user"></i>
+                      </div>
+                      <div class="title-text-group">
+                        <h3>Información del Postulante</h3>
+                        <p>Datos fiscales, de contacto y del representante legal de la empresa postulante.</p>
+                      </div>
+                    </div>
+                    <div class="card-body-content">
+                      <div class="info-props-grid">
+                        <div class="prop-box">
+                          <span class="label">Razón Social</span>
+                          <span class="val highlighted">{{propuesta?.empresaNombre || 'Nexus Tech S.A.C.'}}</span>
+                        </div>
+                        <div class="prop-box">
+                          <span class="label">RUC</span>
+                          <span class="val highlighted">{{propuesta?.identificacionRuc || '20784930129'}}</span>
+                        </div>
+                        <div class="prop-box">
+                          <span class="label">Representante Legal</span>
+                          <span class="val highlighted">{{propuesta?.contactoNombre || 'Carlos Mendoza Díaz'}}</span>
+                        </div>
+                        <div class="prop-box">
+                          <span class="label">Correo Electrónico</span>
+                          <span class="val">{{propuesta?.contactoEmail || 'licitaciones@nexustech.pe'}}</span>
+                        </div>
+                        <div class="prop-box">
+                          <span class="label">Teléfono de Contacto</span>
+                          <span class="val"><i class="fa-solid fa-phone icon-prop" style="font-size: 0.75rem;"></i> {{propuesta?.contactoTelefono || '+51 984 756 123'}}</span>
+                        </div>
+                        <div class="prop-box">
+                          <span class="label">Dirección Fiscal</span>
+                          <span class="val">Av. Industrial 450, Lima - Perú</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Card: Resumen de la Postulación -->
+                  <div class="premium-detail-card">
+                    <div class="card-title-header">
+                      <div class="title-icon blue">
+                        <i class="fa-solid fa-list-check"></i>
+                      </div>
+                      <div class="title-text-group">
+                        <h3>Resumen de la Postulación</h3>
+                        <p>Configuraciones de la oferta, plazos de ejecución y garantías declaradas en bases.</p>
+                      </div>
+                    </div>
+                    <div class="card-body-content">
+                      <div class="info-props-grid">
+                        <div class="prop-box">
+                          <span class="label">Método de Evaluación</span>
+                          <span class="val">Criterio Técnico y Económico</span>
+                        </div>
+                        <div class="prop-box">
+                          <span class="label">Moneda de Oferta</span>
+                          <span class="val highlighted">{{propuesta?.moneda || 'USD'}}</span>
+                        </div>
+                        <div class="prop-box">
+                          <span class="label">Plazo de Ejecución</span>
+                          <span class="val">12 meses</span>
+                        </div>
+                        <div class="prop-box">
+                          <span class="label">Garantía de Oferta</span>
+                          <span class="val">{{propuesta?.declaracionVeracidad ? 'Presentada y Vigente' : 'No Presentada'}}</span>
+                        </div>
+                        <div class="prop-box">
+                          <span class="label">Declaración Jurada</span>
+                          <span class="val highlighted">{{propuesta?.aceptacionBases ? 'Aceptada' : 'No Aceptada'}}</span>
+                        </div>
+                        <div class="prop-box">
+                          <span class="label">Condición de Pago</span>
+                          <span class="val">30 días netos tras entrega</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Card: Resumen de Puntajes -->
+                  <div class="premium-detail-card">
+                    <div class="card-title-header">
+                      <div class="title-icon green">
+                        <i class="fa-solid fa-square-poll-vertical"></i>
+                      </div>
+                      <div class="title-text-group">
+                        <h3>Resumen de Puntajes de Evaluación</h3>
+                        <p>Calificación técnica consolidada, puntaje económico referencial y puntaje total.</p>
+                      </div>
+                    </div>
+                    <div class="card-body-content">
+                      <div class="scores-progress-stack" *ngIf="evaluacionSeleccionada || evaluacionActual">
+                        
+                        <div class="progress-bar-group">
+                          <div class="label-val-row">
+                            <span class="score-title">Puntaje Técnico Obligatorio</span>
+                            <span class="score-val"><strong>{{ getPuntajeTecnico() | number:'1.1-1' }}</strong> <span class="max">/ 50.0</span></span>
+                          </div>
+                          <div class="progress-bg">
+                            <div class="progress-bar-fill green-deep" [style.width.%]="getPuntajeTecnico() * 2"></div>
+                          </div>
+                        </div>
+
+                        <div class="progress-bar-group">
+                          <div class="label-val-row">
+                            <span class="score-title">Puntaje Económico Referencial</span>
+                            <span class="score-val"><strong>{{ getPuntajeEconomico() | number:'1.1-1' }}</strong> <span class="max">/ 20.0</span></span>
+                          </div>
+                          <div class="progress-bg">
+                            <div class="progress-bar-fill green" [style.width.%]="getPuntajeEconomico() * 5"></div>
+                          </div>
+                        </div>
+
+                        <div class="progress-bar-group" style="margin-bottom: 0.5rem;">
+                          <div class="label-val-row">
+                            <span class="score-title">Puntaje Total del Expediente</span>
+                            <span class="score-val"><strong>{{ getPuntajeTotal() | number:'1.1-1' }}</strong> <span class="max">/ 50.0</span></span>
+                          </div>
+                          <div class="progress-bg">
+                            <div class="progress-bar-fill green-deep" [style.width.%]="getPorcentajeAlcanzado()"></div>
+                          </div>
+                        </div>
+
+                        <!-- Dictamen Técnico Final Box -->
+                        <div class="resultado-banner-box" style="margin-top: 1rem;">
+                          <div class="banner-left">
+                            <div class="medal-circle-icon">
+                              <i class="fa-solid" [ngClass]="(evaluacionSeleccionada?.resultado || evaluacionActual?.resultado) === 'APROBADO' ? 'fa-medal' : 'fa-circle-xmark'" [style.color]="(evaluacionSeleccionada?.resultado || evaluacionActual?.resultado) === 'APROBADO' ? '#059669' : '#ef4444'"></i>
+                            </div>
+                            <div class="banner-text">
+                              <span class="banner-lbl">DICTAMEN TÉCNICO</span>
+                              <span class="banner-val" [style.color]="(evaluacionSeleccionada?.resultado || evaluacionActual?.resultado) === 'APROBADO' ? '#059669' : '#dc2626'">
+                                {{ (evaluacionSeleccionada?.resultado || evaluacionActual?.resultado) === 'APROBADO' ? 'PROVEEDOR APTO' : 'PROVEEDOR NO APTO' }}
+                              </span>
+                              <span class="banner-sublbl" [style.color]="(evaluacionSeleccionada?.resultado || evaluacionActual?.resultado) === 'APROBADO' ? '#10b981' : '#f87171'">
+                                Calificación: {{ getPorcentajeAlcanzado() }}% del puntaje máximo
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Botón de acción rápida para editar la propia evaluación -->
+                        <div *ngIf="isEditable" style="margin-top: 1.5rem; display: flex; justify-content: center;">
+                          <button type="button" class="btn-zip-premium highlight" (click)="activarEdicion()" style="background: #3b82f6; width: 100%; justify-content: center; padding: 0.75rem 1rem; border-radius: 12px; font-weight: 700; font-size: 0.875rem; color: #ffffff; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <span>Editar Mi Calificación Técnica</span>
+                          </button>
+                        </div>
+
+                      </div>
+
+                      <!-- Empty state elegant if no evaluations selected/loaded yet -->
+                      <div class="empty-evaluation-box" *ngIf="!evaluacionSeleccionada && !evaluacionActual">
+                        <i class="fa-solid fa-rectangle-list icon-empty"></i>
+                        <h4>Sin Calificación Registrada</h4>
+                        <p>Esta propuesta aún no tiene una evaluación registrada por su usuario.</p>
+                        <button type="button" class="btn-zip-premium highlight" (click)="activarEdicion()" *ngIf="isEditable" style="margin-top: 1rem; background: #3b82f6; color: #ffffff; border: none; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);">
+                          <i class="fa-solid fa-play"></i> Iniciar Mi Calificación
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Columna Derecha: Estado de la Postulación + Acciones Rápidas + Detalles Adicionales -->
+                <div class="right-panel-stack">
+                  
+                  <!-- Card: Estado de la Postulación (Timeline) -->
+                  <div class="premium-detail-card">
+                    <div class="card-title-header">
+                      <div class="title-icon blue">
+                        <i class="fa-solid fa-chart-line"></i>
+                      </div>
+                      <div class="title-text-group">
+                        <h3>Estado de la Postulación</h3>
+                        <p>Hitos cronológicos del flujo de postulación y evaluación.</p>
+                      </div>
+                    </div>
+                    <div class="card-body-content">
+                      <div class="postulacion-timeline-card">
+                        <div class="timeline-step-item" *ngFor="let step of getPostulacionTimeline()">
+                          <div class="step-circle" [ngClass]="step.status">
+                            <i class="fa-solid" [ngClass]="step.icon"></i>
+                          </div>
+                          <span class="step-lbl" [class.active]="step.status === 'active'">{{step.label}}</span>
+                          <span class="step-time" *ngIf="step.date">{{step.date | date:'dd/MM/yyyy, HH:mm'}}</span>
+                          <span class="step-time italic" *ngIf="!step.date">{{step.description || 'Pendiente'}}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Card: Acciones Disponibles -->
+                  <div class="premium-detail-card">
+                    <div class="card-title-header">
+                      <div class="title-icon blue">
+                        <i class="fa-solid fa-bolt"></i>
+                      </div>
+                      <div class="title-text-group">
+                        <h3>Acciones del Expediente</h3>
+                        <p>Exportaciones y descargas oficiales con validez jurídica.</p>
+                      </div>
+                    </div>
+                    <div class="card-body-content">
+                      <div class="premium-actions-list">
+                        <button type="button" class="btn-outline-action blue-action" (click)="descargarResumenPdf()">
+                          <i class="fa-solid fa-file-pdf"></i> Descargar Resumen (PDF)
+                        </button>
+                        <button type="button" class="btn-outline-action green-action" (click)="exportarExcel()">
+                          <i class="fa-solid fa-file-excel"></i> Exportar a Excel (CSV)
+                        </button>
+                        <button type="button" class="btn-outline-action purple-action" (click)="descargarConstanciaPdf()">
+                          <i class="fa-solid fa-print"></i> Imprimir Constancia
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Card: Detalles Adicionales -->
+                  <div class="premium-detail-card">
+                    <div class="card-title-header">
+                      <div class="title-icon blue">
+                        <i class="fa-solid fa-circle-info"></i>
+                      </div>
+                      <div class="title-text-group">
+                        <h3>Detalles de Operación</h3>
+                        <p>Auditoría y metadatos técnicos de control.</p>
+                      </div>
+                    </div>
+                    <div class="card-body-content">
+                      <div class="additional-details-grid">
+                        <div class="detail-mini-box">
+                          <span class="dm-lbl">Número de Folios</span>
+                          <span class="dm-val">{{ getFoliosCount() }} folios</span>
+                        </div>
+                        <div class="detail-mini-box">
+                          <span class="dm-lbl">Tamaño Archivos</span>
+                          <span class="dm-val">{{ getArchivosSize() }}</span>
+                        </div>
+                        <div class="detail-mini-box" style="grid-column: span 2;">
+                          <span class="dm-lbl">Última Sincronización</span>
+                          <span class="dm-val">{{ (evaluacionSeleccionada?.fecha || evaluacionActual?.fecha || propuesta?.fechaEnvio) ? ((evaluacionSeleccionada?.fecha || evaluacionActual?.fecha || propuesta?.fechaEnvio) | date:'dd/MM/yyyy, HH:mm') : '19/05/2026, 05:43' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <!-- ==================== TAB: DOCUMENTOS ==================== -->
+              <div class="fade-in" *ngIf="activeTab === 'documentos'">
+                <div class="premium-detail-card">
+                  <div class="card-title-header">
+                    <div class="title-icon blue">
+                      <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                    <div class="title-text-group">
+                      <h3>Expediente de Documentación Digital</h3>
+                      <p>Visualización y descarga de bases y propuestas oficiales adjuntas al expediente.</p>
+                    </div>
+                  </div>
+                  <div class="card-body-content">
+                    <div class="docs-grid-list">
+                      
+                      <!-- Documento 1: Bases del Concurso -->
+                      <div class="doc-grid-card-item">
+                        <div class="card-upper-row">
+                          <div class="doc-circle-badge font-pdf">
+                            <i class="fa-solid fa-file-pdf"></i>
+                          </div>
+                          <a [href]="getDownloadUrl(licitacion?.basesPdf || '')" target="_blank" class="btn-card-download" *ngIf="licitacion?.basesPdf">
+                            <i class="fa-solid fa-download"></i>
+                          </a>
+                        </div>
+                        <div class="card-lower-text">
+                          <span class="file-title" title="Bases del Concurso Oficiales.pdf">Bases del Concurso Oficiales.pdf</span>
+                          <span class="file-size-spec">Documento de Bases Institucionales</span>
+                        </div>
+                      </div>
+
+                      <!-- Documentos Adicionales de Bases de la Licitación -->
+                      <div class="doc-grid-card-item" *ngFor="let doc of licitacion?.documentos">
+                        <div class="card-upper-row">
+                          <div class="doc-circle-badge font-pdf" style="background: #e0f2fe; color: #0284c7;">
+                            <i class="fa-solid fa-file-pdf"></i>
+                          </div>
+                          <a [href]="getDownloadUrl(doc.rutaArchivo)" target="_blank" class="btn-card-download">
+                            <i class="fa-solid fa-download"></i>
+                          </a>
+                        </div>
+                        <div class="card-lower-text">
+                          <span class="file-title" [title]="doc.nombreArchivo">{{ doc.nombreArchivo }}</span>
+                          <span class="file-size-spec">Bases de Referencia</span>
+                        </div>
+                      </div>
+
+                      <!-- Documento 2: Propuesta Técnica -->
+                      <div class="doc-grid-card-item" *ngIf="propuesta?.archivoTecnica">
+                        <div class="card-upper-row">
+                          <div class="doc-circle-badge font-pdf">
+                            <i class="fa-solid fa-file-pdf"></i>
+                          </div>
+                          <a [href]="getDownloadUrl(propuesta.archivoTecnica)" target="_blank" class="btn-card-download">
+                            <i class="fa-solid fa-download"></i>
+                          </a>
+                        </div>
+                        <div class="card-lower-text">
+                          <span class="file-title" title="Propuesta_Tecnica_Nexus.pdf">Propuesta_Tecnica_Nexus.pdf</span>
+                          <span class="file-size-spec">Carga: {{ (propuesta.fechaEnvio || '2026-04-30T11:25:00') | date:'dd/MM/yyyy' }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Documento 3: Propuesta Económica -->
+                      <div class="doc-grid-card-item" *ngIf="propuesta?.archivoEconomica">
+                        <div class="card-upper-row">
+                          <div class="doc-circle-badge font-pdf">
+                            <i class="fa-solid fa-file-pdf"></i>
+                          </div>
+                          <a [href]="getDownloadUrl(propuesta.archivoEconomica)" target="_blank" class="btn-card-download">
+                            <i class="fa-solid fa-download"></i>
+                          </a>
+                        </div>
+                        <div class="card-lower-text">
+                          <span class="file-title" title="Propuesta_Economica_Nexus.pdf">Propuesta_Economica_Nexus.pdf</span>
+                          <span class="file-size-spec">Carga: {{ (propuesta.fechaEnvio || '2026-04-30T11:25:00') | date:'dd/MM/yyyy' }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Documento 4: Dictamen Técnico Firmado -->
+                      <div class="doc-grid-card-item" *ngIf="(evaluacionSeleccionada?.archivoPdf || evaluacionActual?.archivoPdf)">
+                        <div class="card-upper-row">
+                          <div class="doc-circle-badge font-pdf" style="background: #e0f2fe; color: #0284c7;">
+                            <i class="fa-solid fa-file-signature"></i>
+                          </div>
+                          <a [href]="getDownloadUrl(evaluacionSeleccionada?.archivoPdf || evaluacionActual?.archivoPdf || '')" target="_blank" class="btn-card-download">
+                            <i class="fa-solid fa-download"></i>
+                          </a>
+                        </div>
+                        <div class="card-lower-text">
+                          <span class="file-title" title="Informe_Evaluacion_Firmado.pdf">Informe_Evaluacion_Firmado.pdf</span>
+                          <span class="file-size-spec">Dictamen Técnico Oficial Certificado</span>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ==================== TAB: OFERTA ECONÓMICA ==================== -->
+              <div class="fade-in" *ngIf="activeTab === 'oferta'">
+                <div class="premium-detail-card">
+                  <div class="card-title-header">
+                    <div class="title-icon blue">
+                      <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                    <div class="title-text-group">
+                      <h3>Oferta Económica y Condiciones Comerciales</h3>
+                      <p>Montos, divisas, y vigencia de la oferta económica enviada por el proveedor.</p>
+                    </div>
+                  </div>
+                  <div class="card-body-content">
+                    <div class="info-props-grid">
+                      <div class="prop-box">
+                        <span class="label">Monto Ofertado</span>
+                        <span class="val highlighted" style="font-size: 1.4rem; color: #10b981; font-weight: 900;">
+                          {{ propuesta?.montoOfertado | number:'1.2-2' }} {{ propuesta?.moneda || 'USD' }}
+                        </span>
+                      </div>
+                      <div class="prop-box">
+                        <span class="label">Vigencia de Oferta</span>
+                        <span class="val highlighted">{{ propuesta?.tiempoEntregaDias || 90 }} días calendario</span>
+                      </div>
+                      <div class="prop-box">
+                        <span class="label">Moneda de Licitación</span>
+                        <span class="val">{{ propuesta?.moneda || 'USD' }}</span>
+                      </div>
+                      <div class="prop-box">
+                        <span class="label">Plazo de Validez</span>
+                        <span class="val">Hasta el {{ (propuesta?.fechaEnvio ? (propuesta.fechaEnvio | date:'dd/MM/yyyy') : '30/07/2026') }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ==================== TAB: REQUISITOS ==================== -->
+              <div class="fade-in" *ngIf="activeTab === 'requisitos'">
+                <div class="premium-detail-card">
+                  <div class="card-title-header">
+                    <div class="title-icon blue">
+                      <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                    <div class="title-text-group">
+                      <h3>Requisitos de Cumplimiento Técnico y Legal</h3>
+                      <p>Checklist de admisibilidad legal y administrativa de bases.</p>
+                    </div>
+                  </div>
+                  <div class="card-body-content">
+                    <div class="compliance-checklist">
+                      
+                      <div class="compliance-item-row">
+                        <div class="item-left">
+                          <i class="fa-solid fa-circle-check checked"></i>
+                          <span class="desc">Aceptación de Bases Administrativas</span>
+                        </div>
+                        <div class="item-right">
+                          <span class="badge-check success">CUMPLE</span>
+                        </div>
+                      </div>
+
+                      <div class="compliance-item-row">
+                        <div class="item-left">
+                          <i class="fa-solid fa-circle-check checked"></i>
+                          <span class="desc">Declaración Jurada de Veracidad de Información</span>
+                        </div>
+                        <div class="item-right">
+                          <span class="badge-check success">CUMPLE</span>
+                        </div>
+                      </div>
+
+                      <div class="compliance-item-row">
+                        <div class="item-left">
+                          <i class="fa-solid fa-circle-check checked"></i>
+                          <span class="desc">Inexistencia de Conflicto de Interés</span>
+                        </div>
+                        <div class="item-right">
+                          <span class="badge-check success">CUMPLE</span>
+                        </div>
+                      </div>
+
+                      <div class="compliance-item-row">
+                        <div class="item-left">
+                          <i class="fa-solid fa-circle-check checked"></i>
+                          <span class="desc">Garantía de Seriedad de Oferta Presentada</span>
+                        </div>
+                        <div class="item-right">
+                          <span class="badge-check success">CUMPLE</span>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ==================== TAB: OBSERVACIONES ==================== -->
+              <div class="fade-in" *ngIf="activeTab === 'observaciones'">
+                <div class="grid-two-columns">
+                  
+                  <!-- Columna Izquierda: Criterios Evaluados -->
+                  <div class="premium-detail-card">
+                    <div class="card-title-header">
+                      <div class="title-icon blue">
+                        <i class="fa-solid fa-table-list"></i>
+                      </div>
+                      <div class="title-text-group">
+                        <h3>Criterios Técnicos Evaluados</h3>
+                        <p>Rubros calificados según bases con desglose de puntajes.</p>
+                      </div>
+                    </div>
+                    <div class="card-body-content">
+                      <div class="criterios-scores-list" *ngIf="evaluacionSeleccionada || evaluacionActual">
+                        <div class="criterio-item-row" *ngFor="let q of preguntasActuales; let i = index">
+                          <div class="criterio-info">
+                            <h4>{{ q }}</h4>
+                            <p>Calificación del evaluador para este criterio específico.</p>
+                          </div>
+                          <div class="criterio-score-badge">
+                            <span class="val">{{ evaluacionForm.get('p' + (i + 1))?.value || 0 }}</span>
+                            <span class="max">/10</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Columna Derecha: Comentarios Cualitativos y Firma -->
+                  <div class="left-panel-stack">
+                    
+                    <div class="premium-detail-card">
+                      <div class="card-title-header">
+                        <div class="title-icon blue">
+                          <i class="fa-regular fa-comments"></i>
+                        </div>
+                        <div class="title-text-group">
+                          <h3>Observaciones y Conclusiones</h3>
+                          <p>Notas cualitativas generales y dictamen técnico final.</p>
+                        </div>
+                      </div>
+                      <div class="card-body-content">
+                        <div class="evaluation-notes-box" *ngIf="evaluacionSeleccionada || evaluacionActual">
+                          
+                          <!-- Cumplimiento y Puntualidad -->
+                          <div class="qualitative-comment-item">
+                            <div class="comment-item-header">
+                              <i class="fa-regular fa-clipboard icon-comment blue"></i>
+                              <h5>Cumplimiento y Puntualidad</h5>
+                            </div>
+                            <div class="comment-text-box">
+                              {{ evaluacionForm.get('r1')?.value || 'Sin comentarios registrados sobre este criterio.' }}
+                            </div>
+                          </div>
+
+                          <!-- Análisis de Fortalezas y Debilidades -->
+                          <div class="qualitative-comment-item">
+                            <div class="comment-item-header">
+                              <i class="fa-regular fa-star icon-comment green"></i>
+                              <h5>Análisis de Fortalezas y Debilidades</h5>
+                            </div>
+                            <div class="comment-text-box">
+                              {{ evaluacionForm.get('r2')?.value || 'Sin comentarios registrados sobre este criterio.' }}
+                            </div>
+                          </div>
+
+                          <!-- Conclusiones y Recomendación -->
+                          <div class="qualitative-comment-item">
+                            <div class="comment-item-header">
+                              <i class="fa-regular fa-lightbulb icon-comment purple"></i>
+                              <h5>Conclusiones y Recomendación</h5>
+                            </div>
+                            <div class="comment-text-box">
+                              {{ evaluacionForm.get('r3')?.value || 'Sin comentarios registrados sobre este criterio.' }}
+                            </div>
+                          </div>
+
+                          <!-- Dictamen Técnico y Observaciones Finales -->
+                          <div class="qualitative-comment-item">
+                            <div class="comment-item-header">
+                              <i class="fa-regular fa-file-lines icon-comment orange"></i>
+                              <h5>Dictamen Técnico y Observaciones Finales</h5>
+                            </div>
+                            <div class="comment-text-box main-dictum">
+                              {{ evaluacionSeleccionada?.observaciones || evaluacionSeleccionada?.comentarios || evaluacionActual?.observaciones || 'Sin observaciones adicionales registradas.' }}
+                            </div>
+                          </div>
+
+                          <!-- Firma del Evaluador -->
+                          <div class="evaluator-signature-section">
+                            <h4>Firma del Evaluador Técnico</h4>
+                            <div class="evaluator-signature-box">
+                              <span class="lbl-evaluator">Firmante Autorizado</span>
+                              <span class="val-evaluator">
+                                <i class="fa-solid fa-signature"></i>
+                                {{ evaluacionSeleccionada?.evaluador?.nombre ? (evaluacionSeleccionada?.evaluador?.nombre + ' ' + (evaluacionSeleccionada?.evaluador?.apellido || '')) : (evaluacionActual?.evaluador?.nombre ? (evaluacionActual?.evaluador?.nombre + ' ' + (evaluacionActual?.evaluador?.apellido || '')) : 'Ing. Carlos Pérez Medina') }}
+                              </span>
+                              <span class="val-date">
+                                <i class="fa-regular fa-calendar"></i>
+                                Calificado el {{ (evaluacionSeleccionada?.fecha || evaluacionActual?.fecha || propuesta?.fechaEnvio) | date:'dd/MM/yyyy, HH:mm' }}
+                              </span>
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- ==================== TAB: HISTORIAL ==================== -->
+              <div class="fade-in" *ngIf="activeTab === 'historial'">
+                <div class="premium-detail-card">
+                  <div class="card-title-header">
+                    <div class="title-icon blue">
+                      <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div class="title-text-group">
+                      <h3>Historial de Auditoría y Control del Expediente</h3>
+                      <p>Historial completo de modificaciones de la propuesta y calificaciones registradas en base de datos real.</p>
+                    </div>
+                  </div>
+                  <div class="card-body-content">
+                    <div class="timeline-container-premium" *ngIf="timelineItems && timelineItems.length > 0">
+                      <div class="timeline-step" *ngFor="let item of timelineItems">
+                        <div class="timeline-badge-icon" [ngClass]="item.badgeClass">
+                          <i class="fa-solid" [ngClass]="item.iconClass"></i>
+                        </div>
+                        <div class="timeline-card-content">
+                          <span class="timeline-date">{{ item.date | date:'dd/MM/yyyy, HH:mm' }}</span>
+                          <h4 class="timeline-title-text">{{ item.title }}</h4>
+                          <p class="timeline-details-text">{{ item.description }}</p>
+                          <span class="timeline-user-meta" *ngIf="item.user">
+                            <i class="fa-solid fa-user-tie"></i> Responsable: {{ item.user }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="empty-evaluation-box" *ngIf="!timelineItems || timelineItems.length === 0">
+                      <i class="fa-solid fa-history icon-empty"></i>
+                      <h4>Sin Historial Disponible</h4>
+                      <p>No se encontraron registros de auditoría históricos para esta propuesta.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- FOOTER DE ACCIONES -->
+        <footer class="eval-footer-sticky">
+          <!-- Left side action -->
+          <div class="footer-left-group" *ngIf="!isReadOnly">
+            <button type="button" class="btn-footer-save-draft" (click)="saveDraft()" [disabled]="isSubmitting">
+              <i class="fa-regular fa-floppy-disk"></i>
+              <span>Guardar Borrador</span>
+            </button>
+          </div>
+          <div class="footer-left-group" *ngIf="isReadOnly">
+            <button type="button" class="btn-footer-ghost" (click)="cancelar()">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Volver al Listado</span>
+            </button>
+          </div>
+
+          <!-- Center actions -->
+          <div class="footer-center-group" *ngIf="!isReadOnly">
+            <button type="button" class="btn-footer-cancel" (click)="cancelar()">
+              <span>Cancelar</span>
+            </button>
+            <button type="button" class="btn-footer-prev" [routerLink]="['/propuestas', propuestaId]">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Anterior</span>
+            </button>
+          </div>
+
+          <!-- Right side actions -->
+          <div class="footer-right-group" *ngIf="!isReadOnly">
+            <button type="submit" class="btn-footer-primary-finalize" [disabled]="evaluacionForm.invalid || isSubmitting">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>Guardar y Finalizar</span>
+            </button>
+          </div>
+          <div class="footer-right-group" *ngIf="isReadOnly">
+            <div class="footer-status-label">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>DATOS SINCRONIZADOS CON EL EXPEDIENTE</span>
+            </div>
+          </div>
+        </footer>
+      </form>
+    </section>
+  </div>
+  </div>
+</div>
+
+<div class="loading-state-fullscreen" *ngIf="isLoading">
+  <div class="premium-loader-circle"></div>
+  <p>Cargando expediente digital...</p>
+</div>

@@ -1,0 +1,554 @@
+<div class="postular-page-premium">
+  <!-- Breadcrumb Premium -->
+  <nav class="breadcrumb-premium">
+    <a [routerLink]="['/dashboard']" class="crumb-link">Dashboard</a>
+    <span class="crumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <a [routerLink]="['/licitaciones']" class="crumb-link">Licitaciones</a>
+    <span class="crumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="crumb-active">Nueva Propuesta</span>
+  </nav>
+
+  <!-- Page Title -->
+  <div class="page-header-premium">
+    <h1 class="page-title-premium">Nueva Propuesta</h1>
+  </div>
+
+  <div class="wizard-container-premium">
+    <!-- Header resumen de Licitación (Detalle breve) -->
+    <header class="licitacion-summary-card-premium" *ngIf="licitacion">
+      <div class="summary-top">
+        <div class="area-tag-premium">
+          <lucide-icon [name]="IconInfo" class="icon-tag"></lucide-icon>
+          <span>Área: {{ licitacion.area?.nombre }}</span>
+        </div>
+      </div>
+      <h2 class="licitacion-title-premium">{{ licitacion.titulo }}</h2>
+      
+      <div class="summary-stats-grid-premium">
+        <div class="summary-stat-box-premium">
+          <div class="icon-circle-premium green">
+            <lucide-icon [name]="IconDollar"></lucide-icon>
+          </div>
+          <div class="stat-info-premium">
+            <label>PRESUPUESTO</label>
+            <span>{{ licitacion.presupuesto | currency }} US$</span>
+          </div>
+        </div>
+        
+        <div class="summary-stat-box-premium orange">
+          <div class="icon-circle-premium orange">
+            <lucide-icon [name]="IconCheck"></lucide-icon>
+          </div>
+          <div class="stat-info-premium">
+            <label>LÍMITE</label>
+            <span>{{ licitacion.fechaCierre | date:'shortDate' }}</span>
+          </div>
+        </div>
+
+        <div class="summary-stat-box-premium blue">
+          <div class="icon-circle-premium blue">
+            <lucide-icon [name]="IconBuilding"></lucide-icon>
+          </div>
+          <div class="stat-info-premium">
+            <label>ÁREA</label>
+            <span>{{ licitacion.area?.nombre }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Stepper Wizard Premium matching reference visual -->
+    <div class="stepper-indicator-premium">
+      <!-- Step 1 -->
+      <div class="step-indicator-item" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+        <div class="indicator-circle">
+          <span *ngIf="currentStep <= 1">1</span>
+          <i class="fa-solid fa-check" *ngIf="currentStep > 1"></i>
+        </div>
+        <div class="indicator-labels">
+          <span class="label-title">Empresa</span>
+          <span class="label-subtitle">Información general</span>
+        </div>
+      </div>
+      <div class="indicator-line" [class.active]="currentStep > 1"></div>
+      
+      <!-- Step 2 -->
+      <div class="step-indicator-item" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+        <div class="indicator-circle">
+          <span *ngIf="currentStep <= 2">2</span>
+          <i class="fa-solid fa-check" *ngIf="currentStep > 2"></i>
+        </div>
+        <div class="indicator-labels">
+          <span class="label-title">Oferta</span>
+          <span class="label-subtitle">Propuesta económica y técnica</span>
+        </div>
+      </div>
+      <div class="indicator-line" [class.active]="currentStep > 2"></div>
+      
+      <!-- Step 3 -->
+      <div class="step-indicator-item" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
+        <div class="indicator-circle">
+          <span *ngIf="currentStep <= 3">3</span>
+          <i class="fa-solid fa-check" *ngIf="currentStep > 3"></i>
+        </div>
+        <div class="indicator-labels">
+          <span class="label-title">Área</span>
+          <span class="label-subtitle">Requisitos específicos de {{ licitacion?.area?.nombre || 'TI' }}</span>
+        </div>
+      </div>
+      <div class="indicator-line" [class.active]="currentStep > 3"></div>
+      
+      <!-- Step 4 -->
+      <div class="step-indicator-item" [class.active]="currentStep === 4" [class.completed]="currentStep > 4">
+        <div class="indicator-circle">
+          <span>4</span>
+        </div>
+        <div class="indicator-labels">
+          <span class="label-title">Confirmar</span>
+          <span class="label-subtitle">Revisión y envío</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Card Form Container -->
+    <main class="wizard-card-form-premium">
+      <form [formGroup]="propuestaForm" class="form-body-premium">
+        
+        <!-- ==============================================
+             PASO 1: EMPRESA
+             ============================================== -->
+        <section *ngIf="currentStep === 1" class="step-content-section premium-fade-in">
+          <div class="step-section-header">
+            <div class="section-icon-box blue-theme">
+              <lucide-icon [name]="IconBuilding"></lucide-icon>
+            </div>
+            <div class="section-header-text">
+              <h2 class="section-title-premium">Información de la Propuesta</h2>
+              <p class="section-subtitle-premium">Cuéntanos sobre tu empresa y el proyecto.</p>
+            </div>
+          </div>
+          
+          <div class="fields-grid-premium">
+            <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('nombre')?.invalid && propuestaForm.get('nombre')?.touched">
+              <label class="label-premium">Título de la Propuesta <span class="required-asterisk">*</span></label>
+              <div class="input-container-premium">
+                <lucide-icon [name]="IconFile" class="input-icon-premium"></lucide-icon>
+                <input type="text" formControlName="nombre" placeholder="Ej: Servicio de Consultoría TI - Fase 1" autocomplete="off" class="input-field-premium">
+              </div>
+              <span class="field-error-msg" *ngIf="propuestaForm.get('nombre')?.invalid && propuestaForm.get('nombre')?.touched">
+                El título de la propuesta es obligatorio.
+              </span>
+            </div>
+            
+            <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('empresaNombre')?.invalid && propuestaForm.get('empresaNombre')?.touched">
+              <label class="label-premium">Nombre de la Empresa <span class="required-asterisk">*</span></label>
+              <div class="input-container-premium">
+                <lucide-icon [name]="IconBuilding" class="input-icon-premium"></lucide-icon>
+                <input type="text" formControlName="empresaNombre" placeholder="Razón Social" autocomplete="off" class="input-field-premium">
+              </div>
+              <span class="field-error-msg" *ngIf="propuestaForm.get('empresaNombre')?.invalid && propuestaForm.get('empresaNombre')?.touched">
+                El nombre de la empresa es obligatorio.
+              </span>
+            </div>
+
+            <div class="form-group-premium" [class.has-error]="propuestaForm.get('contactoNombre')?.invalid && propuestaForm.get('contactoNombre')?.touched">
+              <label class="label-premium">Nombre de Contacto <span class="required-asterisk">*</span></label>
+              <div class="input-container-premium">
+                <lucide-icon [name]="IconUser" class="input-icon-premium"></lucide-icon>
+                <input type="text" formControlName="contactoNombre" placeholder="Nombre completo" autocomplete="off" class="input-field-premium">
+              </div>
+              <span class="field-error-msg" *ngIf="propuestaForm.get('contactoNombre')?.invalid && propuestaForm.get('contactoNombre')?.touched">
+                El nombre de contacto es obligatorio.
+              </span>
+            </div>
+
+            <div class="form-group-premium" [class.has-error]="propuestaForm.get('identificacionRuc')?.invalid && propuestaForm.get('identificacionRuc')?.touched">
+              <label class="label-premium">RUC / ID Identificación <span class="required-asterisk">*</span></label>
+              <div class="input-container-premium">
+                <lucide-icon [name]="IconId" class="input-icon-premium"></lucide-icon>
+                <input type="text" formControlName="identificacionRuc" placeholder="Número de Registro" autocomplete="off" class="input-field-premium">
+              </div>
+              <span class="field-error-msg" *ngIf="propuestaForm.get('identificacionRuc')?.invalid && propuestaForm.get('identificacionRuc')?.touched">
+                El RUC / ID de identificación es obligatorio.
+              </span>
+            </div>
+  
+            <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('contactoTelefono')?.invalid && propuestaForm.get('contactoTelefono')?.touched">
+              <label class="label-premium">Teléfono <span class="required-asterisk">*</span></label>
+              <div class="input-container-premium">
+                <lucide-icon [name]="IconPhone" class="input-icon-premium"></lucide-icon>
+                <input type="text" formControlName="contactoTelefono" placeholder="+51 999 999 999" autocomplete="off" class="input-field-premium">
+              </div>
+              <span class="field-error-msg" *ngIf="propuestaForm.get('contactoTelefono')?.invalid && propuestaForm.get('contactoTelefono')?.touched">
+                El teléfono es obligatorio.
+              </span>
+            </div>
+  
+            <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('contactoEmail')?.invalid && propuestaForm.get('contactoEmail')?.touched">
+              <label class="label-premium">Correo Electrónico de Contacto <span class="required-asterisk">*</span></label>
+              <div class="input-container-premium">
+                <lucide-icon [name]="IconMail" class="input-icon-premium"></lucide-icon>
+                <input type="email" formControlName="contactoEmail" placeholder="admin@licitaciones.com" autocomplete="off" class="input-field-premium">
+              </div>
+              <span class="field-error-msg" *ngIf="propuestaForm.get('contactoEmail')?.invalid && propuestaForm.get('contactoEmail')?.touched">
+                Ingrese un correo electrónico válido.
+              </span>
+            </div>
+          </div>
+
+          <div class="actions-footer-premium">
+            <div class="spacer-premium"></div>
+            <button type="button" class="btn-primary-premium next" (click)="nextStep()">
+              Siguiente <lucide-icon [name]="IconNext" class="btn-icon-right"></lucide-icon>
+            </button>
+          </div>
+        </section>
+  
+        <!-- ==============================================
+             PASO 2: OFERTA
+             ============================================== -->
+        <section *ngIf="currentStep === 2" class="step-content-section premium-fade-in">
+          <div class="step-section-header">
+            <div class="section-icon-box purple-theme">
+              <lucide-icon [name]="IconDollar"></lucide-icon>
+            </div>
+            <div class="section-header-text">
+              <h2 class="section-title-premium">Propuesta Económica y Técnica</h2>
+              <p class="section-subtitle-premium">Detalla los costos y la solución propuesta.</p>
+            </div>
+          </div>
+  
+          <div class="fields-grid-premium">
+            <div class="form-group-premium" [class.has-error]="propuestaForm.get('montoOfertado')?.invalid && propuestaForm.get('montoOfertado')?.touched">
+              <label class="label-premium">Monto Ofertado <span class="required-asterisk">*</span></label>
+              <div class="input-container-premium">
+                <span class="currency-prefix-premium">USD</span>
+                <input type="number" formControlName="montoOfertado" placeholder="0.00" autocomplete="off" class="input-field-premium with-prefix">
+              </div>
+              <span class="field-error-msg" *ngIf="propuestaForm.get('montoOfertado')?.invalid && propuestaForm.get('montoOfertado')?.touched">
+                El monto ofertado debe ser mayor a 0.
+              </span>
+            </div>
+
+            <div class="form-group-premium" [class.has-error]="propuestaForm.get('moneda')?.invalid && propuestaForm.get('moneda')?.touched">
+              <label class="label-premium">Moneda <span class="required-asterisk">*</span></label>
+              <div class="input-container-premium">
+                <lucide-icon [name]="IconGlobe" class="input-icon-premium"></lucide-icon>
+                <select formControlName="moneda" class="select-field-premium">
+                  <option value="USD">Dólares (USD)</option>
+                  <option value="EUR">Euros (EUR)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('tiempoEntregaDias')?.invalid && propuestaForm.get('tiempoEntregaDias')?.touched">
+              <label class="label-premium">Tiempo de Entrega (Días Calendario) <span class="required-asterisk">*</span></label>
+              <div class="input-container-premium">
+                <lucide-icon [name]="IconClock" class="input-icon-premium"></lucide-icon>
+                <input type="number" formControlName="tiempoEntregaDias" placeholder="Ej: 30" autocomplete="off" class="input-field-premium">
+              </div>
+              <span class="field-error-msg" *ngIf="propuestaForm.get('tiempoEntregaDias')?.invalid && propuestaForm.get('tiempoEntregaDias')?.touched">
+                El tiempo de entrega es obligatorio.
+              </span>
+            </div>
+
+            <div class="form-group-premium full-width">
+              <div class="textarea-label-row-premium">
+                <label class="label-premium">Detalle del Costo / Justificación <span class="required-asterisk">*</span></label>
+                <span class="char-counter-premium">{{ propuestaForm.get('detalleCosto')?.value?.length || 0 }}/1000</span>
+              </div>
+              <textarea formControlName="detalleCosto" rows="3" placeholder="Desglose breve de lo que incluye el monto..." autocomplete="off" class="textarea-field-premium" maxlength="1000"></textarea>
+            </div>
+
+            <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('descripcion')?.invalid && propuestaForm.get('descripcion')?.touched">
+              <div class="textarea-label-row-premium">
+                <label class="label-premium">Descripción General de la Solución <span class="required-asterisk">*</span></label>
+                <span class="char-counter-premium">{{ propuestaForm.get('descripcion')?.value?.length || 0 }}/2000</span>
+              </div>
+              <textarea formControlName="descripcion" rows="4" placeholder="Describe los puntos clave de tu propuesta técnica..." autocomplete="off" class="textarea-field-premium" maxlength="2000"></textarea>
+              <span class="field-error-msg" *ngIf="propuestaForm.get('descripcion')?.invalid && propuestaForm.get('descripcion')?.touched">
+                La descripción de la solución es obligatoria.
+              </span>
+            </div>
+          </div>
+
+          <div class="actions-footer-premium">
+            <button type="button" class="btn-outline-premium back" (click)="prevStep()">
+              <lucide-icon [name]="IconPrev" class="btn-icon-left"></lucide-icon> Anterior
+            </button>
+            <div class="spacer-premium"></div>
+            <button type="button" class="btn-primary-premium next" (click)="nextStep()">
+              Siguiente <lucide-icon [name]="IconNext" class="btn-icon-right"></lucide-icon>
+            </button>
+          </div>
+        </section>
+  
+        <!-- ==============================================
+             PASO 3: DATOS DINÁMICOS POR ÁREA
+             ============================================== -->
+        <section *ngIf="currentStep === 3" class="step-content-section premium-fade-in" formGroupName="datosArea">
+          <div class="step-section-header">
+            <div class="section-icon-box green-theme">
+              <lucide-icon [name]="IconClipboard"></lucide-icon>
+            </div>
+            <div class="section-header-text">
+              <h2 class="section-title-premium">Requisitos de {{ licitacion?.area?.nombre || 'TI' }}</h2>
+              <p class="section-subtitle-premium">Campos específicos requeridos por el área técnica.</p>
+            </div>
+          </div>
+          
+          <div [ngSwitch]="licitacion?.area?.nombre?.toUpperCase()" class="fields-grid-premium">
+            <!-- Caso TI (Mockup principal) -->
+            <ng-container *ngSwitchCase="'TI'">
+              <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('datosArea')?.get('descripcionSolucion')?.invalid && propuestaForm.get('datosArea')?.get('descripcionSolucion')?.touched">
+                <div class="textarea-label-row-premium">
+                  <label class="label-premium">Descripción de la Solución <span class="required-asterisk">*</span></label>
+                  <span class="char-counter-premium">{{ propuestaForm.get('datosArea')?.get('descripcionSolucion')?.value?.length || 0 }}/2000</span>
+                </div>
+                <textarea formControlName="descripcionSolucion" placeholder="Detalle técnico de la arquitectura, lenguaje y bases de datos..." autocomplete="off" class="textarea-field-premium" rows="4" maxlength="2000"></textarea>
+                <span class="field-error-msg" *ngIf="propuestaForm.get('datosArea')?.get('descripcionSolucion')?.invalid && propuestaForm.get('datosArea')?.get('descripcionSolucion')?.touched">
+                  Este campo es obligatorio.
+                </span>
+              </div>
+              
+              <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('datosArea')?.get('tecnologias')?.invalid && propuestaForm.get('datosArea')?.get('tecnologias')?.touched">
+                <label class="label-premium">Tecnologías Utilizadas <span class="required-asterisk">*</span></label>
+                <div class="input-container-premium">
+                  <input type="text" formControlName="tecnologias" placeholder="Ej: Angular 21, Spring Boot, SQL Server" autocomplete="off" class="input-field-premium">
+                </div>
+              </div>
+
+              <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('datosArea')?.get('arquitectura')?.invalid && propuestaForm.get('datosArea')?.get('arquitectura')?.touched">
+                <label class="label-premium">Arquitectura Propuesta <span class="required-asterisk">*</span></label>
+                <div class="input-container-premium">
+                  <input type="text" formControlName="arquitectura" placeholder="Ej: Microservicios en Azure" autocomplete="off" class="input-field-premium">
+                </div>
+              </div>
+
+              <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('datosArea')?.get('seguridad')?.invalid && propuestaForm.get('datosArea')?.get('seguridad')?.touched">
+                <label class="label-premium">Nivel de Seguridad <span class="required-asterisk">*</span></label>
+                <div class="input-container-premium">
+                  <input type="text" formControlName="seguridad" placeholder="Ej: ISO 27001, OAUTH2" autocomplete="off" class="input-field-premium">
+                </div>
+              </div>
+
+              <div class="form-group-premium full-width" [class.has-error]="propuestaForm.get('datosArea')?.get('escalabilidad')?.invalid && propuestaForm.get('datosArea')?.get('escalabilidad')?.touched">
+                <label class="label-premium">Escalabilidad <span class="required-asterisk">*</span></label>
+                <div class="input-container-premium">
+                  <input type="text" formControlName="escalabilidad" placeholder="Ej: Auto-scaling con Kubernetes" autocomplete="off" class="input-field-premium">
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Caso FINANZAS -->
+            <ng-container *ngSwitchCase="'FINANZAS'">
+              <div class="form-group-premium full-width"><label class="label-premium">Estructura de Costos *</label><input type="text" formControlName="estructuraCostos" placeholder="Ej: Fijos: 60%, Variables: 40%" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Justificación del Precio *</label><input type="text" formControlName="justificacionPrecio" placeholder="Ej: Basado en costos de materiales..." autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Proyección Financiera *</label><input type="text" formControlName="proyeccionFinanciera" placeholder="Ej: Margen neto estimado 15%..." autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Análisis de Riesgo *</label><input type="text" formControlName="analisisRiesgo" placeholder="Ej: Variación de tipo de cambio..." autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">ROI Estimado *</label><input type="text" formControlName="roiEstimado" placeholder="Ej: 14 meses" autocomplete="off" class="input-field-premium"></div>
+            </ng-container>
+
+            <!-- Caso LOGÍSTICA -->
+            <ng-container *ngSwitchCase="'LOGÍSTICA'">
+              <div class="form-group-premium full-width"><label class="label-premium">Tiempo de Entrega Detallado *</label><input type="text" formControlName="tiempoEntregaDetalle" placeholder="Ej: 5 días traslado, 2 días aduanas" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Capacidad Operativa *</label><input type="text" formControlName="capacidadOperativa" placeholder="Ej: Flota de 20 camiones propios" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Plan de Distribución *</label><input type="text" formControlName="planDistribucion" placeholder="Ej: Hub central en Lima" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Cobertura Logística *</label><input type="text" formControlName="cobertura" placeholder="Ej: Nacional (24 departamentos)" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Experiencia Logística *</label><input type="text" formControlName="experienciaLogistica" placeholder="Ej: 5 años en transporte pesado" autocomplete="off" class="input-field-premium"></div>
+            </ng-container>
+
+            <!-- Caso COMERCIAL -->
+            <ng-container *ngSwitchCase="'COMERCIAL'">
+              <div class="form-group-premium full-width"><label class="label-premium">Estrategia Comercial *</label><textarea formControlName="estrategiaComercial" placeholder="Describa su plan de penetración y fidelización..." autocomplete="off" class="textarea-field-premium" rows="4"></textarea></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Valor Agregado *</label><input type="text" formControlName="valorAgregado" placeholder="Ej: Soporte 24/7 post-venta gratuito" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Proyección de Crecimiento *</label><input type="text" formControlName="proyeccionCrecimiento" placeholder="Ej: 20% anual estimado" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Competitividad *</label><input type="text" formControlName="competitividad" placeholder="Ej: Precio 5% inferior al mercado" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Posicionamiento *</label><input type="text" formControlName="posicionamiento" placeholder="Ej: Líder en sector industrial" autocomplete="off" class="input-field-premium"></div>
+            </ng-container>
+
+            <!-- Caso RECURSOS HUMANOS -->
+            <ng-container *ngSwitchCase="'RECURSOS HUMANOS'">
+              <div class="form-group-premium full-width"><label class="label-premium">Perfiles del Equipo *</label><textarea formControlName="perfilEquipo" placeholder="Detalle de cargos y experiencia del personal clave..." autocomplete="off" class="textarea-field-premium" rows="4"></textarea></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Experiencia Previa *</label><input type="text" formControlName="experienciaPrevia" placeholder="Ej: 10 proyectos similares ejecutados" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Certificaciones *</label><input type="text" formControlName="certificaciones" placeholder="Ej: PMP, SCRUM, ITIL" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Cumplimiento Legal *</label><input type="text" formControlName="cumplimientoLegal" placeholder="Ej: Planillas al día, Sunafil..." autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Organización del Equipo *</label><input type="text" formControlName="organizacionEquipo" placeholder="Ej: Org. Funcional por proyectos" autocomplete="off" class="input-field-premium"></div>
+            </ng-container>
+
+            <!-- Caso OPERACIONES -->
+            <ng-container *ngSwitchCase="'OPERACIONES'">
+              <div class="form-group-premium full-width"><label class="label-premium">Plan Operativo *</label><textarea formControlName="planOperativo" placeholder="Cronograma de actividades y hitos..." autocomplete="off" class="textarea-field-premium" rows="4"></textarea></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Optimización de Procesos *</label><input type="text" formControlName="optimizacionProcesos" placeholder="Ej: Metodología Lean Manufacturing" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Reducción de Costos *</label><input type="text" formControlName="reduccionCostos" placeholder="Ej: 10% mediante automatización" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Plan de Implementación *</label><input type="text" formControlName="implementacion" placeholder="Ej: 4 fases en 6 meses" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Impacto Operativo *</label><input type="text" formControlName="impactoOperativo" placeholder="Ej: Mejora del 30% en productividad" autocomplete="off" class="input-field-premium"></div>
+            </ng-container>
+
+            <!-- Caso JURÍDICO -->
+            <ng-container *ngSwitchCase="'JURÍDICO'">
+              <div class="form-group-premium full-width"><label class="label-premium">Cumplimiento Legal y Normativo *</label><textarea formControlName="cumplimientoLegalJur" placeholder="Declaración de cumplimiento de normativas locales..." autocomplete="off" class="textarea-field-premium" rows="4"></textarea></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Tipo de Contrato Sugerido *</label><input type="text" formControlName="tipoContrato" placeholder="Ej: Contrato por Locación de Servicios" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Gestión de Riesgos Legales *</label><input type="text" formControlName="riesgosLegales" placeholder="Ej: Cláusulas de confidencialidad y salida" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Condiciones Especiales *</label><input type="text" formControlName="condiciones" placeholder="Ej: Jurisdicción en Lima" autocomplete="off" class="input-field-premium"></div>
+              <div class="form-group-premium full-width"><label class="label-premium">Antecedentes Legales *</label><input type="text" formControlName="antecedentes" placeholder="Ej: Sin procesos judiciales abiertos" autocomplete="off" class="input-field-premium"></div>
+            </ng-container>
+
+            <!-- Default fallback -->
+            <ng-container *ngSwitchDefault>
+              <div class="form-group-premium full-width">
+                <div class="info-alert-premium">
+                  <lucide-icon [name]="IconInfo" class="alert-icon-premium"></lucide-icon>
+                  <p>Complete los campos técnicos requeridos para esta postulación.</p>
+                </div>
+              </div>
+              <div *ngFor="let control of getAreaControls() | keyvalue" class="form-group-premium full-width">
+                  <label class="label-premium">{{ control.key | titlecase }} *</label>
+                  <input type="text" [formControlName]="control.key" placeholder="Ingrese información..." autocomplete="off" class="input-field-premium">
+              </div>
+            </ng-container>
+          </div>
+
+          <div class="actions-footer-premium">
+            <button type="button" class="btn-outline-premium back" (click)="prevStep()">
+              <lucide-icon [name]="IconPrev" class="btn-icon-left"></lucide-icon> Anterior
+            </button>
+            <div class="spacer-premium"></div>
+            <button type="button" class="btn-primary-premium next" (click)="nextStep()">
+              Siguiente <lucide-icon [name]="IconNext" class="btn-icon-right"></lucide-icon>
+            </button>
+          </div>
+        </section>
+  
+        <!-- ==============================================
+             PASO 4: DOCUMENTOS Y CONFIRMACIÓN
+             ============================================== -->
+        <section *ngIf="currentStep === 4" class="step-content-section premium-fade-in">
+          <div class="step-section-header">
+            <div class="section-icon-box orange-theme">
+              <lucide-icon [name]="IconUpload"></lucide-icon>
+            </div>
+            <div class="section-header-text">
+              <h2 class="section-title-premium">Finalización y Documentos</h2>
+              <p class="section-subtitle-premium">Adjunta los archivos necesarios para formalizar tu propuesta.</p>
+            </div>
+          </div>
+          
+          <div class="upload-area-wrapper-premium">
+            <label class="label-premium">Documentos Adjuntos <span class="required-asterisk">*</span></label>
+            <label class="premium-file-dropzone" [class.files-present]="selectedFiles.length > 0">
+              <div class="dropzone-inner-premium">
+                <lucide-icon [name]="IconUpload" class="dropzone-upload-icon"></lucide-icon>
+                <div class="dropzone-text-group">
+                  <span class="dropzone-title">Haga clic o arrastre archivos aquí</span>
+                  <span class="dropzone-subtitle">Formatos sugeridos: PDF, DOCX, ZIP (Max 10MB)</span>
+                </div>
+              </div>
+              <input type="file" (change)="onFileSelected($event)" multiple hidden>
+            </label>
+            
+            <div class="premium-file-list" *ngIf="selectedFiles.length > 0">
+              <div class="premium-file-card" *ngFor="let f of selectedFiles; let i = index">
+                <lucide-icon [name]="IconFile" class="file-card-icon"></lucide-icon>
+                <div class="file-card-details">
+                  <span class="file-card-name">{{ f.name }}</span>
+                  <span class="file-card-size">{{ (f.size / 1024).toFixed(1) }} KB</span>
+                </div>
+                <button type="button" class="file-card-remove-btn" (click)="removeFile(i)" title="Eliminar archivo">
+                  <lucide-icon [name]="IconTrash"></lucide-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+  
+          <div class="fields-grid-premium">
+            <div class="form-group-premium full-width">
+              <div class="textarea-label-row-premium">
+                <label class="label-premium">Comentarios Adicionales</label>
+                <span class="char-counter-premium">{{ propuestaForm.get('comentarios')?.value?.length || 0 }}/1000</span>
+              </div>
+              <textarea formControlName="comentarios" 
+                placeholder="Agrega comentarios adicionales, aclaraciones o detalles relevantes..." 
+                autocomplete="off" class="textarea-field-premium" maxlength="1000"></textarea>
+            </div>
+          </div>
+  
+          <div class="legal-statements-premium">
+            <h3 class="legal-statements-title">Declaraciones Juradas</h3>
+            <div class="legal-checkboxes-stack-premium">
+              <label class="check-option-card-premium" [class.selected-check]="propuestaForm.get('declaracionVeracidad')?.value">
+                <div class="checkbox-wrapper-premium">
+                  <input type="checkbox" formControlName="declaracionVeracidad" class="native-checkbox-premium">
+                  <div class="custom-checkbox-premium">
+                    <i class="fa-solid fa-check check-icon-premium"></i>
+                  </div>
+                </div>
+                <span class="check-label-text-premium">Declaro que toda la información proporcionada es veraz y fidedigna.</span>
+              </label>
+
+              <label class="check-option-card-premium" [class.selected-check]="propuestaForm.get('aceptacionBases')?.value">
+                <div class="checkbox-wrapper-premium">
+                  <input type="checkbox" formControlName="aceptacionBases" class="native-checkbox-premium">
+                  <div class="custom-checkbox-premium">
+                    <i class="fa-solid fa-check check-icon-premium"></i>
+                  </div>
+                </div>
+                <span class="check-label-text-premium">Acepto los términos, bases y requisitos de esta licitación.</span>
+              </label>
+
+              <label class="check-option-card-premium" [class.selected-check]="propuestaForm.get('noConflictoInteres')?.value">
+                <div class="checkbox-wrapper-premium">
+                  <input type="checkbox" formControlName="noConflictoInteres" class="native-checkbox-premium">
+                  <div class="custom-checkbox-premium">
+                    <i class="fa-solid fa-check check-icon-premium"></i>
+                  </div>
+                </div>
+                <span class="check-label-text-premium">Declaro no tener conflicto de intereses con la entidad convocante.</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="actions-footer-premium">
+            <button type="button" class="btn-outline-premium back" (click)="prevStep()">
+              <lucide-icon [name]="IconPrev" class="btn-icon-left"></lucide-icon> Anterior
+            </button>
+            <div class="spacer-premium"></div>
+            <div class="submit-action-group-premium">
+              <button type="button" class="btn-draft-premium" (click)="onSubmit(false)" [disabled]="isSubmitting">
+                Guardar Borrador
+              </button>
+              <button type="button" class="btn-submit-premium" (click)="onSubmit(true)" [disabled]="isSubmitting || propuestaForm.invalid">
+                <lucide-icon [name]="IconCheck" class="btn-icon-left" *ngIf="!isSubmitting"></lucide-icon>
+                {{ isSubmitting ? 'Enviando...' : 'Enviar Propuesta' }}
+              </button>
+            </div>
+          </div>
+        </section>
+  
+      </form>
+    </main>
+
+    <!-- Alert panels at the very bottom matching reference visual -->
+    <footer class="wizard-alerts-footer-premium">
+      <div class="alert-info-box-premium">
+        <div class="alert-box-icon blue">
+          <lucide-icon [name]="IconInfo"></lucide-icon>
+        </div>
+        <div class="alert-box-content">
+          <h4>Información Importante</h4>
+          <p>Puedes guardar tu propuesta como borrador en cualquier momento y continuar más tarde. Asegúrate de completar todos los pasos antes de enviar la propuesta.</p>
+        </div>
+      </div>
+
+      <div class="alert-info-box-premium green">
+        <div class="alert-box-icon green">
+          <lucide-icon [name]="IconShield"></lucide-icon>
+        </div>
+        <div class="alert-box-content">
+          <h4>Seguridad</h4>
+          <p>Tu información está protegida y encriptada. Solo personal autorizado tendrá acceso a tu propuesta.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+</div>

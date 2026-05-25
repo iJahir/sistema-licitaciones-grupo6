@@ -1,0 +1,164 @@
+<div class="report-premium-container">
+  <!-- HEADER EJECUTIVO -->
+  <header class="report-premium-header fade-in">
+    <div class="header-content">
+      <div class="breadcrumb-mini">Reportes Estratégicos</div>
+      <h1 class="title-primary">Reporte de Licitaciones</h1>
+      <p class="subtitle-secondary">Monitoreo ejecutivo de procesos y métricas de desempeño corporativo</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-premium secondary" (click)="openFormatSelector()">
+        <i class="fas fa-file-export"></i>
+        <span>Exportar Reporte</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD DE MÉTRICAS -->
+  <div class="metrics-grid fade-in delay-1">
+    <div class="metric-glass-card blue">
+      <div class="card-icon"><i class="fas fa-file-invoice"></i></div>
+      <div class="card-data">
+        <span class="label">Total Procesos</span>
+        <h3 class="value">{{ reportData?.totalLicitaciones || 0 }}</h3>
+      </div>
+    </div>
+
+    <div class="metric-glass-card green">
+      <div class="card-icon"><i class="fas fa-check-double"></i></div>
+      <div class="card-data">
+        <span class="label">Adjudicadas</span>
+        <h3 class="value">{{ reportData?.cantidadPorEstado?.['ADJUDICADA'] || 0 }}</h3>
+      </div>
+    </div>
+
+    <div class="metric-glass-card amber">
+      <div class="card-icon"><i class="fas fa-coins"></i></div>
+      <div class="card-data">
+        <span class="label">Presupuesto Ejecutado</span>
+        <h3 class="value">{{ reportData?.presupuestoTotal | currency:'USD':'symbol':'1.0-0' }}</h3>
+      </div>
+    </div>
+
+    <div class="metric-glass-card purple">
+      <div class="card-icon"><i class="fas fa-sitemap"></i></div>
+      <div class="card-data">
+        <span class="label">Unidades Requirentes</span>
+        <h3 class="value">{{ reportData?.cantidadPorArea ? (reportData.cantidadPorArea | keyvalue)?.length || 0 : 0 }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE FILTROS AVANZADA -->
+  <div class="filters-glass-card fade-in delay-2">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label><i class="fas fa-filter"></i> Área</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.areaId" (change)="applyFilters()">
+            <option value="">Todas las Áreas</option>
+            <option *ngFor="let area of areas" [value]="area.id">{{ area.nombre }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label><i class="fas fa-info-circle"></i> Estado</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.estado" (change)="applyFilters()">
+            <option value="">Cualquier Estado</option>
+            <option value="BORRADOR">📁 Borrador</option>
+            <option value="PUBLICADA">🌐 Publicada</option>
+            <option value="EN_EVALUACION">⚖️ En Evaluación</option>
+            <option value="ADJUDICADA">🏆 Adjudicada</option>
+            <option value="CANCELADA">🚫 Cancelada</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label><i class="fas fa-calendar-alt"></i> Desde</label>
+        <div class="input-glass">
+          <input type="date" [(ngModel)]="filters.fechaInicio" (change)="applyFilters()">
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label><i class="fas fa-calendar-check"></i> Hasta</label>
+        <div class="input-glass">
+          <input type="date" [(ngModel)]="filters.fechaFin" (change)="applyFilters()">
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn-glass clear" (click)="resetFilters()" title="Limpiar todos los filtros">
+          <i class="fas fa-sync-alt"></i>
+          <span>Reiniciar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE RESULTADOS PREMIUM -->
+  <div class="premium-glass-card fade-in delay-3">
+    <div class="card-title-bar">
+      <h3>Registros de Auditoría</h3>
+      <div class="loader-inline" *ngIf="isLoading">
+        <div class="spinner-mini"></div>
+        <span>Sincronizando...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="modern-list-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Proceso / Título</th>
+            <th>Área</th>
+            <th class="text-center">Estado</th>
+            <th class="text-right">Presupuesto</th>
+            <th>Cierre</th>
+            <th class="text-center">Análisis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of reportData?.items" class="table-row-hover">
+            <td><span class="id-tag">#{{ item.id }}</span></td>
+            <td>
+              <div class="title-cell-premium">{{ item.titulo }}</div>
+            </td>
+            <td>
+              <span class="area-tag">{{ item.area || 'N/A' }}</span>
+            </td>
+            <td class="text-center">
+              <span class="status-badge-premium" [ngClass]="item.estado.toLowerCase()">
+                {{ item.estado }}
+              </span>
+            </td>
+            <td class="text-right">
+              <span class="amount-val">{{ item.presupuesto | currency }}</span>
+            </td>
+            <td>
+              <div class="date-tag-mini">
+                <i class="far fa-clock"></i> {{ item.fechaFin | date:'dd/MM/yyyy' }}
+              </div>
+            </td>
+            <td class="text-center">
+              <button class="btn-action-icon" title="Ver Detalle Técnico" (click)="verAnalisis(item.id)">
+                <i class="fas fa-chart-bar"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state-modern" *ngIf="reportData?.items?.length === 0 && !isLoading">
+      <div class="empty-icon-box"><i class="fas fa-search-minus"></i></div>
+      <h3>Sin resultados</h3>
+      <p>No se encontraron procesos que coincidan con los filtros aplicados.</p>
+    </div>
+  </div>
+</div>

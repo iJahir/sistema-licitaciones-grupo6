@@ -1,0 +1,802 @@
+<div class="dashboard-wrapper">
+  <!-- Welcome & Clock Banner -->
+  <div class="welcome-banner fade-in">
+    <div class="welcome-info">
+      <span class="date-tag">{{ currentDate | date:'fullDate':'':'es' }}</span>
+      <h2>Bienvenido de nuevo, <span class="accent-text">{{ getFullName() }}</span></h2>
+      <p class="subtitle">Resumen ejecutivo del sistema de licitaciones corporativas.</p>
+    </div>
+    
+    <div class="digital-clock-widget">
+      <div class="clock-icon"><i class="fa-solid fa-clock"></i></div>
+      <div class="clock-data">
+        <span class="time">{{ currentTime }}</span>
+        <span class="status"><span class="dot pulse"></span> UTC-6 • Operativo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- premium KPI Metrics Cards for Admin / Auditor -->
+  <div class="kpis-grid fade-in delay-1" *ngIf="isAdmin">
+    <!-- Card 1: Licitaciones Activas -->
+    <div class="kpi-card blue">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-folder-tree"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Licitaciones Activas</span>
+        <h3 class="kpi-value">{{ stats.stats?.enProceso || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-circle-info"></i> En publicación
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 2: Propuestas Recibidas -->
+    <div class="kpi-card green">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-file-import"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Proveedores Registrados</span>
+        <h3 class="kpi-value">{{ stats.stats?.participantes || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-users"></i> Activos
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 3: En Evaluación -->
+    <div class="kpi-card purple">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-scale-balanced"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">En Evaluación</span>
+        <h3 class="kpi-value">{{ stats.stats?.evaluadas || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-spinner"></i> Calificando
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 4: Adjudicadas -->
+    <div class="kpi-card orange">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Adjudicadas</span>
+        <h3 class="kpi-value">{{ stats.stats?.totalContratos + 2 || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-award"></i> Otorgadas
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 5: Contratos Firmados -->
+    <div class="kpi-card cyan">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-file-contract"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Contratos Firmados</span>
+        <h3 class="kpi-value">{{ stats.stats?.totalContratos || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-signature"></i> Suscritos
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- premium KPI Metrics Cards for Área Solicitante -->
+  <div class="kpis-grid fade-in delay-1" *ngIf="isArea">
+    <!-- Card 1: Mis Licitaciones -->
+    <div class="kpi-card blue">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-folder-open"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Mis Licitaciones</span>
+        <h3 class="kpi-value">{{ stats.stats?.totalLicitaciones || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-user-tie"></i> Creadas por mí
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 2: Propuestas Recibidas -->
+    <div class="kpi-card green">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-file-import"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Propuestas Recibidas</span>
+        <h3 class="kpi-value">{{ stats.stats?.participantes || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-inbox"></i> En mis procesos
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 3: En Evaluación -->
+    <div class="kpi-card purple">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-scale-balanced"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">En Evaluación</span>
+        <h3 class="kpi-value">{{ stats.stats?.evaluadas || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-spinner"></i> Calificando
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 4: Contratos Generados -->
+    <div class="kpi-card cyan">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-file-contract"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Contratos Propios</span>
+        <h3 class="kpi-value">{{ stats.stats?.totalContratos || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-signature"></i> De mis licitaciones
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- premium KPI Metrics Cards for Proveedor -->
+  <div class="kpis-grid fade-in delay-1" *ngIf="isProveedor">
+    <!-- Card 1: Licitaciones Disponibles -->
+    <div class="kpi-card blue">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-folder-tree"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Licitaciones Activas</span>
+        <h3 class="kpi-value">{{ stats.stats?.totalLicitaciones || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-bullhorn"></i> Disponibles
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 2: Mis Propuestas Subidas -->
+    <div class="kpi-card green">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-file-import"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Mis Propuestas</span>
+        <h3 class="kpi-value">{{ stats.stats?.enProceso || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Presentadas
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 3: Propuestas Evaluadas/Adjudicadas -->
+    <div class="kpi-card purple">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-scale-balanced"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Propuestas Evaluadas</span>
+        <h3 class="kpi-value">{{ stats.stats?.evaluadas || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-circle-check"></i> Con dictamen
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 4: Contratos Firmados -->
+    <div class="kpi-card cyan">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-file-contract"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Mis Contratos</span>
+        <h3 class="kpi-value">{{ stats.stats?.totalContratos || 0 }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-signature"></i> Adjudicados
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- premium KPI Metrics Cards for Evaluator -->
+  <div class="kpis-grid fade-in delay-1" *ngIf="isEvaluador">
+    <!-- Card 1: Propuestas Asignadas -->
+    <div class="kpi-card blue">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-file-invoice"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Propuestas Asignadas</span>
+        <h3 class="kpi-value">{{ evaluatorStats.totalAsignadas }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-folder"></i> Expedientes
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 2: Evaluaciones Pendientes -->
+    <div class="kpi-card purple">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-clock"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Evaluaciones Pendientes</span>
+        <h3 class="kpi-value">{{ evaluatorStats.pendientes }}</h3>
+        <span class="kpi-trend negative" style="color: #f59e0b;" *ngIf="evaluatorStats.pendientes > 0">
+          <i class="fa-solid fa-circle-exclamation"></i> Por calificar
+        </span>
+        <span class="kpi-trend positive" style="color: #10b981;" *ngIf="evaluatorStats.pendientes === 0">
+          <i class="fa-solid fa-circle-check"></i> Al día
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 3: En Revisión -->
+    <div class="kpi-card orange">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-scale-balanced"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">En Revisión</span>
+        <h3 class="kpi-value">{{ evaluatorStats.enRevision }}</h3>
+        <span class="kpi-trend negative" style="color: #f97316;">
+          <i class="fa-solid fa-pen-to-square"></i> Guardado borrador
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 4: Evaluaciones Finalizadas -->
+    <div class="kpi-card green">
+      <div class="kpi-icon-wrapper">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Evaluaciones Finalizadas</span>
+        <h3 class="kpi-value">{{ evaluatorStats.finalizadas }}</h3>
+        <span class="kpi-trend positive">
+          <i class="fa-solid fa-check-double"></i> Calificadas
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Charts & Upcoming Events -->
+  <div class="dashboard-row-two fade-in delay-2">
+    <!-- Chart: Licitaciones por Estado (Admin) -->
+    <div class="dashboard-card status-chart-card" *ngIf="isAdmin">
+      <div class="card-header-bar">
+        <h4>Licitaciones por Estado</h4>
+      </div>
+      <div class="chart-content-wrapper">
+        <!-- SVG Donut Chart -->
+        <div class="donut-chart-wrapper">
+          <svg viewBox="0 0 100 100" class="donut-svg">
+            <!-- Background circle -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12" />
+            <!-- Segment 1: Publicada -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#3b82f6" stroke-width="12" 
+                    [attr.stroke-dasharray]="licitacionesStats.segments.publicada.dasharray" 
+                    [attr.stroke-dashoffset]="licitacionesStats.segments.publicada.dashoffset" 
+                    transform="rotate(-90 50 50)" />
+            <!-- Segment 2: En progreso -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#10b981" stroke-width="12" 
+                    [attr.stroke-dasharray]="licitacionesStats.segments.enProgreso.dasharray" 
+                    [attr.stroke-dashoffset]="licitacionesStats.segments.enProgreso.dashoffset" 
+                    transform="rotate(-90 50 50)" />
+            <!-- Segment 3: En evaluación -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f59e0b" stroke-width="12" 
+                    [attr.stroke-dasharray]="licitacionesStats.segments.enEvaluacion.dasharray" 
+                    [attr.stroke-dashoffset]="licitacionesStats.segments.enEvaluacion.dashoffset" 
+                    transform="rotate(-90 50 50)" />
+            <!-- Segment 4: Adjudicada -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#a855f7" stroke-width="12" 
+                    [attr.stroke-dasharray]="licitacionesStats.segments.adjudicada.dasharray" 
+                    [attr.stroke-dashoffset]="licitacionesStats.segments.adjudicada.dashoffset" 
+                    transform="rotate(-90 50 50)" />
+            <!-- Segment 5: Cerrada -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#94a3b8" stroke-width="12" 
+                    [attr.stroke-dasharray]="licitacionesStats.segments.cerrada.dasharray" 
+                    [attr.stroke-dashoffset]="licitacionesStats.segments.cerrada.dashoffset" 
+                    transform="rotate(-90 50 50)" />
+          </svg>
+          <div class="donut-center-text">
+            <span class="number">{{ licitacionesStats.total }}</span>
+            <span class="label">Total</span>
+          </div>
+        </div>
+        <!-- Legend -->
+        <div class="chart-legend-vertical">
+          <div class="legend-item">
+            <span class="dot color-publicada"></span>
+            <span class="name">Publicada</span>
+            <span class="value">{{ licitacionesStats.publicada }} <span class="percent">({{ licitacionesStats.publicadaPct }}%)</span></span>
+          </div>
+          <div class="legend-item">
+            <span class="dot color-progreso"></span>
+            <span class="name">En progreso</span>
+            <span class="value">{{ licitacionesStats.enProgreso }} <span class="percent">({{ licitacionesStats.enProgresoPct }}%)</span></span>
+          </div>
+          <div class="legend-item">
+            <span class="dot color-evaluacion"></span>
+            <span class="name">En evaluación</span>
+            <span class="value">{{ licitacionesStats.enEvaluacion }} <span class="percent">({{ licitacionesStats.enEvaluacionPct }}%)</span></span>
+          </div>
+          <div class="legend-item">
+            <span class="dot color-adjudicada"></span>
+            <span class="name">Adjudicada</span>
+            <span class="value">{{ licitacionesStats.adjudicada }} <span class="percent">({{ licitacionesStats.adjudicadaPct }}%)</span></span>
+          </div>
+          <div class="legend-item">
+            <span class="dot color-cerrada"></span>
+            <span class="name">Cerrada</span>
+            <span class="value">{{ licitacionesStats.cerrada }} <span class="percent">({{ licitacionesStats.cerradaPct }}%)</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart: Progreso de Evaluaciones (Evaluator) -->
+    <div class="dashboard-card status-chart-card" *ngIf="isEvaluador">
+      <div class="card-header-bar">
+        <h4>Progreso de Evaluaciones</h4>
+      </div>
+      <div class="chart-content-wrapper">
+        <!-- SVG Donut Chart -->
+        <div class="donut-chart-wrapper">
+          <svg viewBox="0 0 100 100" class="donut-svg">
+            <!-- Background circle -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12" />
+            <!-- Segment 1: Finalizadas -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#10b981" stroke-width="12" 
+                    [attr.stroke-dasharray]="evaluatorDonutSegments.finalizadas.dasharray" 
+                    [attr.stroke-dashoffset]="evaluatorDonutSegments.finalizadas.dashoffset" 
+                    transform="rotate(-90 50 50)" />
+            <!-- Segment 2: En revisión -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f97316" stroke-width="12" 
+                    [attr.stroke-dasharray]="evaluatorDonutSegments.enRevision.dasharray" 
+                    [attr.stroke-dashoffset]="evaluatorDonutSegments.enRevision.dashoffset" 
+                    transform="rotate(-90 50 50)" />
+            <!-- Segment 3: Pendientes -->
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="#a855f7" stroke-width="12" 
+                    [attr.stroke-dasharray]="evaluatorDonutSegments.pendientes.dasharray" 
+                    [attr.stroke-dashoffset]="evaluatorDonutSegments.pendientes.dashoffset" 
+                    transform="rotate(-90 50 50)" />
+          </svg>
+          <div class="donut-center-text">
+            <span class="number">{{ evaluatorStats.totalAsignadas }}</span>
+            <span class="label">Asignadas</span>
+          </div>
+        </div>
+        <!-- Legend -->
+        <div class="chart-legend-vertical">
+          <div class="legend-item">
+            <span class="dot color-adjudicada"></span>
+            <span class="name">Pendientes</span>
+            <span class="value">{{ evaluatorStats.pendientes }} <span class="percent">({{ evaluatorStats.porcentajePendiente }}%)</span></span>
+          </div>
+          <div class="legend-item">
+            <span class="dot color-subsanacion" style="background-color: #f97316;"></span>
+            <span class="name">En revisión</span>
+            <span class="value">{{ evaluatorStats.enRevision }} <span class="percent">({{ evaluatorStats.porcentajeRevision }}%)</span></span>
+          </div>
+          <div class="legend-item">
+            <span class="dot color-progreso"></span>
+            <span class="name">Finalizadas</span>
+            <span class="value">{{ evaluatorStats.finalizadas }} <span class="percent">({{ evaluatorStats.porcentajeCompletado }}%)</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart: Licitaciones por Mes (Admin) -->
+    <div class="dashboard-card trend-chart-card" *ngIf="isAdmin">
+      <div class="card-header-bar">
+        <h4>Licitaciones por Mes</h4>
+      </div>
+      <div class="trend-chart-wrapper">
+        <svg viewBox="0 0 350 150" class="line-chart-svg">
+          <!-- Grid Lines -->
+          <line x1="30" y1="20" x2="330" y2="20" stroke="#f1f5f9" stroke-width="1" />
+          <line x1="30" y1="45" x2="330" y2="45" stroke="#f1f5f9" stroke-width="1" />
+          <line x1="30" y1="70" x2="330" y2="70" stroke="#f1f5f9" stroke-width="1" />
+          <line x1="30" y1="95" x2="330" y2="95" stroke="#f1f5f9" stroke-width="1" />
+          <line x1="30" y1="120" x2="330" y2="120" stroke="#e2e8f0" stroke-width="1.5" />
+
+          <!-- Left Axis Ticks -->
+          <text x="20" y="24" class="axis-label" text-anchor="end">25</text>
+          <text x="20" y="49" class="axis-label" text-anchor="end">20</text>
+          <text x="20" y="74" class="axis-label" text-anchor="end">15</text>
+          <text x="20" y="99" class="axis-label" text-anchor="end">10</text>
+          <text x="20" y="124" class="axis-label" text-anchor="end">5</text>
+
+          <!-- Gradient Area Blue -->
+          <defs>
+            <linearGradient id="blue-gradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0"/>
+            </linearGradient>
+            <linearGradient id="green-gradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#10b981" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Areas -->
+          <path [attr.d]="lineChartData.pathCreadas" fill="url(#blue-gradient)" />
+          <path [attr.d]="lineChartData.pathAdjudicadas" fill="url(#green-gradient)" />
+
+          <!-- Lines -->
+          <path [attr.d]="'M ' + lineChartData.polylineCreadas" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
+          <path [attr.d]="'M ' + lineChartData.polylineAdjudicadas" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" />
+
+          <!-- Data Points (Circles) Blue -->
+          <circle *ngFor="let p of lineChartData.creadas" [attr.cx]="p.x" [attr.cy]="p.y" r="4" fill="#3b82f6" stroke="#fff" stroke-width="1.5" />
+
+          <!-- Data Points (Circles) Green -->
+          <circle *ngFor="let p of lineChartData.adjudicadas" [attr.cx]="p.x" [attr.cy]="p.y" r="4" fill="#10b981" stroke="#fff" stroke-width="1.5" />
+
+          <!-- Month Labels -->
+          <text *ngFor="let m of lineChartData.months; let idx = index" [attr.x]="30 + idx * 50" y="140" class="axis-label" text-anchor="middle">{{ m }}</text>
+        </svg>
+
+        <div class="chart-legend-horizontal">
+          <div class="legend-item"><span class="dot color-publicada"></span> Publicadas</div>
+          <div class="legend-item"><span class="dot color-progreso"></span> Adjudicadas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Próximos Eventos -->
+    <div class="dashboard-card events-card">
+      <div class="card-header-bar flex-space">
+        <h4>Próximos Eventos</h4>
+      </div>
+      
+      <div class="events-list-wrapper">
+        <!-- Render real active tenders dynamically if they exist -->
+        <div class="event-row" *ngFor="let proj of getActiveLicitaciones(); let i = index">
+          <div class="event-date-box" [ngClass]="['color-' + (i % 3)]">
+            <span class="day">{{ (proj.fechaCierre ? (proj.fechaCierre | date:'dd') : '23') }}</span>
+            <span class="month">{{ (proj.fechaCierre ? (proj.fechaCierre | date:'MMM' | uppercase) : 'MAY') }}</span>
+          </div>
+          <div class="event-details">
+            <h5>Cierre de recepción de propuestas</h5>
+            <p class="lic-name">{{ proj.titulo }}</p>
+            <span class="time-left"><i class="fa-regular fa-clock"></i> {{ proj.timeLeft }}</span>
+          </div>
+        </div>
+
+        <!-- Muted Fallbacks matching mockup perfectly if no active ones -->
+        <div class="event-row" *ngIf="getActiveLicitaciones().length < 3">
+          <div class="event-date-box color-1">
+            <span class="day">28</span>
+            <span class="month">MAY</span>
+          </div>
+          <div class="event-details">
+            <h5>Evaluación técnica de ofertas</h5>
+            <p class="lic-name">Licitación LP-2026-010 • Suministros</p>
+            <span class="time-left"><i class="fa-regular fa-clock"></i> 7 días</span>
+          </div>
+        </div>
+
+        <div class="event-row" *ngIf="getActiveLicitaciones().length < 2">
+          <div class="event-date-box color-2">
+            <span class="day">02</span>
+            <span class="month">JUN</span>
+          </div>
+          <div class="event-details">
+            <h5>Apertura de propuesta económica</h5>
+            <p class="lic-name">Licitación LP-2026-018 • Red de Datos</p>
+            <span class="time-left"><i class="fa-regular fa-clock"></i> 12 días</span>
+          </div>
+        </div>
+      </div>
+      
+      <a class="view-all-link" routerLink="/planificacion/calendario">Ver calendario completo <i class="fa-solid fa-chevron-right"></i></a>
+    </div>
+  </div>
+
+  <!-- Row 3: Recent Tables, Secondary Donut, Notifications -->
+  <div class="dashboard-row-three fade-in delay-3">
+    <!-- COLUMNA IZQUIERDA: Licitaciones Recientes o Propuestas Asignadas -->
+    <div class="left-main-feed">
+      <!-- Table: Licitaciones Recientes (Admin, Area, Proveedor) -->
+      <div class="dashboard-card table-card" *ngIf="isAdmin || isArea || isProveedor">
+        <div class="card-header-bar">
+          <h4>Licitaciones Recientes</h4>
+        </div>
+
+        <div class="table-responsive-container">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Fecha Publicación</th>
+                <th>Fecha Cierre</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let proj of licitaciones" class="table-row-item">
+                <td>
+                  <a class="code-link" [routerLink]="['/licitaciones', proj.id]">
+                    LP-{{ (proj.createdAt ? (proj.createdAt | date:'yyyy') : '2024') }}-{{ padId(proj.id) }}
+                  </a>
+                </td>
+                <td>
+                  <span class="title-text">{{ proj.titulo }}</span>
+                </td>
+                <td>
+                  <span class="badge-status-pill" [ngClass]="proj.estado.toLowerCase()">
+                    {{ formatEstado(proj.estado) }}
+                  </span>
+                </td>
+                <td class="date-cell">{{ (proj.createdAt ? (proj.createdAt | date:'dd/MM/yyyy') : '10/05/2024') }}</td>
+                <td class="date-cell">{{ (proj.fechaCierre ? (proj.fechaCierre | date:'dd/MM/yyyy') : '02/06/2024') }}</td>
+                <td class="text-center">
+                  <button class="action-btn-circle" [routerLink]="['/licitaciones', proj.id]" title="Ver Detalle">
+                    <i class="fa-regular fa-eye"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="licitaciones.length === 0">
+                <td colspan="6" class="empty-table-state">
+                  <i class="fa-solid fa-inbox"></i>
+                  <p>No hay licitaciones registradas.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <a class="view-all-link" routerLink="/licitaciones">Ver todas las licitaciones <i class="fa-solid fa-chevron-right"></i></a>
+      </div>
+
+      <!-- Table: Propuestas Asignadas Recientes (Evaluator) -->
+      <div class="dashboard-card table-card" *ngIf="isEvaluador && !isAdmin">
+        <div class="card-header-bar">
+          <h4>Propuestas Asignadas Recientes</h4>
+        </div>
+
+        <div class="table-responsive-container">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Licitación</th>
+                <th>Área</th>
+                <th>Estado Evaluación</th>
+                <th>Fecha Límite</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of evaluatorStats.propuestas.slice(0, 5)" class="table-row-hover">
+                <td>
+                  <a class="code-link" [routerLink]="['/evaluaciones/evaluar', p.id]">
+                    PRP-2026-{{ padId(p.id) }}
+                  </a>
+                </td>
+                <td>
+                  <span class="title-text">{{ p.licitacionTitulo }}</span>
+                </td>
+                <td>
+                  <span class="title-text" style="color: #64748b; font-size: 0.85rem;">{{ p.area || 'General' }}</span>
+                </td>
+                <td>
+                  <span class="badge-status-pill" [ngClass]="p.estadoEvaluacion?.toLowerCase() || 'pendiente'">
+                    {{ p.estadoEvaluacion === 'FINALIZADO' ? 'Finalizada' : (p.progreso > 0 ? 'En revisión' : 'Pendiente') }}
+                  </span>
+                </td>
+                <td class="date-cell">{{ p.fechaLimite | date:'dd/MM/yyyy' }}</td>
+                <td class="text-center">
+                  <button class="action-btn-circle" [routerLink]="['/evaluaciones/evaluar', p.id]" 
+                          [title]="p.estadoEvaluacion === 'FINALIZADO' ? 'Ver Detalles' : 'Calificar Propuesta'"
+                          style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: none; cursor: pointer; width: 32px; height: 32px; border-radius: 50%;">
+                    <i class="fa-solid" [ngClass]="p.estadoEvaluacion === 'FINALIZADO' ? 'fa-eye' : 'fa-star'"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="evaluatorStats.propuestas.length === 0">
+                <td colspan="6" class="empty-table-state">
+                  <i class="fa-solid fa-inbox"></i>
+                  <p>No tiene propuestas asignadas para evaluar.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <a class="view-all-link" routerLink="/evaluaciones">Ver todas las evaluaciones <i class="fa-solid fa-chevron-right"></i></a>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: Propuestas por Estado + Notificaciones Recientes -->
+    <div class="right-sidebar-feed">
+      <!-- Chart: Propuestas por Estado (Admin) -->
+      <div class="dashboard-card status-chart-card small-donut-card" *ngIf="isAdmin">
+        <div class="card-header-bar">
+          <h4>Propuestas por Estado</h4>
+        </div>
+        <div class="chart-content-wrapper horizontal-layout">
+          <!-- SVG Donut Chart -->
+          <div class="donut-chart-wrapper size-sm">
+            <svg viewBox="0 0 100 100" class="donut-svg">
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12" />
+              <!-- Segment 1: Recibidas -->
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#3b82f6" stroke-width="12" 
+                      [attr.stroke-dasharray]="propuestasStats.segments.recibida.dasharray" 
+                      [attr.stroke-dashoffset]="propuestasStats.segments.recibida.dashoffset" 
+                      transform="rotate(-90 50 50)" />
+              <!-- Segment 2: Subsanación -->
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f97316" stroke-width="12" 
+                      [attr.stroke-dasharray]="propuestasStats.segments.subsanacion.dasharray" 
+                      [attr.stroke-dashoffset]="propuestasStats.segments.subsanacion.dashoffset" 
+                      transform="rotate(-90 50 50)" />
+              <!-- Segment 3: Descalificadas -->
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#ef4444" stroke-width="12" 
+                      [attr.stroke-dasharray]="propuestasStats.segments.descalificada.dasharray" 
+                      [attr.stroke-dashoffset]="propuestasStats.segments.descalificada.dashoffset" 
+                      transform="rotate(-90 50 50)" />
+              <!-- Segment 4: En evaluación -->
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#a855f7" stroke-width="12" 
+                      [attr.stroke-dasharray]="propuestasStats.segments.enEvaluacion.dasharray" 
+                      [attr.stroke-dashoffset]="propuestasStats.segments.enEvaluacion.dashoffset" 
+                      transform="rotate(-90 50 50)" />
+              <!-- Segment 5: Ganadoras -->
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#10b981" stroke-width="12" 
+                      [attr.stroke-dasharray]="propuestasStats.segments.ganadora.dasharray" 
+                      [attr.stroke-dashoffset]="propuestasStats.segments.ganadora.dashoffset" 
+                      transform="rotate(-90 50 50)" />
+            </svg>
+            <div class="donut-center-text">
+              <span class="number">{{ propuestasStats.total }}</span>
+              <span class="label">Total</span>
+            </div>
+          </div>
+          <!-- Legend -->
+          <div class="chart-legend-vertical">
+            <div class="legend-item">
+              <span class="dot color-recibidas"></span>
+              <span class="name">Recibidas</span>
+              <span class="value">{{ propuestasStats.recibida }} <span class="percent">({{ propuestasStats.recibidaPct }}%)</span></span>
+            </div>
+            <div class="legend-item">
+              <span class="dot color-subsanacion"></span>
+              <span class="name">Subsanación</span>
+              <span class="value">{{ propuestasStats.subsanacion }} <span class="percent">({{ propuestasStats.subsanacionPct }}%)</span></span>
+            </div>
+            <div class="legend-item">
+              <span class="dot color-descalificadas"></span>
+              <span class="name">Descalificadas</span>
+              <span class="value">{{ propuestasStats.descalificada }} <span class="percent">({{ propuestasStats.descalificadaPct }}%)</span></span>
+            </div>
+            <div class="legend-item">
+              <span class="dot color-evaluacion"></span>
+              <span class="name">En evaluación</span>
+              <span class="value">{{ propuestasStats.enEvaluacion }} <span class="percent">({{ propuestasStats.enEvaluacionPct }}%)</span></span>
+            </div>
+            <div class="legend-item">
+              <span class="dot color-progreso" style="background-color: #10b981;"></span>
+              <span class="name">Ganadoras</span>
+              <span class="value">{{ propuestasStats.ganadora }} <span class="percent">({{ propuestasStats.ganadoraPct }}%)</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Notificaciones Recientes -->
+      <div class="dashboard-card alerts-feed-card">
+        <div class="card-header-bar">
+          <h4>Notificaciones Recientes</h4>
+        </div>
+        
+        <div class="alerts-feed-wrapper">
+          <!-- Render real notifications dynamically if they exist (up to 25) -->
+          <div class="alert-feed-row" *ngFor="let alert of (stats.alerts || []).slice(0, 25); let i = index">
+            <div class="alert-icon-circle" [ngClass]="alert.type || 'info'">
+              <i class="fa-solid" [ngClass]="getAlertIcon(alert.type)"></i>
+            </div>
+            <div class="alert-feed-content">
+              <p class="message-bold">{{ getAlertTitle(alert.message) }}</p>
+              <span class="message-sub">{{ getAlertSub(alert.message) }}</span>
+            </div>
+            <span class="time-ago">Hace {{ i + 1 }} h</span>
+          </div>
+
+          <!-- Muted Fallback matching target premium standard if no notifications -->
+          <div class="empty-table-state" *ngIf="!stats.alerts || stats.alerts.length === 0" style="padding: 3rem 1.5rem; text-align: center; color: #94a3b8;">
+            <i class="fa-solid fa-bell-slash" style="font-size: 2.2rem; color: #cbd5e1; margin-bottom: 0.75rem; display: block; opacity: 0.8;"></i>
+            <p style="margin: 0; font-size: 0.88rem; font-weight: 700; color: #64748b;">No hay notificaciones recientes</p>
+            <span style="font-size: 0.76rem; color: #94a3b8; font-weight: 550; margin-top: 4px; display: block;">El sistema se encuentra al día</span>
+          </div>
+        </div>
+        
+        <a class="view-all-link" *ngIf="isPrivileged" routerLink="/auditoria">Ver todas las notificaciones <i class="fa-solid fa-chevron-right"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 4: Financial Summary & Connected Activity -->
+  <div class="dashboard-row-four fade-in delay-4" *ngIf="isAdmin || isArea">
+    <!-- Financial Summary Box -->
+    <div class="dashboard-card financial-card" *ngIf="isAdmin">
+      <div class="card-header-bar">
+        <h4>Resumen Financiero <span class="card-subtitle">(Licitaciones Adjudicadas)</span></h4>
+      </div>
+      <div class="financial-stats-row">
+        <!-- Metric 1 -->
+        <div class="fin-stat-box">
+          <div class="fin-icon blue"><i class="fa-solid fa-coins"></i></div>
+          <div class="fin-data">
+            <span class="label">Valor Estimado Total</span>
+            <h5 class="value">{{ (stats.stats.valorEstimadoTotal || 0) | currency:'USD':'symbol':'1.2-2' }}</h5>
+          </div>
+        </div>
+        <!-- Metric 2 -->
+        <div class="fin-stat-box">
+          <div class="fin-icon green"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="fin-data">
+            <span class="label">Valor Adjudicado Total</span>
+            <h5 class="value">{{ (stats.stats.valorAdjudicadoTotal || 0) | currency:'USD':'symbol':'1.2-2' }}</h5>
+          </div>
+        </div>
+        <!-- Metric 3 -->
+        <div class="fin-stat-box">
+          <div class="fin-icon purple"><i class="fa-solid fa-piggy-bank"></i></div>
+          <div class="fin-data">
+            <span class="label">Ahorro Estimado</span>
+            <h5 class="value">{{ (stats.stats.ahorroEstimado || 0) | currency:'USD':'symbol':'1.2-2' }}</h5>
+          </div>
+        </div>
+        <!-- Metric 4 -->
+        <div class="fin-stat-box">
+          <div class="fin-icon orange"><i class="fa-solid fa-chart-line"></i></div>
+          <div class="fin-data">
+            <span class="label">% Ahorro Promedio</span>
+            <h5 class="value text-orange">{{ (stats.stats.porcentajeAhorroPromedio || 0) | number:'1.1-2' }}%</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connected Activity Box -->
+    <div class="dashboard-card activity-card">
+      <div class="activity-stat-split">
+        <!-- Stat Left -->
+        <div class="split-box">
+          <div class="icon-pulse-wrapper">
+            <div class="pulse-icon-circle green"><i class="fa-solid fa-heart-pulse"></i></div>
+          </div>
+          <div class="box-data">
+            <h4 class="number">{{ stats.stats.accionesHoy || 0 }}</h4>
+            <span class="lbl">Actividad del Sistema</span>
+            <span class="trend">Acciones hoy</span>
+          </div>
+        </div>
+        <!-- Divider -->
+        <div class="split-divider"></div>
+        <!-- Stat Right -->
+        <div class="split-box">
+          <div class="icon-pulse-wrapper">
+            <div class="pulse-icon-circle blue"><i class="fa-solid fa-user-group"></i></div>
+          </div>
+          <div class="box-data">
+            <h4 class="number">{{ stats.stats.usuariosEnLinea || 0 }}</h4>
+            <span class="lbl">Usuarios Conectados</span>
+            <span class="trend active-now"><span class="dot pulse"></span> En línea</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,579 @@
+<div class="roles-permisos-wrapper">
+  
+  <!-- BREADCRUMBS Y CABECERA -->
+  <header class="roles-header fade-in">
+    <div class="header-left">
+      <div class="breadcrumb-mini">Administración > Roles y Permisos</div>
+      <h1 class="premium-title">Roles y Permisos</h1>
+      <p class="premium-subtitle">Seguridad y Privilegios del Sistema</p>
+    </div>
+    <div class="header-right">
+      <button class="btn-premium-register" *ngIf="activeTab === 'roles'" (click)="openCreateModal()">
+        <i class="fas fa-plus"></i>
+        <span>Nuevo Rol</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 1. KPI CARDS SUPERIORES -->
+  <div class="kpis-grid fade-in delay-1">
+    <div class="kpi-card bg-kpi-purple">
+      <div class="kpi-icon-wrap bg-soft-purple">
+        <i class="fa-solid fa-users-gear"></i>
+      </div>
+      <div class="kpi-details">
+        <span class="kpi-num">{{ stats.rolesTotales }}</span>
+        <span class="kpi-lbl">Roles Totales</span>
+        <span class="kpi-sub">Todos los roles</span>
+      </div>
+    </div>
+
+    <div class="kpi-card bg-kpi-green">
+      <div class="kpi-icon-wrap bg-soft-green">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div class="kpi-details">
+        <span class="kpi-num">{{ stats.permisosTotales }}</span>
+        <span class="kpi-lbl">Permisos Totales</span>
+        <span class="kpi-sub">Todos los permisos</span>
+      </div>
+    </div>
+
+    <div class="kpi-card bg-kpi-orange">
+      <div class="kpi-icon-wrap bg-soft-orange">
+        <i class="fa-solid fa-network-wired"></i>
+      </div>
+      <div class="kpi-details">
+        <span class="kpi-num">{{ stats.modulosSistema }}</span>
+        <span class="kpi-lbl">Módulos del Sistema</span>
+        <span class="kpi-sub">Módulos disponibles</span>
+      </div>
+    </div>
+
+    <div class="kpi-card bg-kpi-red">
+      <div class="kpi-icon-wrap bg-soft-red">
+        <i class="fa-solid fa-user-check"></i>
+      </div>
+      <div class="kpi-details">
+        <span class="kpi-num">{{ stats.rolesActivos }}</span>
+        <span class="kpi-lbl">Roles Activos</span>
+        <span class="kpi-sub">Activados</span>
+      </div>
+    </div>
+
+    <div class="kpi-card bg-kpi-blue">
+      <div class="kpi-icon-wrap bg-soft-blue">
+        <i class="fa-solid fa-user-slash"></i>
+      </div>
+      <div class="kpi-details">
+        <span class="kpi-num">{{ stats.rolesInactivos }}</span>
+        <span class="kpi-lbl">Roles Inactivos</span>
+        <span class="kpi-sub">Desactivado</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS AVANZADOS STANDALONE (Spans full width, no overlap!) -->
+  <section class="filters-glass-panel fade-in delay-2">
+    <div class="filters-grid-inputs">
+      <!-- Búsqueda Rápida -->
+      <div class="filter-col search-box">
+        <label class="filter-field-lbl">Búsqueda rápida</label>
+        <div class="input-glass-group">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input 
+            type="text" 
+            placeholder="Buscar por rol, descripción o clave..." 
+            [(ngModel)]="searchTerm" 
+            (ngModelChange)="applyFilters()" 
+          />
+          <button class="btn-clear-input" *ngIf="searchTerm" (click)="searchTerm = ''; applyFilters()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtro de Estado -->
+      <div class="filter-col select-box">
+        <label class="filter-field-lbl">Estado de Rol</label>
+        <div class="select-glass-wrapper">
+          <select class="select-glass" [(ngModel)]="selectedEstado" (change)="applyFilters()">
+            <option *ngFor="let state of availableStates" [value]="state">{{ state }}</option>
+          </select>
+          <i class="fa-solid fa-chevron-down select-arrow-icon"></i>
+        </div>
+      </div>
+
+      <!-- Filtro de Módulo -->
+      <div class="filter-col select-box">
+        <label class="filter-field-lbl">Modulo Asignado</label>
+        <div class="select-glass-wrapper">
+          <select class="select-glass" [(ngModel)]="selectedModulo" (change)="applyFilters()">
+            <option value="Todos">Todos los Módulos</option>
+            <option *ngFor="let mod of availableModules" [value]="mod">{{ mod }}</option>
+          </select>
+          <i class="fa-solid fa-chevron-down select-arrow-icon"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones de Filtro -->
+    <div class="filters-actions-row">
+      <div class="actions-row-left"></div>
+      <div class="actions-row-right">
+        <button class="btn-filter-action reset" (click)="clearFilters()">
+          <i class="fa-solid fa-arrow-rotate-left"></i> Limpiar Filtros
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Split Layout: Left side tables & filters, Right side details/donut -->
+  <div class="main-split-container fade-in delay-3">
+    
+    <!-- LEFT SIDE: TABLES & MATRIX -->
+    <div class="left-split-content">
+      
+      <!-- TAB CONTAINER CARD -->
+      <div class="card-premium table-card-wrap">
+        <div class="card-header-tabs">
+          <div class="tabs-header-wrap">
+            <button 
+              class="btn-tab-header" 
+              [class.active]="activeTab === 'roles'" 
+              (click)="activeTab = 'roles'; setPage(1)"
+            >
+              Gestión de Roles
+            </button>
+            <button 
+              class="btn-tab-header" 
+              [class.active]="activeTab === 'permisos'" 
+              (click)="activeTab = 'permisos'"
+            >
+              Matriz de Permisos
+            </button>
+          </div>
+          
+          <div class="tabs-actions-wrap" *ngIf="activeTab === 'roles'">
+            <span class="badge-count">{{ filteredRoles.length }} Roles</span>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 1: ROLES TABLE -->
+        <div *ngIf="activeTab === 'roles'" class="tab-fade-in">
+          <div class="table-responsive">
+            <table class="table-premium">
+              <thead>
+                <tr>
+                  <th>ROL</th>
+                  <th>DESCRIPCIÓN</th>
+                  <th class="text-center">USUARIOS ASIGNADOS</th>
+                  <th class="text-center">ESTADO</th>
+                  <th class="text-right">ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let role of paginatedRoles">
+                  <td>
+                    <div class="role-cell-wrap">
+                      <div class="role-icon-avatar bg-{{ role.color }}">
+                        <i class="fa-solid {{ role.icono }}"></i>
+                      </div>
+                      <span class="role-title-text font-{{ role.color }}">{{ role.displayName }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="role-desc-text">{{ role.descripcion }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge-users">{{ role.usuariosAsignados }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="status-bullet-badge" [class.active]="role.enabled">
+                      <i class="fa-solid fa-circle"></i> {{ role.enabled ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td class="text-right">
+                    <div class="actions-buttons-wrap">
+                      <button class="btn-action-view" (click)="openDetailModal(role)" title="Ver Detalle">
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+                      <button class="btn-action-edit" (click)="openEditModal(role)" title="Editar Rol">
+                        <i class="fa-solid fa-pencil"></i>
+                      </button>
+                      <div class="dropdown-actions-menu">
+                        <button class="btn-action-more" title="Más Acciones">
+                          <i class="fa-solid fa-ellipsis-vertical"></i>
+                        </button>
+                        <div class="dropdown-content">
+                          <a (click)="cloneRole(role)"><i class="fa-solid fa-copy"></i> Clonar Rol</a>
+                          <a (click)="openPermissionsModal(role)"><i class="fa-solid fa-key"></i> Gestionar Permisos</a>
+                          <a class="text-danger-action" (click)="deleteRole(role)"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="paginatedRoles.length === 0">
+                  <td colspan="5" class="text-center text-muted py-5">
+                    <i class="fa-solid fa-folder-open fa-2x mb-3 text-muted"></i>
+                    <p>No se encontraron roles con los criterios de búsqueda.</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 9. PAGINACIÓN -->
+          <div class="pagination-footer-premium" *ngIf="filteredRoles.length > 0">
+            <span class="pagination-summary">
+              Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ (currentPage * pageSize) > filteredRoles.length ? filteredRoles.length : (currentPage * pageSize) }} de {{ filteredRoles.length }} roles
+            </span>
+
+            <div class="pagination-controls-wrap">
+              <button class="btn-page-step" [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
+              
+              <button 
+                *ngFor="let p of [].constructor(totalPages); let i = index" 
+                class="btn-page-number" 
+                [class.active]="currentPage === (i + 1)"
+                (click)="setPage(i + 1)"
+              >
+                {{ i + 1 }}
+              </button>
+
+              <button class="btn-page-step" [disabled]="currentPage === totalPages" (click)="setPage(currentPage + 1)">
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+
+            <div class="page-size-selector">
+              <select (change)="changePageSize($event)">
+                <option value="10" [selected]="pageSize === 10">10 por página</option>
+                <option value="20" [selected]="pageSize === 20">20 por página</option>
+                <option value="50" [selected]="pageSize === 50">50 por página</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 2: PERMISOS MATRIX -->
+        <div *ngIf="activeTab === 'permisos'" class="tab-fade-in">
+          <div class="table-responsive">
+            <table class="table-matrix">
+              <thead>
+                <tr>
+                  <th>MÓDULO</th>
+                  <th *ngFor="let role of roles" class="text-center text-uppercase font-size-xs">
+                    {{ role.displayName }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let mod of availableModules">
+                  <td class="module-matrix-name">
+                    <i class="fa-solid fa-cube text-muted mr-2"></i> {{ mod }}
+                  </td>
+                  <td *ngFor="let role of roles" class="text-center">
+                    <div class="matrix-level-dot" [title]="getPermissionTooltip(getPermissionLevel(role, mod))">
+                      <i class="fa-solid" [ngClass]="getPermissionIcon(getPermissionLevel(role, mod))"></i>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="matrix-legend-row">
+            <div class="legend-item">
+              <i class="fa-solid fa-circle-check text-green"></i> <span>Permiso Completo</span>
+            </div>
+            <div class="legend-item">
+              <i class="fa-solid fa-circle text-orange"></i> <span>Permiso Parcial</span>
+            </div>
+            <div class="legend-item">
+              <i class="fa-solid fa-circle-xmark text-red"></i> <span>Sin Permiso</span>
+            </div>
+            <div class="legend-item">
+              <i class="fa-solid fa-circle text-gray"></i> <span>Sin Acceso</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE: DONUT CHART, QUICK ACTIONS, SECURITY ALERT -->
+    <div class="right-split-content">
+      
+      <!-- A) RESUMEN DE PERMISOS (DONUT CHART) -->
+      <div class="analytics-card card-donut-chart">
+        <h4 class="card-title-mini">Resumen de Permisos</h4>
+
+        <div class="donut-chart-flex-wrap">
+          <!-- Elegant CSS Dynamic Circular Donut Chart -->
+          <div class="custom-donut-wrapper">
+            <div class="donut-circle">
+              <span class="donut-center-num">{{ stats.permisosTotales }}</span>
+              <span class="donut-center-lbl">Permisos</span>
+            </div>
+          </div>
+
+          <div class="donut-legend-list">
+            <div class="legend-list-item" *ngFor="let item of stats.breakdown">
+              <span class="legend-color-indicator" [style.background-color]="item.color"></span>
+              <span class="legend-name">{{ item.name }}</span>
+              <span class="legend-val">{{ item.count }} ({{ item.percentage }})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B) ACCIONES RÁPIDAS -->
+      <div class="analytics-card card-quick-actions">
+        <h4 class="card-title-mini">Acciones Rápidas</h4>
+        <ul class="quick-actions-list">
+          <li class="action-btn-item" (click)="openCreateModal()">
+            <i class="fa-solid fa-plus icon purple"></i>
+            <span>Nuevo Rol de Seguridad</span>
+          </li>
+          <li class="action-btn-item" (click)="openCreateModal()">
+            <i class="fa-solid fa-copy icon blue"></i>
+            <span>Clonar Rol Existente</span>
+          </li>
+          <li class="action-btn-item" (click)="activeTab = 'permisos'">
+            <i class="fa-solid fa-shield-halved icon orange"></i>
+            <span>Gestionar Permisos</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- C) ADVERTENCIA DE SEGURIDAD -->
+      <div class="analytics-card card-security-alert">
+        <h4 class="card-title-mini">Políticas de Seguridad</h4>
+        <div class="alert-premium-box">
+          <div class="alert-icon bg-soft-purple">
+            <i class="fa-solid fa-shield-halved text-purple"></i>
+          </div>
+          <div class="alert-text-wrap">
+            <span class="title">Modificaciones Críticas</span>
+            <p class="desc">
+              Cualquier cambio en los permisos afectará de inmediato a todos los usuarios asignados a ese rol. Proceda con precaución.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODALES PREMIUM ================= -->
+
+<!-- MODAL 1: CREAR ROL -->
+<div class="modal-premium-backdrop" *ngIf="showCreateModal">
+  <div class="modal-premium-content size-lg">
+    <div class="modal-premium-header">
+      <h3><i class="fa-solid fa-plus-circle text-purple"></i> Crear Nuevo Rol Administrativo</h3>
+      <button class="btn-close-modal" (click)="showCreateModal = false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-premium-body">
+      <div class="row-inputs-grid-2">
+        <div class="form-group-premium">
+          <label>Nombre del Rol <span class="text-danger">*</span></label>
+          <input type="text" placeholder="Ej. Evaluador Técnico" [(ngModel)]="selectedRole.displayName" />
+        </div>
+        <div class="form-group-premium">
+          <label>Estado</label>
+          <div class="toggle-switch-wrap">
+            <input type="checkbox" id="create-enabled-toggle" [(ngModel)]="selectedRole.enabled" />
+            <label for="create-enabled-toggle" class="switch-label"></label>
+            <span class="toggle-status-text">{{ selectedRole.enabled ? 'Activo' : 'Inactivo' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group-premium">
+        <label>Descripción del Acceso</label>
+        <textarea rows="3" placeholder="Defina los módulos y tareas que cubre este rol..." [(ngModel)]="selectedRole.descripcion"></textarea>
+      </div>
+
+      <div class="row-inputs-grid-2">
+        <div class="form-group-premium">
+          <label>Icono Representativo</label>
+          <select [(ngModel)]="selectedRole.icono">
+            <option *ngFor="let ic of availableIcons" [value]="ic.class">{{ ic.label }}</option>
+          </select>
+        </div>
+        <div class="form-group-premium">
+          <label>Color Identificador</label>
+          <select [(ngModel)]="selectedRole.color">
+            <option *ngFor="let col of availableColors" [value]="col.value">{{ col.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="permissions-assign-title">
+        <h4>Configuración de Accesos por Módulo</h4>
+      </div>
+
+      <div class="permissions-select-grid">
+        <div class="permission-select-item-card" *ngFor="let perm of selectedRole.permisos">
+          <span class="module-title">{{ perm.module }}</span>
+          <select [(ngModel)]="perm.level">
+            <option value="completo">Permiso Completo</option>
+            <option value="parcial">Permiso Parcial</option>
+            <option value="sin_permiso">Sin Permiso</option>
+            <option value="sin_acceso">Sin Acceso</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-premium-footer">
+      <button class="btn-outline" (click)="showCreateModal = false">Cancelar</button>
+      <button class="btn-primary" (click)="saveNewRole()">Guardar Rol</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 2: EDITAR ROL -->
+<div class="modal-premium-backdrop" *ngIf="showEditModal">
+  <div class="modal-premium-content size-lg">
+    <div class="modal-premium-header">
+      <h3><i class="fa-solid fa-pencil-square text-blue"></i> Editar Rol: {{ editingRole.displayName }}</h3>
+      <button class="btn-close-modal" (click)="showEditModal = false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-premium-body">
+      <div class="row-inputs-grid-2">
+        <div class="form-group-premium">
+          <label>Nombre del Rol <span class="text-danger">*</span></label>
+          <input type="text" [(ngModel)]="editingRole.displayName" />
+        </div>
+        <div class="form-group-premium">
+          <label>Estado</label>
+          <div class="toggle-switch-wrap">
+            <input type="checkbox" id="edit-enabled-toggle" [(ngModel)]="editingRole.enabled" />
+            <label for="edit-enabled-toggle" class="switch-label"></label>
+            <span class="toggle-status-text">{{ editingRole.enabled ? 'Activo' : 'Inactivo' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group-premium">
+        <label>Descripción del Acceso</label>
+        <textarea rows="3" [(ngModel)]="editingRole.descripcion"></textarea>
+      </div>
+
+      <div class="row-inputs-grid-2">
+        <div class="form-group-premium">
+          <label>Icono Representativo</label>
+          <select [(ngModel)]="editingRole.icono">
+            <option *ngFor="let ic of availableIcons" [value]="ic.class">{{ ic.label }}</option>
+          </select>
+        </div>
+        <div class="form-group-premium">
+          <label>Color Identificador</label>
+          <select [(ngModel)]="editingRole.color">
+            <option *ngFor="let col of availableColors" [value]="col.value">{{ col.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="permissions-assign-title">
+        <h4>Modificar Accesos por Módulo</h4>
+      </div>
+
+      <div class="permissions-select-grid">
+        <div class="permission-select-item-card" *ngFor="let perm of editingRole.permisos">
+          <span class="module-title">{{ perm.module }}</span>
+          <select [(ngModel)]="perm.level">
+            <option value="completo">Permiso Completo</option>
+            <option value="parcial">Permiso Parcial</option>
+            <option value="sin_permiso">Sin Permiso</option>
+            <option value="sin_acceso">Sin Acceso</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-premium-footer">
+      <button class="btn-outline" (click)="showEditModal = false">Cancelar</button>
+      <button class="btn-primary" (click)="saveEditRole()">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 3: GESTIONAR PERMISOS -->
+<div class="modal-premium-backdrop" *ngIf="showPermissionsModal">
+  <div class="modal-premium-content size-md">
+    <div class="modal-premium-header">
+      <h3><i class="fa-solid fa-key text-orange"></i> Asignar Permisos a Rol: {{ editingRole.displayName }}</h3>
+      <button class="btn-close-modal" (click)="showPermissionsModal = false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-premium-body">
+      <div class="permissions-select-grid col-1">
+        <div class="permission-select-item-card horizontal" *ngFor="let perm of editingRole.permisos">
+          <span class="module-title">{{ perm.module }}</span>
+          <select [(ngModel)]="perm.level">
+            <option value="completo">Permiso Completo</option>
+            <option value="parcial">Permiso Parcial</option>
+            <option value="sin_permiso">Sin Permiso</option>
+            <option value="sin_acceso">Sin Acceso</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-premium-footer">
+      <button class="btn-outline" (click)="showPermissionsModal = false">Cancelar</button>
+      <button class="btn-primary" (click)="saveEditRole()">Guardar Permisos</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 4: VER DETALLE -->
+<div class="modal-premium-backdrop" *ngIf="showDetailModal">
+  <div class="modal-premium-content size-md">
+    <div class="modal-premium-header">
+      <h3><i class="fa-solid fa-circle-info text-sky"></i> Detalle de Rol: {{ selectedRole.displayName }}</h3>
+      <button class="btn-close-modal" (click)="showDetailModal = false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-premium-body">
+      <div class="detail-top-card-header">
+        <div class="role-icon-avatar bg-{{ selectedRole.color }} lg">
+          <i class="fa-solid {{ selectedRole.icono }}"></i>
+        </div>
+        <div class="detail-title-desc">
+          <h4>{{ selectedRole.displayName }}</h4>
+          <span class="key-label">{{ selectedRole.roleKey }}</span>
+          <p>{{ selectedRole.descripcion }}</p>
+        </div>
+      </div>
+
+      <div class="detail-split-metrics">
+        <div class="metric-cell">
+          <span class="num">{{ selectedRole.usuariosAsignados }}</span>
+          <span class="lbl">Usuarios Asignados</span>
+        </div>
+        <div class="metric-cell">
+          <span class="status-bullet-badge" [class.active]="selectedRole.enabled">
+            <i class="fa-solid fa-circle"></i> {{ selectedRole.enabled ? 'Activo' : 'Inactivo' }}
+          </span>
+          <span class="lbl">Estado Operativo</span>
+        </div>
+      </div>
+
+      <div class="permissions-assign-title">
+        <h4>Matriz de Privilegios Asignados</h4>
+      </div>
+
+      <div class="details-permissions-list">
+        <div class="detail-perm-row" *ngFor="let perm of selectedRole.permisos">
+          <span class="module">{{ perm.module }}</span>
+          <span class="level badge-level-{{ perm.level }}">{{ perm.level.toUpperCase() }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-premium-footer">
+      <button class="btn-primary w-100" (click)="showDetailModal = false">Cerrar</button>
+    </div>
+  </div>
+</div>

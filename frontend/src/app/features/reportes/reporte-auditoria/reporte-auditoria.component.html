@@ -1,0 +1,185 @@
+<div class="report-audit-container premium-light">
+  <!-- HEADER SIMPLIFICADO -->
+  <div class="report-header">
+    <div class="header-main">
+      <div class="title-group">
+        <h1 class="premium-title">Registro de Auditoría</h1>
+        <p class="premium-subtitle">Trazabilidad completa de operaciones del sistema</p>
+      </div>
+      <div class="action-buttons">
+        <button class="btn-premium secondary" (click)="loadReport()" [disabled]="isLoading">
+          <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i> Actualizar
+        </button>
+        <button class="btn-premium primary" (click)="exportToPDF()">
+          <i class="fas fa-file-pdf"></i> Exportar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD DE EVENTOS -->
+  <div class="audit-summary-grid">
+    <!-- CHART CARD -->
+    <div class="audit-card-glass chart-panel">
+      <div class="card-title-premium">
+        <i class="fas fa-chart-pie"></i> Distribución por Módulo
+      </div>
+      <div class="audit-chart-rows">
+        <div *ngFor="let key of objectKeys(reportData?.accionesPorModulo)" class="audit-row-item">
+          <div class="row-label-group">
+            <span class="m-name">{{ key }}</span>
+            <span class="m-count">{{ reportData.accionesPorModulo[key] }}</span>
+          </div>
+          <div class="progress-rail-audit">
+            <div class="progress-fill-audit" 
+                 [style.width.%]="(reportData.accionesPorModulo[key] / reportData.totalAcciones) * 100"
+                 [ngClass]="getModuloClass(key)">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOTAL COUNTER -->
+    <div class="audit-card-glass total-panel">
+      <div class="total-visual">
+        <div class="shield-icon"><i class="fas fa-shield-alt"></i></div>
+        <div class="total-content">
+          <span class="total-label">Eventos Monitoreados</span>
+          <h2 class="total-value">{{ reportData?.totalAcciones || 0 }}</h2>
+        </div>
+      </div>
+      <div class="activity-trend">
+        <div class="dot-online"></div>
+        <span>Vigilancia activa en tiempo real</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE BÚSQUEDA FORENSE -->
+  <div class="audit-filters-premium">
+    <div class="filter-inputs">
+      <div class="input-block">
+        <label><i class="fas fa-layer-group"></i> Módulo</label>
+        <div class="select-premium-audit">
+          <select [(ngModel)]="filters.modulo" (change)="applyFilters()">
+            <option value="">Todos los Segmentos</option>
+            <option *ngFor="let m of modulos" [value]="m">{{ m }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-block">
+        <label><i class="fas fa-user-secret"></i> Usuario Responsable</label>
+        <div class="search-premium-audit">
+          <input type="text" [(ngModel)]="filters.username" (keyup.enter)="applyFilters()" placeholder="ID de Usuario / Username...">
+          <i class="fas fa-search search-icon"></i>
+        </div>
+      </div>
+    </div>
+    <div class="filter-buttons">
+      <button class="btn-audit-main" (click)="applyFilters()">Ejecutar Query</button>
+      <button class="btn-audit-reset" (click)="resetFilters()"><i class="fas fa-undo"></i></button>
+    </div>
+  </div>
+
+  <!-- REGISTRO DE EVENTOS (TABLA) -->
+  <div class="audit-log-card-premium">
+    <div class="log-header">
+      <div class="log-title"><i class="fas fa-stream"></i> Stream de Actividad Reciente</div>
+      <div class="log-loader" *ngIf="isLoading">
+        <div class="spinner-audit"></div>
+        <span>Sincronizando logs...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive desktop-only">
+      <table class="table-audit-premium">
+        <thead>
+          <tr>
+            <th>FECHA / HORA</th>
+            <th>USUARIO</th>
+            <th>MÓDULO</th>
+            <th>ACCIÓN / DESCRIPCIÓN</th>
+            <th class="text-right">IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of reportData?.contenido">
+            <td class="timestamp-cell">
+              <span class="full-timestamp">{{ log.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+            </td>
+            <td>
+              <div class="user-display">
+                <div class="mini-avatar">{{ log.username.substring(0,1) }}</div>
+                <div class="user-info">
+                  <span class="u-name">{{ log.username }}</span>
+                  <span class="u-role">{{ log.rol }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="module-indicator" [ngClass]="getModuloClass(log.modulo)">{{ log.modulo }}</span>
+            </td>
+            <td class="description-cell">
+              <div class="action-info">
+                <strong>{{ log.accion }}:</strong> {{ log.descripcion }}
+              </div>
+            </td>
+            <td class="text-right">
+              <code class="ip-code">{{ log.ip }}</code>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Vista Móvil: Cards de Auditoría -->
+    <div class="audit-cards-mobile mobile-only" *ngIf="!isLoading">
+      <div class="audit-mobile-card glass-card" *ngFor="let log of reportData?.contenido">
+        <div class="card-mobile-top">
+          <div class="log-user">
+            <div class="mini-avatar">{{ log.username.substring(0,1) }}</div>
+            <div class="user-meta">
+              <span class="uname">{{ log.username }}</span>
+              <span class="utime">{{ log.fecha | date:'short' }}</span>
+            </div>
+          </div>
+          <span class="module-chip-sm" [ngClass]="getModuloClass(log.modulo)">{{ log.modulo }}</span>
+        </div>
+        
+        <div class="card-mobile-body">
+          <div class="action-badge-row">
+            <span class="action-name">{{ log.accion }}</span>
+            <code class="ip-sm">{{ log.ip }}</code>
+          </div>
+          <p class="log-desc">{{ log.descripcion }}</p>
+        </div>
+
+        <div class="card-mobile-footer">
+          <button class="btn-trace-mobile">Ver Traza Completa</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-results-audit" *ngIf="reportData?.contenido?.length === 0 && !isLoading">
+      <div class="empty-icon"><i class="fas fa-file-signature"></i></div>
+      <p>No hay registros de auditoría para mostrar.</p>
+    </div>
+
+    <!-- PAGINACIÓN ESTRICTA SOLICITADA -->
+    <div class="strict-pagination-bar" *ngIf="reportData?.totalPages > 0">
+      <button class="btn-strict" [disabled]="currentPage === 0 || isLoading" (click)="prevPage()">
+        <i class="fas fa-arrow-left"></i> Anterior
+      </button>
+
+      <div class="page-count-strict">
+        Página <strong>{{ currentPage + 1 }}</strong> de {{ reportData.totalPages }}
+      </div>
+
+      <button class="btn-strict" [disabled]="currentPage >= reportData.totalPages - 1 || isLoading" (click)="nextPage()">
+        Siguiente <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+</div>

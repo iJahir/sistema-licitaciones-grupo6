@@ -1,0 +1,685 @@
+<div class="list-container">
+  <!-- BREADCRUMB HEADER FOR RESULTADOS MODE -->
+  <div class="header-breadcrumb-row fade-in" *ngIf="viewMode === 'resultados'">
+    <div class="breadcrumb-left">
+      <h1>Resultados / Adjudicaciones</h1>
+      <p class="subtitle">Consulta los resultados finales y las adjudicaciones realizadas</p>
+    </div>
+  </div>
+
+  <!-- TOP METRICS PANELS (5 Premium Cards) -->
+  <div class="metrics-grid fade-in">
+    <!-- ViewMode === resultados: KPIs matching Image 1 -->
+    <ng-container *ngIf="viewMode === 'resultados'">
+      <!-- Card 1: Total Adjudicaciones (Blue/Green) -->
+      <div class="metric-glass-card blue">
+        <div class="card-icon"><i class="fa-solid fa-trophy"></i></div>
+        <div class="card-data">
+          <span class="label">Adjudicaciones Totales</span>
+          <h3 class="value">{{ getresultadosKpis().total }}</h3>
+          <span class="subtext">En total</span>
+        </div>
+      </div>
+      <!-- Card 2: Monto Total Adjudicado (Green/Purple) -->
+      <div class="metric-glass-card purple-premium">
+        <div class="card-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+        <div class="card-data">
+          <span class="label">Monto Total Adjudicado</span>
+          <h3 class="value">USD {{ getresultadosKpis().monto }}</h3>
+          <span class="subtext">En total</span>
+        </div>
+      </div>
+      <!-- Card 3: Procesos Adjudicados (Orange) -->
+      <div class="metric-glass-card green">
+        <div class="card-icon"><i class="fa-solid fa-cart-flatbed"></i></div>
+        <div class="card-data">
+          <span class="label">Procesos Adjudicados</span>
+          <h3 class="value">{{ getresultadosKpis().procesos }}</h3>
+          <span class="subtext">{{ getresultadosKpis().pctProcesos }}% del total</span>
+        </div>
+      </div>
+      <!-- Card 4: En Contratacion (Purple) -->
+      <div class="metric-glass-card orange">
+        <div class="card-icon"><i class="fa-regular fa-clock"></i></div>
+        <div class="card-data">
+          <span class="label">En Proceso de Contratación</span>
+          <h3 class="value">{{ getresultadosKpis().enContratacion }}</h3>
+          <span class="subtext">{{ getresultadosKpis().pctEnContratacion }}% del total</span>
+        </div>
+      </div>
+      <!-- Card 5: Desiertos / Cancelados (Red/Grey) -->
+      <div class="metric-glass-card cancel">
+        <div class="card-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+        <div class="card-data">
+          <span class="label">Desiertos / Cancelados</span>
+          <h3 class="value">{{ getresultadosKpis().cancelados }}</h3>
+          <span class="subtext">{{ getresultadosKpis().pctCancelados }}% del total</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ViewMode === list: Original metrics -->
+    <ng-container *ngIf="viewMode !== 'resultados'">
+      <!-- Card 1: Total Licitaciones (Blue) -->
+      <div class="metric-glass-card blue">
+        <div class="card-icon"><i class="fa-regular fa-folder"></i></div>
+        <div class="card-data">
+          <span class="label">Total Licitaciones</span>
+          <h3 class="value">{{ stats.total }}</h3>
+          <span class="subtext">En total</span>
+        </div>
+      </div>
+      <!-- Card 2: Activas (Green) -->
+      <div class="metric-glass-card green">
+        <div class="card-icon"><i class="fa-regular fa-file-lines"></i></div>
+        <div class="card-data">
+          <span class="label">Activas</span>
+          <h3 class="value">{{ stats.publicadas }}</h3>
+          <span class="subtext">Publicadas</span>
+        </div>
+      </div>
+      <!-- Card 3: En Proceso (Orange) -->
+      <div class="metric-glass-card orange">
+        <div class="card-icon"><i class="fa-regular fa-clock"></i></div>
+        <div class="card-data">
+          <span class="label">En Proceso</span>
+          <h3 class="value">{{ stats.evaluando }}</h3>
+          <span class="subtext">En ejecución</span>
+        </div>
+      </div>
+      <!-- Card 4: Cerradas (Purple) -->
+      <div class="metric-glass-card purple">
+        <div class="card-icon"><i class="fa-solid fa-lock"></i></div>
+        <div class="card-data">
+          <span class="label">Cerradas</span>
+          <h3 class="value">{{ stats.cerradas }}</h3>
+          <span class="subtext">Finalizadas</span>
+        </div>
+      </div>
+      <!-- Card 5: Canceladas (Cyan) -->
+      <div class="metric-glass-card cyan">
+        <div class="card-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+        <div class="card-data">
+          <span class="label">Canceladas</span>
+          <h3 class="value">{{ stats.canceladas }}</h3>
+          <span class="subtext">Sin efecto</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- NEW LIST HEADER ROW (ONLY IN LIST MODE) -->
+  <div class="page-header-row fade-in delay-1" *ngIf="viewMode !== 'resultados'">
+    <button class="btn-premium primary" (click)="openCreateModal()" *ngIf="isAdmin || isArea">
+      <i class="fas fa-plus"></i> Nueva Licitación
+    </button>
+  </div>
+
+  <!-- FILTERS SECTION (Tailored per mode) -->
+  <section class="filters-glass-card fade-in delay-2">
+    <!-- ViewMode === resultados: Filtros Adjudicaciones -->
+    <div class="filters-grid results-style" *ngIf="viewMode === 'resultados'">
+      <div class="filter-group search">
+        <label>Buscar licitación, proveedor o adjudicación...</label>
+        <div class="input-glass">
+          <input type="text" [(ngModel)]="filters.search" (keyup.enter)="onFilter()" placeholder="Buscar licitación, proveedor o adjudicación...">
+          <i class="fa-solid fa-magnifying-glass search-icon-right"></i>
+        </div>
+      </div>
+      
+      <div class="filter-group">
+        <label>Licitación</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.area" (change)="onFilter()">
+            <option value="">Todas</option>
+            <option *ngFor="let name of uniqueLicitacionesNombres" [value]="name">{{ name }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Estado</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.estado" (change)="onFilter()">
+            <option value="">Todos</option>
+            <option value="ADJUDICADA">Adjudicado</option>
+            <option value="EN_EVALUACION">En proceso</option>
+            <option value="DESIERTA">Desierto</option>
+            <option value="CANCELADA">Cancelado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Tipo de Adjudicación</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.tipo" (change)="onFilter()">
+            <option value="">Todos</option>
+            <option value="Total">Total</option>
+            <option value="Parcial">Parcial</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Fecha Adjudicación</label>
+        <div class="input-glass">
+          <input type="date" [(ngModel)]="filters.fechaPublicacion" (change)="onFilter()">
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn-glass clear" (click)="clearFilters()">
+          <i class="fa-solid fa-arrow-rotate-left"></i> Limpiar
+        </button>
+        <button class="btn-glass search" (click)="onFilter()">
+          <i class="fa-solid fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+
+    <!-- ViewMode === list: Original filters -->
+    <div class="filters-grid" *ngIf="viewMode !== 'resultados'">
+      <div class="filter-group search">
+        <label>BÚSQUEDA RÁPIDA</label>
+        <div class="input-glass">
+          <input type="text" [(ngModel)]="filters.search" (keyup.enter)="onFilter()" placeholder="Buscar licitación por código, título o descripción...">
+          <i class="fa-solid fa-magnifying-glass search-icon-right"></i>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>ESTADO</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.estado" (change)="onFilter()">
+            <option value="">Todos los estados</option>
+            <option *ngFor="let e of estados" [value]="e">{{ e }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>TIPO DE LICITACIÓN</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.tipo" (change)="onFilter()">
+            <option value="">Todos</option>
+            <option value="Pública">Pública</option>
+            <option value="Privada">Privada</option>
+            <option value="Interna">Interna</option>
+            <option value="Directa">Directa</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>ENTIDAD CONVOCANTE</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.area" (change)="onFilter()">
+            <option value="">Todos</option>
+            <option *ngFor="let a of areas" [value]="a.nombre">{{ a.nombre }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>FECHA PUBLICACIÓN</label>
+        <div class="input-glass">
+          <input type="date" [(ngModel)]="filters.fechaPublicacion" (change)="onFilter()">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button class="btn-glass clear" (click)="clearFilters()">
+          <i class="fa-solid fa-arrow-rotate-left"></i> Limpiar
+        </button>
+        <button class="btn-glass search" (click)="onFilter()">
+          <i class="fa-solid fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- DUAL PANEL WRAPPER FOR RESULTADOS / ADJUDICACIONES -->
+  <div class="dual-panel-layout fade-in delay-3" *ngIf="viewMode === 'resultados'">
+    <!-- LEFT PANEL: TABLE (72% Width) -->
+    <div class="left-table-panel premium-glass-card">
+      <div class="list-title-row">
+        <h2>Listado de Adjudicaciones</h2>
+      </div>
+
+      <div class="table-responsive" *ngIf="!loading && licitaciones.length > 0">
+        <table class="modern-list-table adj-table">
+          <thead>
+            <tr>
+              <th>ID Adjudicación</th>
+              <th>Licitación</th>
+              <th>Proveedor Adjudicado</th>
+              <th>Monto Adjudicado</th>
+              <th>Fecha Adjudicación</th>
+              <th>Estado</th>
+              <th>Tipo</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let l of licitaciones" class="table-row-hover">
+              <!-- ID Adjudicación -->
+              <td>
+                <span class="code-column link-adj" [routerLink]="['/evaluaciones/resultados', l.id]">
+                  ADJ-2026-{{ l.id | number:'3.0-0' }}
+                </span>
+              </td>
+              
+              <!-- Licitación -->
+              <td>
+                <div class="title-cell-wrapper">
+                  <span class="title-main">{{ l.titulo }}</span>
+                  <span class="title-sub">LP-2026-{{ l.id | number:'3.0-0' }}</span>
+                </div>
+              </td>
+
+              <!-- Proveedor Adjudicado -->
+              <td>
+                <div class="title-cell-wrapper" *ngIf="getFriendlyEstadoAdjudicacion(l) !== 'Desierto' && getFriendlyEstadoAdjudicacion(l) !== 'Cancelado'">
+                  <span class="title-main">{{ getProveedorAdjudicado(l).name }}</span>
+                  <span class="title-sub">{{ getProveedorAdjudicado(l).ruc }}</span>
+                </div>
+                <div class="title-cell-wrapper text-muted" *ngIf="getFriendlyEstadoAdjudicacion(l) === 'Desierto' || getFriendlyEstadoAdjudicacion(l) === 'Cancelado'">
+                  <span class="title-main">-</span>
+                  <span class="title-sub">-</span>
+                </div>
+              </td>
+
+              <!-- Monto Adjudicado -->
+              <td>
+                <span class="amount-cell">{{ getMontoAdjudicado(l) }}</span>
+              </td>
+
+              <!-- Fecha Adjudicación -->
+              <td>
+                <div class="close-date-wrapper" *ngIf="getFriendlyEstadoAdjudicacion(l) !== 'Cancelado'">
+                  <span class="date-display">{{ getFechaAdjudicacion(l).date }}</span>
+                  <span class="days-remaining close">{{ getFechaAdjudicacion(l).time }}</span>
+                </div>
+                <div class="close-date-wrapper" *ngIf="getFriendlyEstadoAdjudicacion(l) === 'Cancelado'">
+                  <span class="date-display">-</span>
+                  <span class="days-remaining close">-</span>
+                </div>
+              </td>
+
+              <!-- Estado badge -->
+              <td>
+                <span class="status-badge-premium text-uppercase" [ngClass]="getStatusClassAdjudicacion(getFriendlyEstadoAdjudicacion(l))">
+                  {{ getFriendlyEstadoAdjudicacion(l) }}
+                </span>
+              </td>
+
+              <!-- Tipo -->
+              <td>
+                <span class="tipo-badge total text-uppercase" *ngIf="getTipoAdjudicacion(l) === 'Total'">{{ getTipoAdjudicacion(l) }}</span>
+                <span class="tipo-badge parcial text-uppercase" *ngIf="getTipoAdjudicacion(l) === 'Parcial'">{{ getTipoAdjudicacion(l) }}</span>
+                <span class="text-muted" *ngIf="getTipoAdjudicacion(l) === '-'">-</span>
+              </td>
+
+              <!-- Acciones -->
+              <td class="text-center">
+                <div class="actions-group-modern">
+                  <button class="btn-action-circle view" [routerLink]="['/evaluaciones/resultados', l.id]" title="Ver Detalle / Ranking">
+                    <i class="fa-regular fa-eye"></i>
+                  </button>
+                  <button class="btn-action-circle doc" [routerLink]="['/licitaciones', l.id]" title="Ver Licitación">
+                    <i class="fa-regular fa-file-lines"></i>
+                  </button>
+                  
+                  <div class="actions-dropdown-wrapper">
+                    <button class="btn-action-circle more" (click)="toggleDropdown(l.id!, $event)" title="Más Opciones">
+                      <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <div class="dropdown-menu-list" *ngIf="activeDropdownId === l.id" (click)="$event.stopPropagation()">
+                      <button class="dropdown-item" (click)="generarActa()">
+                        <i class="fas fa-file-alt"></i> Generar Acta
+                      </button>
+                      <button class="dropdown-item" (click)="generarContrato()">
+                        <i class="fas fa-signature"></i> Generar Contrato
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="empty-state-modern" *ngIf="licitaciones.length === 0 && !loading">
+        <div class="empty-icon-box"><i class="fas fa-search-minus"></i></div>
+        <h3>No se encontraron adjudicaciones</h3>
+        <p>Ajuste los filtros o intente con otros términos de búsqueda.</p>
+      </div>
+
+      <!-- PAGINATION FOR ADJUDICATIONS -->
+      <footer class="modern-pagination" *ngIf="totalPages > 0 && !loading && licitaciones.length > 0">
+        <div class="page-info">
+          Mostrando {{ currentPage * pageSize + 1 }} a {{ getMin((currentPage + 1) * pageSize, totalElements) }} de {{ totalElements }} adjudicaciones
+        </div>
+        
+        <div class="page-size-selector">
+          <span>Filas por página</span>
+          <select [(ngModel)]="pageSize" (change)="onFilter()">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+          </select>
+        </div>
+
+        <div class="page-controls">
+          <button class="btn-page-arrow" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 0">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="btn-page-number" *ngFor="let p of getPageNumbers()" [class.active]="p === currentPage" (click)="changePage(p)">
+            {{ p + 1 }}
+          </button>
+          <button class="btn-page-arrow" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages - 1">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <!-- RIGHT EXECUTIVE PANEL (28% Width) -->
+    <div class="right-stats-panel">
+      <!-- Resumen General (Donut chart SVG) -->
+      <div class="stats-glass-card panel-card">
+        <h3 class="panel-card-title">Resumen General</h3>
+        
+        <div class="donut-chart-container">
+          <div class="donut-chart-wrapper">
+            <svg width="140" height="140" viewBox="0 0 42 42" class="donut-svg">
+              <circle class="donut-hole" cx="21" cy="21" r="15.915" fill="transparent"></circle>
+              <circle class="donut-ring" cx="21" cy="21" r="15.915" fill="transparent" stroke="#f1f5f9" stroke-width="3"></circle>
+              
+              <!-- Adjudicadas (Green) -> 58.33% -->
+              <circle class="donut-segment segment-adjudicadas" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#10b981" stroke-width="4.5" 
+                      [attr.stroke-dasharray]="StrokeDashArrayAdjudicadas" 
+                      [attr.stroke-dashoffset]="StrokeDashOffsetAdjudicadas"></circle>
+              <!-- En Proceso (Blue) -> 16.67% -->
+              <circle class="donut-segment segment-proceso" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#3b82f6" stroke-width="4.5" 
+                      [attr.stroke-dasharray]="StrokeDashArrayEnProceso" 
+                      [attr.stroke-dashoffset]="StrokeDashOffsetEnProceso"></circle>
+              <!-- Desiertas (Yellow) -> 8.33% -->
+              <circle class="donut-segment segment-desiertas" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#f59e0b" stroke-width="4.5" 
+                      [attr.stroke-dasharray]="StrokeDashArrayDesiertas" 
+                      [attr.stroke-dashoffset]="StrokeDashOffsetDesiertas"></circle>
+              <!-- Canceladas (Red) -> 8.33% -->
+              <circle class="donut-segment segment-canceladas" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#ef4444" stroke-width="4.5" 
+                      [attr.stroke-dasharray]="StrokeDashArrayCanceladas" 
+                      [attr.stroke-dashoffset]="StrokeDashOffsetCanceladas"></circle>
+              <!-- Pendientes (Purple) -> 8.33% -->
+              <circle class="donut-segment segment-pendientes" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#8b5cf6" stroke-width="4.5" 
+                      [attr.stroke-dasharray]="StrokeDashArrayPendientes" 
+                      [attr.stroke-dashoffset]="StrokeDashOffsetPendientes"></circle>
+            </svg>
+            <div class="donut-center-label">
+              <span class="donut-num">{{ donutData.total }}</span>
+              <span class="donut-lbl">Total</span>
+            </div>
+          </div>
+          
+          <div class="donut-legends">
+            <div class="legend-row">
+              <span class="dot adj"></span>
+              <span class="legend-lbl">Adjudicadas</span>
+              <span class="legend-val">{{ donutData.adj }} <span class="pct">({{ donutData.pctAdj.toFixed(1) }}%)</span></span>
+            </div>
+            <div class="legend-row">
+              <span class="dot proc"></span>
+              <span class="legend-lbl">En proceso</span>
+              <span class="legend-val">{{ donutData.proc }} <span class="pct">({{ donutData.pctProc.toFixed(1) }}%)</span></span>
+            </div>
+            <div class="legend-row">
+              <span class="dot des"></span>
+              <span class="legend-lbl">Desiertas</span>
+              <span class="legend-val">{{ donutData.des }} <span class="pct">({{ donutData.pctDes.toFixed(1) }}%)</span></span>
+            </div>
+            <div class="legend-row">
+              <span class="dot canc"></span>
+              <span class="legend-lbl">Canceladas</span>
+              <span class="legend-val">{{ donutData.canc }} <span class="pct">({{ donutData.pctCanc.toFixed(1) }}%)</span></span>
+            </div>
+            <div class="legend-row">
+              <span class="dot pend"></span>
+              <span class="legend-lbl">Pendientes</span>
+              <span class="legend-val">{{ donutData.pend }} <span class="pct">({{ donutData.pctPend.toFixed(1) }}%)</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adjudicaciones por Licitación list -->
+      <div class="stats-glass-card panel-card text-left mt-3">
+        <h3 class="panel-card-title">Adjudicaciones por Licitación</h3>
+        <div class="stats-list">
+          <div class="stats-item" *ngFor="let l of licitaciones.slice(0, 10)">
+            <div class="item-header">
+              <span class="item-name" [title]="l.titulo">{{ l.titulo }}</span>
+              <span class="item-badge">1</span>
+            </div>
+            <div class="item-progress"><div class="fill" style="width: 100%;"></div></div>
+          </div>
+          <div class="no-stats-text text-center py-2" *ngIf="licitaciones.length === 0" style="color: #94a3b8; font-size: 0.8rem; font-weight: 600;">
+            No hay adjudicaciones registradas.
+          </div>
+        </div>
+        <a class="view-all-link" [routerLink]="['/licitaciones']">
+          Ver todas las licitaciones <i class="fas fa-arrow-right icon-right"></i>
+        </a>
+      </div>
+
+      <!-- Acciones Rápidas -->
+      <div class="stats-glass-card panel-card text-left mt-3" *ngIf="isAdmin || isProveedor">
+        <h3 class="panel-card-title">Acciones Rápidas</h3>
+        <div class="action-buttons-vertical">
+          <button class="action-btn" (click)="generarAdjudicacion()" *ngIf="isAdmin">
+            <span class="icon-wrap bg-blue"><i class="fas fa-plus"></i></span>
+            <span class="label">Generar Adjudicación</span>
+          </button>
+          
+          <button class="action-btn" (click)="generarActa()" *ngIf="isAdmin">
+            <span class="icon-wrap bg-teal"><i class="fas fa-file-signature"></i></span>
+            <span class="label">Generar Acta</span>
+          </button>
+
+          <button class="action-btn" (click)="generarContrato()" *ngIf="isAdmin">
+            <span class="icon-wrap bg-green"><i class="fas fa-signature"></i></span>
+            <span class="label">Generar Contrato</span>
+          </button>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NORMAL SINGLE TABLE VIEW (ONLY IN DEFAULT LIST MODE) -->
+  <div class="premium-glass-card fade-in delay-3" *ngIf="viewMode !== 'resultados'">
+    <div class="list-title-row">
+      <h2>Listado de Licitaciones</h2>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && licitaciones.length > 0">
+      <table class="modern-list-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Título</th>
+            <th>Tipo</th>
+            <th>Entidad Convocante</th>
+            <th>Estado</th>
+            <th>Fecha Publicación</th>
+            <th>Fecha Cierre</th>
+            <th>Propuestas</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let l of licitaciones" class="table-row-hover">
+            <td><span class="code-column">LP-2026-{{ l.id | number:'3.0-0' }}</span></td>
+            <td>
+              <div class="title-cell-wrapper">
+                <span class="title-main">{{ l.titulo }}</span>
+                <span class="title-sub">{{ l.descripcion }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="tipo-badge" [ngClass]="l.tipo ? l.tipo.toLowerCase().trim().replace('ú', 'u') : 'publica'">{{ l.tipo }}</span>
+            </td>
+            <td>
+              <div class="convocante-cell">
+                <i class="fa-solid fa-building"></i>
+                <span>{{ getEntidadConvocante(l) }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="status-badge-premium" [ngClass]="l.estado ? l.estado.toLowerCase().trim() : 'borrador'">{{ l.estado }}</span>
+            </td>
+            <td>
+              <span class="date-display">{{ l.fechaPublicacion | date:'dd/MM/yyyy' }}</span>
+            </td>
+            <td>
+              <div class="close-date-wrapper">
+                <span class="date-display">{{ l.fechaCierre | date:'dd/MM/yyyy' }}</span>
+                <span class="days-remaining" [ngClass]="l.estado ? l.estado.toLowerCase().trim() : 'borrador'">
+                  {{ l.fechaCierre | countdown }} restantes
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="proposals-count-cell">
+                <span class="count-val">{{ getPropuestasCount(l) }}</span>
+                <span class="count-lbl">Recibidas</span>
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="actions-group-modern">
+                <button class="btn-action-circle view" [routerLink]="['/licitaciones', l.id]" title="Ver Detalle">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+                <button class="btn-action-circle doc" 
+                        *ngIf="l.estado === 'EN_EVALUACION' || l.estado === 'EVALUADA' || l.estado === 'ADJUDICADA' || l.estado === 'CERRADA'" 
+                        [routerLink]="['/evaluaciones/resultados', l.id]" 
+                        title="Ver Resultados">
+                  <i class="fa-regular fa-file-lines"></i>
+                </button>
+                <button class="btn-action-circle doc" 
+                        *ngIf="isProveedor && l.estado === 'PUBLICADA'" 
+                        [routerLink]="['/licitaciones/postular', l.id]" 
+                        title="Enviar Propuesta">
+                  <i class="fa-regular fa-file-lines"></i>
+                </button>
+                <button class="btn-action-circle doc disabled" 
+                        *ngIf="!(l.estado === 'EN_EVALUACION' || l.estado === 'EVALUADA' || l.estado === 'ADJUDICADA' || l.estado === 'CERRADA') && !(isProveedor && l.estado === 'PUBLICADA')"
+                        title="No disponible">
+                  <i class="fa-regular fa-file-lines"></i>
+                </button>
+                
+                <div class="actions-dropdown-wrapper">
+                  <button class="btn-action-circle more" (click)="toggleDropdown(l.id!, $event)" title="Más Opciones">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                  <div class="dropdown-menu-list" *ngIf="activeDropdownId === l.id" (click)="$event.stopPropagation()">
+                    <button class="dropdown-item" *ngIf="canEdit(l)" (click)="openEditModal(l.id!)">
+                      <i class="fas fa-pencil-alt"></i> Editar
+                    </button>
+                    <button class="dropdown-item danger" *ngIf="isAdmin && l.estado !== EstadoLicitacion.CANCELADA" (click)="cancelarLicitacion(l.id!)">
+                      <i class="fas fa-ban"></i> Cancelar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state-modern" *ngIf="licitaciones.length === 0 && !loading">
+      <div class="empty-icon-box"><i class="fas fa-search-minus"></i></div>
+      <h3>No se encontraron registros</h3>
+      <p>Ajuste los filtros o intente con otros términos de búsqueda.</p>
+    </div>
+
+    <!-- PAGINATION FOR DEFAULT LIST -->
+    <footer class="modern-pagination" *ngIf="totalPages > 0 && !loading && licitaciones.length > 0">
+      <div class="page-info">
+        Mostrando {{ currentPage * pageSize + 1 }} a {{ getMin((currentPage + 1) * pageSize, totalElements) }} de {{ totalElements }} licitaciones
+      </div>
+      
+      <div class="page-size-selector">
+        <span>Filas por página</span>
+        <select [(ngModel)]="pageSize" (change)="onFilter()">
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+        </select>
+      </div>
+
+      <div class="page-controls">
+        <button class="btn-page-arrow" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 0">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="btn-page-number" *ngFor="let p of getPageNumbers()" [class.active]="p === currentPage" (click)="changePage(p)">
+          {{ p + 1 }}
+        </button>
+        <button class="btn-page-arrow" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages - 1">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- RECENT ACTIVITY TIMELINE ROW AT BOTTOM (BOTH MODES OR RESULTS PREFERABLY) -->
+  <section class="recent-activity-section fade-in delay-3 mt-4" *ngIf="viewMode === 'resultados'">
+    <div class="section-header-timeline">
+      <h3>Actividad Reciente</h3>
+      <a class="view-timeline-link">Ver toda la actividad <i class="fas fa-arrow-right"></i></a>
+    </div>
+    
+    <div class="activity-timeline-row">
+      <!-- Loop over the real adjudicated licitaciones -->
+      <div class="timeline-activity-card" *ngFor="let l of licitaciones.slice(0, 5)">
+        <div class="activity-icon bg-green-light"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="activity-info">
+          <h4>Adjudicación completada</h4>
+          <p class="activity-detail" [title]="getProveedorAdjudicado(l).name + ' - LP-2026-' + l.id">
+            {{ getProveedorAdjudicado(l).name }} - LP-2026-{{ l.id | number:'3.0-0' }}
+          </p>
+          <span class="activity-time">Publicado: {{ l.fechaPublicacion | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+      <!-- If there are no adjudications -->
+      <div class="timeline-activity-card" *ngIf="licitaciones.length === 0" style="grid-column: span 5; justify-content: center; align-items: center; padding: 2rem;">
+        <div class="activity-icon bg-blue-light"><i class="fa-solid fa-info-circle"></i></div>
+        <div class="activity-info" style="text-align: center;">
+          <h4>Sin actividad reciente</h4>
+          <p class="activity-detail">No hay adjudicaciones registradas en el sistema.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL OVERLAY -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="$event.target === modalBackdrop && closeModal()" #modalBackdrop>
+    <div class="modal-container-modern">
+      <button class="modal-close-btn" (click)="closeModal()">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="modal-body-content">
+        <app-crear-licitacion 
+          [editId]="editingId || undefined" 
+          (onComplete)="onFormComplete()" 
+          (onCancel)="closeModal()">
+        </app-crear-licitacion>
+      </div>
+    </div>
+  </div>
+</div>

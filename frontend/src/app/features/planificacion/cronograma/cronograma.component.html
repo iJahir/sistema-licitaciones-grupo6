@@ -1,0 +1,457 @@
+<!-- ==========================================
+     DASHBOARD 1: SELECTION LIST (No Licitación Selected)
+     ========================================== -->
+<div class="selection-dashboard animate-slide-up" *ngIf="!selectedProcess">
+  <div class="dashboard-intro">
+    <div class="intro-text">
+      <h2>Cronograma de Licitaciones</h2>
+      <p>Seleccione un proceso activo para visualizar su línea de tiempo, hitos de adquisición y dependencias técnicas en tiempo real.</p>
+    </div>
+    
+    <!-- Filter bar for lists -->
+    <div class="list-filters-bar card-glow">
+      <div class="filters-grid">
+        <div class="filter-box search">
+          <input type="text" [(ngModel)]="searchText" (input)="applyFilters()" placeholder="Buscar por código o título..." class="form-control" />
+          <i class="fa-solid fa-magnifying-glass search-ico"></i>
+        </div>
+        <div class="filter-box">
+          <select [(ngModel)]="filterEstado" (change)="applyFilters()" class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="En Progreso">En Progreso</option>
+            <option value="Publicado">Publicado</option>
+            <option value="Adjudicado">Adjudicado</option>
+            <option value="Cerrado">Cerrado</option>
+          </select>
+        </div>
+        <div class="filter-box">
+          <select [(ngModel)]="filterResponsable" (change)="applyFilters()" class="form-select">
+            <option value="">Todos los responsables</option>
+            <option value="Compras Públicas">Compras Públicas</option>
+            <option value="Infraestructura">Infraestructura</option>
+            <option value="Almacén">Almacén</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selection Cards Grid (Max 12 per page) -->
+  <div class="selection-cards-grid">
+    <div class="process-select-card card-glow" *ngFor="let proc of paginatedProcesses" (click)="selectProcess(proc)">
+      <div class="card-top">
+        <span class="proc-badge">{{ proc.codigo }}</span>
+        <span class="status-indicator" 
+              [ngClass]="{
+                'status-green': proc.estadoGeneral === 'Adjudicado',
+                'status-orange': proc.estadoGeneral === 'En Progreso',
+                'status-blue': proc.estadoGeneral === 'Publicado',
+                'status-grey': proc.estadoGeneral === 'Cerrado'
+              }">
+          {{ proc.estadoGeneral }}
+        </span>
+      </div>
+
+      <div class="card-mid">
+        <h3 class="proc-title font-bold text-slate-800">{{ proc.titulo }}</h3>
+        <p class="proc-resp"><i class="fa-regular fa-user"></i> {{ proc.responsable }}</p>
+      </div>
+
+      <div class="card-progress">
+        <div class="progress-info">
+          <span class="progress-lbl font-semibold">Progreso Promedio</span>
+          <span class="progress-val font-bold text-blue-primary">{{ proc.progreso }}%</span>
+        </div>
+        <div class="progress-track-bg">
+          <div class="progress-fill-bar" [style.width.%]="proc.progreso" [style.background]="proc.progreso === 100 ? '#10b981' : '#2563eb'"></div>
+        </div>
+      </div>
+
+      <div class="card-bottom">
+        <div class="dates-box">
+          <span class="date-item font-semibold"><i class="fa-regular fa-calendar-check"></i> {{ proc.fechaInicio | date:'dd/MM/yyyy' }}</span>
+          <i class="fa-solid fa-arrow-right-long text-slate-300"></i>
+          <span class="date-item font-semibold"><i class="fa-regular fa-clock"></i> {{ proc.fechaFin | date:'dd/MM/yyyy' }}</span>
+        </div>
+        
+        <button class="btn-select-proc font-bold">
+          Ver Cronograma <i class="fa-solid fa-chart-gantt"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty List State -->
+    <div class="empty-cards-placeholder card-glow" *ngIf="filteredProcesses.length === 0">
+      <i class="fa-solid fa-folder-open text-slate-300"></i>
+      <h3>No se encontraron licitaciones activas</h3>
+      <p>Intente modificando los parámetros de búsqueda o restableciendo los filtros en el buscador.</p>
+    </div>
+  </div>
+
+  <!-- MODERN PREMIUM PAGINATION CONTROLS -->
+  <div class="pagination-wrapper animate-slide-up" *ngIf="totalPages > 1" style="animation-delay: 0.05s;">
+    <div class="pagination-container card-glow">
+      <button class="pag-btn prev font-bold" [disabled]="currentPage === 1" (click)="prevPage()">
+        <i class="fa-solid fa-angle-left"></i> Anterior
+      </button>
+      
+      <div class="page-numbers">
+        <button *ngFor="let page of pagesArray" 
+                class="pag-num font-bold" 
+                [ngClass]="{'active': page === currentPage}"
+                (click)="goToPage(page)">
+          {{ page }}
+        </button>
+      </div>
+      
+      <button class="pag-btn next font-bold" [disabled]="currentPage === totalPages" (click)="nextPage()">
+        Siguiente <i class="fa-solid fa-angle-right"></i>
+      </button>
+    </div>
+    
+    <div class="pagination-info font-bold">
+      Mostrando del {{ (currentPage - 1) * pageSize + 1 }} al {{ getMin(currentPage * pageSize, filteredProcesses.length) }} de {{ filteredProcesses.length }} licitaciones
+    </div>
+  </div>
+</div>
+
+
+<!-- ==========================================
+     DASHBOARD 2: FOCUSED TIMELINE VIEW (Licitación Selected)
+     ========================================== -->
+<div class="focused-timeline-view animate-slide-up" *ngIf="selectedProcess">
+  
+  <!-- Subbar & Selector to switch easily -->
+  <div class="focused-timeline-subbar card-glow">
+    <div class="subbar-left">
+      <button class="btn-back-list font-bold" (click)="clearSelection()">
+        <i class="fa-solid fa-arrow-left"></i> Volver al listado
+      </button>
+      <div class="vertical-divider"></div>
+      <div class="active-proc-title">
+        <span class="active-badge font-bold">{{ selectedProcess.codigo }}</span>
+        <h3 class="font-bold text-slate-800">{{ selectedProcess.titulo }}</h3>
+      </div>
+    </div>
+
+    <div class="subbar-right">
+      <span class="select-label font-bold text-slate-500">Cambiar Licitación:</span>
+      <select class="form-select-switcher" [(ngModel)]="selectedProcess" (change)="onProcessChange()">
+        <option *ngFor="let p of processes" [ngValue]="p">{{ p.codigo }} - {{ p.titulo }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- EXECUTIVE KPI CARDS ROW FOR FOCUSED PROCESS -->
+  <div class="kpi-sparklines-row animate-slide-up" style="animation-delay: 0.05s;">
+    
+    <!-- KPI 1: Hitos Totales -->
+    <div class="kpi-spark-card card-glow border-purple">
+      <div class="spark-card-header">
+        <div class="kpi-iconbg bg-purple-light">
+          <i class="fa-solid fa-list-check text-purple"></i>
+        </div>
+        <div class="kpi-info-box">
+          <span class="kpi-label">Hitos Planificados</span>
+          <span class="kpi-value">{{ kpiStats.activos }}</span>
+          <span class="kpi-subtext">Fases del proceso</span>
+        </div>
+      </div>
+      <div class="sparkline-wrapper">
+        <svg class="sparkline" viewBox="0 0 100 30" width="100%" height="30">
+          <path d="M0,25 Q15,5 30,22 T60,8 T90,20 L100,10" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"></path>
+          <path d="M0,25 Q15,5 30,22 T60,8 T90,20 L100,10 L100,30 L0,30 Z" fill="rgba(139, 92, 246, 0.08)"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- KPI 2: Completados -->
+    <div class="kpi-spark-card card-glow border-green">
+      <div class="spark-card-header">
+        <div class="kpi-iconbg bg-green-light">
+          <i class="fa-solid fa-circle-check text-green"></i>
+        </div>
+        <div class="kpi-info-box">
+          <span class="kpi-label">Completados</span>
+          <span class="kpi-value">{{ kpiStats.completados }}</span>
+          <span class="kpi-subtext">Hitos al 100%</span>
+        </div>
+      </div>
+      <div class="sparkline-wrapper">
+        <svg class="sparkline" viewBox="0 0 100 30" width="100%" height="30">
+          <path d="M0,28 L20,24 Q40,5 60,18 T100,4" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"></path>
+          <path d="M0,28 L20,24 Q40,5 60,18 T100,4 L100,30 L0,30 Z" fill="rgba(16, 185, 129, 0.08)"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- KPI 3: En Progreso -->
+    <div class="kpi-spark-card card-glow border-orange">
+      <div class="spark-card-header">
+        <div class="kpi-iconbg bg-orange-light">
+          <i class="fa-solid fa-clock-rotate-left text-orange"></i>
+        </div>
+        <div class="kpi-info-box">
+          <span class="kpi-label">En Curso</span>
+          <span class="kpi-value">{{ kpiStats.enProgreso }}</span>
+          <span class="kpi-subtext">Fases activas</span>
+        </div>
+      </div>
+      <div class="sparkline-wrapper">
+        <svg class="sparkline" viewBox="0 0 100 30" width="100%" height="30">
+          <path d="M0,20 Q20,28 40,10 T80,24 L100,15" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"></path>
+          <path d="M0,20 Q20,28 40,10 T80,24 L100,15 L100,30 L0,30 Z" fill="rgba(249, 115, 22, 0.08)"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- KPI 4: Retrasados -->
+    <div class="kpi-spark-card card-glow border-red">
+      <div class="spark-card-header">
+        <div class="kpi-iconbg bg-red-light">
+          <i class="fa-solid fa-triangle-exclamation text-red"></i>
+        </div>
+        <div class="kpi-info-box">
+          <span class="kpi-label">Retrasados</span>
+          <span class="kpi-value">{{ kpiStats.retrasados }}</span>
+          <span class="kpi-subtext">Alerta de plazo</span>
+        </div>
+      </div>
+      <div class="sparkline-wrapper">
+        <svg class="sparkline" viewBox="0 0 100 30" width="100%" height="30">
+          <path d="M0,10 Q25,28 50,15 T100,25" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"></path>
+          <path d="M0,10 Q25,28 50,15 T100,25 L100,30 L0,30 Z" fill="rgba(239, 68, 68, 0.08)"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- KPI 5: Por Iniciar -->
+    <div class="kpi-spark-card card-glow border-blue">
+      <div class="spark-card-header">
+        <div class="kpi-iconbg bg-blue-light">
+          <i class="fa-solid fa-hourglass-start text-blue"></i>
+        </div>
+        <div class="kpi-info-box">
+          <span class="kpi-label">Por Iniciar</span>
+          <span class="kpi-value">{{ kpiStats.proximosVencer }}</span>
+          <span class="kpi-subtext">Próximos hitos</span>
+        </div>
+      </div>
+      <div class="sparkline-wrapper">
+        <svg class="sparkline" viewBox="0 0 100 30" width="100%" height="30">
+          <path d="M0,25 L30,22 Q50,5 70,25 L100,10" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"></path>
+          <path d="M0,25 L30,22 Q50,5 70,25 L100,10 L100,30 L0,30 Z" fill="rgba(59, 130, 246, 0.08)"></path>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- WORKSPACE: GANTT CHART TIMELINE & SIDEBAR -->
+  <div class="gantt-main-workspace animate-slide-up" style="animation-delay: 0.1s;">
+    
+    <!-- Left Focused Gantt (Width fits 100% screen - absolutely zero horizontal scroll!) -->
+    <div class="gantt-chart-card card-glow">
+      <div class="chart-header-actions">
+        <h4>Línea de Tiempo del Proceso (Gantt)</h4>
+        
+        <div class="gantt-controls">
+          <div class="nav-arrows">
+            <span class="range-label font-bold text-slate-800"><i class="fa-regular fa-calendar-days text-blue-primary"></i> Rango Planificado: 01 May 2026 - 30 Jun 2026</span>
+          </div>
+
+          <div class="scale-toggles">
+            <button class="scale-btn active">Vista Escala Completa</button>
+            <button class="scale-btn col-setup" (click)="exportCronograma()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Focused grid table containing all the hitos - Zero scroll bar! -->
+      <div class="gantt-focused-timeline-container">
+        
+        <!-- Table Column Headers -->
+        <div class="timeline-table-header">
+          <div class="col-hdr activity">Hito / Actividad</div>
+          <div class="col-hdr respons">Responsable</div>
+          <div class="col-hdr dates">Inicio</div>
+          <div class="col-hdr dates">Fin</div>
+          <div class="col-hdr status text-center">Avance</div>
+          <div class="col-hdr timeline-track">
+            <!-- Mayo 2026 Header -->
+            <div class="month-track-hdr">
+              <span class="m-label font-bold">Mayo 2026</span>
+              <div class="axis-ticks">
+                <span *ngFor="let d of mayoDays">{{ d }}</span>
+              </div>
+            </div>
+            <!-- Junio 2026 Header -->
+            <div class="month-track-hdr">
+              <span class="m-label font-bold">Junio 2026</span>
+              <div class="axis-ticks">
+                <span *ngFor="let d of junioDays">{{ d }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Body containing exactly the 7 stages of the selected licitacion -->
+        <div class="timeline-table-body">
+          
+          <!-- Dotted vertical red line representing 'Today' (May 17, 2026) -->
+          <div class="vertical-today-bar" style="left: calc(34% + 535px);">
+            <div class="today-marker-tag font-bold">HOY</div>
+          </div>
+
+          <!-- Loop activities -->
+          <div class="timeline-row child-row" *ngFor="let act of selectedProcess.actividades">
+            <div class="col-cell activity font-bold">
+              <span class="activity-color-bullet" [style.background-color]="act.color"></span>
+              <span class="activity-title text-slate-800">{{ act.nombre }}</span>
+            </div>
+            
+            <div class="col-cell respons text-slate-500 font-semibold">{{ act.responsable }}</div>
+            <div class="col-cell dates text-slate-500 font-semibold">{{ act.fechaInicio | date:'dd/MM/yyyy' }}</div>
+            <div class="col-cell dates text-slate-500 font-semibold">{{ act.fechaFin | date:'dd/MM/yyyy' }}</div>
+            
+            <div class="col-cell status">
+              <span class="stage-progress-badge font-bold" 
+                    [style.background-color]="act.color + '12'" 
+                    [style.color]="act.color"
+                    (click)="openEditProgress(act)">
+                {{ act.progreso }}%
+              </span>
+            </div>
+
+            <!-- Single row progressive timeline track bar -->
+            <div class="col-cell timeline-track">
+              
+              <!-- Segment Background Grid Helper Lines -->
+              <div class="grid-helper-lines">
+                <span class="line-helper" *ngFor="let l of [1,2,3,4,5,6,7,8,9,10,11,12]"></span>
+              </div>
+
+              <!-- Interactive Horizontal Gantt Progress Bar -->
+              <div class="interactive-stage-bar"
+                   [style.left.%]="act.startPercent"
+                   [style.width.%]="act.widthPercent"
+                   [style.background-color]="act.color"
+                   (click)="openEditProgress(act)"
+                   title="Haz clic para actualizar el avance">
+                <div class="bar-progress-overlay" [style.width.%]="act.progreso"></div>
+                <span class="bar-label-percent">{{ act.progreso }}%</span>
+              </div>
+
+              <!-- Embedded row edit trigger widgets -->
+              <div class="embedded-row-actions">
+                <button class="row-edit-action-btn" title="Reprogramar Fechas" (click)="openReprogramHito(act); $event.stopPropagation()">
+                  <i class="fa-regular fa-calendar-days"></i>
+                </button>
+                <button class="row-edit-action-btn" title="Vincular Dependencia" (click)="openAddDependencia(act); $event.stopPropagation()">
+                  <i class="fa-solid fa-link"></i>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Right Sidebar focused stats and actions -->
+    <div class="gantt-right-sidebar">
+      
+      <!-- Donut Chart summary card -->
+      <div class="sidebar-card card-glow border-bottom-sep">
+        <h4 class="sidebar-title">Progreso de Hitos</h4>
+        
+        <div class="donut-chart-box">
+          <div class="donut-svg-wrapper">
+            <svg viewBox="0 0 42 42" class="donut-svg" width="100%" height="135">
+              <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#e2e8f0" stroke-width="4.8"></circle>
+              <circle *ngFor="let seg of donutSegments"
+                      cx="21" cy="21" r="15.91549430918954" 
+                      fill="transparent" 
+                      [attr.stroke]="seg.color" 
+                      stroke-width="4.8" 
+                      [attr.stroke-dasharray]="seg.strokeDash" 
+                      [attr.stroke-dashoffset]="100"
+                      class="donut-segment-ring"></circle>
+            </svg>
+            <div class="donut-center-info">
+              <span class="donut-count font-bold">{{ selectedProcess.progreso }}%</span>
+              <span class="donut-lbl">Avance</span>
+            </div>
+          </div>
+
+          <!-- Chart Segment legends list -->
+          <div class="donut-legend">
+            <div class="legend-item" *ngFor="let seg of donutSegments">
+              <span class="legend-indicator" [style.background-color]="seg.color"></span>
+              <span class="legend-text font-semibold">{{ seg.label }}</span>
+              <span class="legend-value text-slate-500 font-bold">({{ seg.count }})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Shortcut buttons -->
+      <div class="sidebar-card card-glow">
+        <h4 class="sidebar-title">Acciones Rápidas</h4>
+        <div class="quick-actions-shortcuts">
+          <button class="shortcut-btn" (click)="openEditProgress(selectedProcess.actividades[3])">
+            <i class="fa-solid fa-circle-check shortcut-icon text-blue"></i>
+            <span class="shortcut-lbl font-semibold">Actualizar Progreso</span>
+          </button>
+          <button class="shortcut-btn" (click)="openReprogramHito(selectedProcess.actividades[4])">
+            <i class="fa-regular fa-calendar-plus shortcut-icon text-purple"></i>
+            <span class="shortcut-lbl font-semibold">Reprogramar Hito</span>
+          </button>
+          <button class="shortcut-btn" (click)="openAddDependencia(selectedProcess.actividades[4])">
+            <i class="fa-solid fa-link-slash shortcut-icon text-cyan"></i>
+            <span class="shortcut-lbl font-semibold">Agregar Dependencia</span>
+          </button>
+          <button class="shortcut-btn" (click)="exportCronograma()">
+            <i class="fa-solid fa-file-pdf shortcut-icon text-green"></i>
+            <span class="shortcut-lbl font-semibold">Exportar Cronograma</span>
+          </button>
+          <button class="shortcut-btn" (click)="imprimirCronograma()">
+            <i class="fa-solid fa-print shortcut-icon text-slate-600"></i>
+            <span class="shortcut-lbl font-semibold">Imprimir Cronograma</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Bottom Section: Critical milestones of this specific process -->
+  <div class="bottom-critical-area animate-slide-up" style="animation-delay: 0.15s;">
+    <div class="critical-header-box">
+      <h4>Hitos Críticos de esta Licitación</h4>
+    </div>
+
+    <div class="critical-cards-grid">
+      <div class="critical-card card-glow" *ngFor="let mile of criticalMilestones" [ngClass]="mile.colorClass">
+        <div class="card-kpi-header">
+          <div class="critical-icon-wrapper">
+            <i class="fa-solid" [ngClass]="mile.icon"></i>
+          </div>
+          <div class="critical-text-box">
+            <span class="critical-task-title font-bold">{{ mile.title }}</span>
+            <span class="critical-task-code font-bold">{{ selectedProcess.codigo }}</span>
+          </div>
+        </div>
+        <div class="critical-dates-footer">
+          <span class="critical-date-lbl font-semibold"><i class="fa-regular fa-clock"></i> {{ mile.date | date:'dd/MM/yyyy' }}</span>
+          <span class="critical-days-remaining font-bold">{{ mile.label }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

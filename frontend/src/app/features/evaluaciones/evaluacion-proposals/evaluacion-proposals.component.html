@@ -1,0 +1,120 @@
+<div class="eval-container">
+  <!-- Header Section -->
+  <div class="page-header premium-glass fade-in" *ngIf="licitacion">
+    <div class="header-left">
+      <div class="breadcrumb-modern">
+        <span [routerLink]="['/evaluaciones']" class="link">Mis Evaluaciones</span>
+        <i class="fas fa-chevron-right sep"></i>
+        <span class="active">Evaluar Propuestas</span>
+      </div>
+      <h1>{{ licitacion.titulo }}</h1>
+      <div class="meta-tags">
+        <span class="tag id">#{{ licitacion.id }}</span>
+        <span class="tag area">{{ licitacion.area?.nombre }}</span>
+        <span class="status-pill" [ngClass]="licitacion.estado.toLowerCase()">
+          <span class="dot"></span> {{ licitacion.estado }}
+        </span>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn-premium secondary" (click)="downloadZip()" [disabled]="downloadingZip || propuestas.length === 0">
+        <i class="fas fa-box-archive"></i> {{ downloadingZip ? 'Procesando...' : 'Descargar Todo' }}
+      </button>
+      <button class="btn-premium primary" *ngIf="isAdmin && licitacion.estado !== 'ADJUDICADA'" 
+              (click)="adjudicar()" [disabled]="isAdjudicating">
+        <i class="fas fa-trophy"></i> {{ isAdjudicating ? 'Cerrando...' : 'Adjudicar' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Proposals Table -->
+  <div class="premium-glass-card fade-in delay-1">
+    <div class="card-title-bar">
+      <h2>Propuestas Recibidas</h2>
+      <div class="count-badge">{{ propuestas.length }} Ofertas</div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="modern-list-table">
+        <thead>
+          <tr>
+            <th>Proveedor / Empresa</th>
+            <th>Monto</th>
+            <th>Entrega</th>
+            <th>Documentos</th>
+            <th>Estado</th>
+            <th>Puntaje</th>
+            <th class="actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of propuestas" class="table-row-hover" [class.evaluated]="p.estadoEvaluacion === 'FINALIZADO'">
+            <td>
+              <div class="supplier-cell">
+                <div class="avatar-mini">
+                  <i class="fas fa-building"></i>
+                </div>
+                <div class="details">
+                  <span class="company">{{ p.proveedor || 'Proveedor' }}</span>
+                  <span class="proposal-title">{{ p.nombre }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="amount-cell">
+              <span class="currency">$</span>
+              <span class="val">{{ p.monto | number:'1.2-2' }}</span>
+            </td>
+            <td>
+              <div class="time-tag">
+                <i class="far fa-clock"></i> {{ p.tiempoEntregaDias }} días
+              </div>
+            </td>
+            <td>
+              <div class="doc-group" *ngIf="p.archivoUrl">
+                <button class="btn-icon-sm view" (click)="viewDocument(p.archivoUrl)" title="Ver PDF">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <a [href]="getDownloadUrl(p.archivoUrl)" download target="_blank" class="btn-icon-sm download" title="Descargar">
+                  <i class="fas fa-download"></i>
+                </a>
+              </div>
+            </td>
+            <td>
+              <div class="eval-status-badge" [ngClass]="getEvalStatusLabel(p).toLowerCase()">
+                <i class="fas" [ngClass]="p.estadoEvaluacion === 'FINALIZADO' ? 'fa-check-circle' : 'fa-circle-dot'"></i>
+                <span>{{ getEvalStatusLabel(p) }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="score-box" *ngIf="p.puntajeTotal != null">
+                <span class="score-val">{{ p.puntajeTotal | number:'1.1-1' }}</span>
+                <span class="score-max">/ 5.0</span>
+              </div>
+              <span class="score-placeholder" *ngIf="p.puntajeTotal == null">-</span>
+            </td>
+            <td class="actions">
+              <button class="btn-eval-modern" [routerLink]="['/evaluaciones/evaluar', p.id]" 
+                      [ngClass]="getEvalStatusLabel(p).toLowerCase()">
+                {{ p.estadoEvaluacion === 'BORRADOR' || p.estadoEvaluacion === 'En Borrador' ? 'Continuar' : 
+                   p.estadoEvaluacion === 'FINALIZADO' || p.estadoEvaluacion === 'Evaluado' ? 'Ver Detalle' : 'Iniciar' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state-modern" *ngIf="propuestas.length === 0 && !loading">
+      <div class="empty-icon-box">📭</div>
+      <h3>Sin propuestas recibidas</h3>
+      <p>Aún no se han registrado ofertas para esta licitación.</p>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state-modern" *ngIf="loading">
+      <div class="premium-spinner"></div>
+      <p>Cargando propuestas...</p>
+    </div>
+  </div>
+</div>

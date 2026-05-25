@@ -1,0 +1,991 @@
+<div class="detail-page-container fade-in" *ngIf="licitacion">
+  
+  <!-- 1. BREADCRUMBS Y ENCABEZADO SUPERIOR -->
+  <div class="header-breadcrumb-row">
+    <button class="btn-back-circle" (click)="goBack()" title="Volver atrás">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+    <div class="breadcrumb-header-text">
+      <div class="breadcrumbs-modern">
+        <span class="crumb">DASHBOARD</span>
+        <i class="fa-solid fa-chevron-right separator"></i>
+        <span class="crumb">LICITACIONES</span>
+        <i class="fa-solid fa-chevron-right separator"></i>
+        <span class="crumb active">DETALLE</span>
+      </div>
+      <h1 class="page-title-modern">Detalle de Licitación</h1>
+    </div>
+  </div>
+
+  <!-- 2. TARJETA PRINCIPAL SUPERIOR (INFORMACIÓN GENERAL Y ACCIONES) -->
+  <div class="licitacion-hero-card-grid">
+    <!-- Info principal -->
+    <div class="hero-licitacion-info">
+      <div class="hero-icon-container">
+        <i class="fa-solid fa-file-contract"></i>
+      </div>
+      <div class="hero-details">
+        <div class="title-badge-row">
+          <h2 class="hero-licitacion-title">{{licitacion.titulo}}</h2>
+          <span class="status-badge-premium text-uppercase" [ngClass]="getStatusClass(licitacion.estado)">
+            {{licitacion.estado}}
+          </span>
+        </div>
+        <p class="hero-codigo-ref">
+          Licitación Pública - LP-2026-{{licitacion.id}}
+        </p>
+        <p class="hero-description-text">
+          {{licitacion.descripcion || 'Contratación para la implementación integral del sistema seleccionado.'}}
+        </p>
+        <div class="hero-meta-row">
+          <span class="meta-item">
+            <i class="fa-solid fa-shield-halved"></i> Tipo de Proceso: <strong>{{licitacion.tipo || 'Pública'}}</strong>
+          </span>
+          <span class="meta-separator">•</span>
+          <span class="meta-item">
+            <i class="fa-solid fa-list-check"></i> Método de Evaluación: <strong>Puntaje</strong>
+          </span>
+          <span class="meta-separator">•</span>
+          <span class="meta-item">
+            <i class="fa-solid fa-earth-americas"></i> Moneda: <strong>USD - Dólar Americano</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalles Financieros y Estado -->
+    <div class="hero-financials-panel">
+      <div class="financials-box">
+        <span class="fin-label">PRESUPUESTO BASE</span>
+        <span class="fin-value">{{(licitacion.presupuesto | currency) || '15.000,00 US$'}}</span>
+        
+        <span class="fin-label mt-3">FECHA DE CIERRE</span>
+        <span class="fin-date">{{(licitacion.fechaCierre | date:'dd/MM/yyyy, HH:mm:ss') || '03/05/2026, 00:00:00'}}</span>
+        
+        <span class="fin-label mt-3">ESTADO ACTUAL</span>
+        <div class="fin-status-pill">
+          <i class="fa-solid fa-hourglass-half"></i>
+          <span>{{licitacion.estado}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de Acciones en Columna -->
+    <div class="hero-actions-panel">
+      <div class="actions-stack">
+        <!-- Cerrar Recepción (Naranja Relleno) -->
+        <button 
+          class="btn-stack-action orange-filled" 
+          *ngIf="licitacion.estado === EstadoLicitacion.PUBLICADA && (isAdmin || isArea)"
+          (click)="cambiarEstadoFlujo(EstadoLicitacion.CERRADA, '¿Desea CERRAR LA RECEPCIÓN de propuestas para esta licitación?')">
+          <i class="fa-solid fa-lock"></i> Cerrar Recepción
+        </button>
+
+        <!-- Iniciar Evaluación (Verde) -->
+        <button 
+          class="btn-stack-action green" 
+          *ngIf="licitacion.estado === EstadoLicitacion.CERRADA && (isAdmin || isArea)"
+          (click)="cambiarEstadoFlujo(EstadoLicitacion.EN_EVALUACION, '¿Desea INICIAR LA EVALUACIÓN? Se habilitará la calificación de propuestas.')">
+          <i class="fa-solid fa-play"></i> Iniciar Evaluación
+        </button>
+
+        <!-- Aprobar Resultados / Dictamen (Verde) -->
+        <button 
+          class="btn-stack-action green" 
+          *ngIf="licitacion.estado === EstadoLicitacion.EN_EVALUACION && (isAdmin || isAutoridad)"
+          (click)="aprobarResultados()">
+          <i class="fa-solid fa-check-double"></i> Aprobar Dictamen
+        </button>
+
+        <!-- Editar (Naranja) -->
+        <button 
+          class="btn-stack-action orange" 
+          *ngIf="canEdit()" 
+          [routerLink]="['/licitaciones/editar', licitacion.id]">
+          <i class="fa-solid fa-edit"></i> Editar Licitación
+        </button>
+
+        <!-- Cancelar (Rojo) -->
+        <button 
+          class="btn-stack-action red" 
+          *ngIf="canCancel()" 
+          (click)="cancelarLicitacion()">
+          <i class="fa-solid fa-ban"></i> Cancelar Proceso
+        </button>
+
+        <!-- Adjudicar (Morado) -->
+        <button 
+          class="btn-stack-action purple" 
+          *ngIf="licitacion.estado === EstadoLicitacion.EVALUADA && (isAdmin || isAutoridad)"
+          (click)="setTab('ranking')">
+          <i class="fa-solid fa-gavel"></i> Adjudicar Proceso
+        </button>
+
+        <!-- Generar Contrato (Azul) -->
+        <button 
+          class="btn-stack-action blue" 
+          *ngIf="licitacion.estado === EstadoLicitacion.ADJUDICADA && (isAdmin || isAutoridad)"
+          [routerLink]="['/contratos/generar', licitacion.id]">
+          <i class="fa-solid fa-file-signature"></i> Generar Contrato
+        </button>
+
+        <!-- Inscribirse / Postular (Para proveedores y administrador en modo pruebas) -->
+        <button 
+          class="btn-stack-action blue-filled" 
+          *ngIf="canPostulate() && !isEnrolled" 
+          (click)="inscribirme()">
+          <i class="fa-solid fa-user-plus"></i> Inscribirme en Proceso
+        </button>
+        
+        <button 
+          class="btn-stack-action green" 
+          *ngIf="canPostulate() && isEnrolled && (userParticipant?.estado === 'VALIDADO' || isAdmin)"
+          [routerLink]="['/licitaciones/postular', licitacion.id]">
+          <i class="fa-solid fa-paper-plane"></i> Presentar Propuesta
+        </button>
+
+        <!-- Estado si ya está inscrito pero pendiente de validación (Solo para proveedores normales) -->
+        <div class="pending-validation-badge" *ngIf="!isAdmin && isProveedor && isEnrolled && userParticipant?.estado === 'INSCRITO'">
+          <i class="fa-solid fa-spinner fa-spin"></i> Inscripción pendiente de validación
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. SECCIÓN DE PESTAÑAS (TABS) -->
+  <div class="tabs-navigation-container">
+    <button class="tab-nav-btn" [class.active]="currentTab === 'resumen'" (click)="setTab('resumen')">
+      <i class="fa-regular fa-file-lines icon-tab"></i> Resumen
+    </button>
+    <button class="tab-nav-btn" [class.active]="currentTab === 'documentos'" (click)="setTab('documentos')">
+      <i class="fa-regular fa-folder-open icon-tab"></i> Documentos
+    </button>
+    <button class="tab-nav-btn" [class.active]="currentTab === 'propuestas'" (click)="setTab('propuestas')" *ngIf="isAdmin || isArea || isProveedor || isEvaluador || isAutoridad">
+      <i class="fa-solid fa-clipboard-list icon-tab"></i> Propuestas
+    </button>
+    <button class="tab-nav-btn" [class.active]="currentTab === 'ranking'" (click)="setTab('ranking')" *ngIf="ranking.length > 0">
+      <i class="fa-solid fa-trophy icon-tab"></i> Resultados
+    </button>
+    <button class="tab-nav-btn" [class.active]="currentTab === 'participantes'" (click)="setTab('participantes')">
+      <i class="fa-solid fa-user-group icon-tab"></i> Participantes
+    </button>
+    <button class="tab-nav-btn" [class.active]="currentTab === 'cronograma'" (click)="setTab('cronograma')">
+      <i class="fa-regular fa-calendar icon-tab"></i> Cronograma
+    </button>
+    <button class="tab-nav-btn" [class.active]="currentTab === 'auditoria'" (click)="setTab('auditoria')" *ngIf="isAdmin">
+      <i class="fa-solid fa-chart-line icon-tab"></i> Auditoría
+    </button>
+  </div>
+
+  <!-- 4. CONTENIDO DE LAS PESTAÑAS (TAB PANES) -->
+  <div class="tab-content-container">
+
+    <!-- ==================== TAB: RESUMEN ==================== -->
+    <div class="grid-two-columns fade-in" *ngIf="currentTab === 'resumen'">
+      
+      <!-- Columna Izquierda (Descripción, Bases, Requisitos y Cards Cortas) -->
+      <div class="left-panel-stack">
+        
+        <!-- Tarjeta: Descripción General -->
+        <div class="premium-detail-card">
+          <div class="card-title-header">
+            <div class="title-icon blue">
+              <i class="fa-solid fa-bars-staggered"></i>
+            </div>
+            <div class="title-text-group">
+              <h3>DESCRIPCIÓN GENERAL</h3>
+            </div>
+          </div>
+          <div class="card-body-content">
+            <div class="technical-description-box">
+              {{licitacion.descripcion || 'No se ha registrado una descripción general detallada para esta licitación.'}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta: Bases Técnicas -->
+        <div class="premium-detail-card">
+          <div class="card-title-header">
+            <div class="title-icon blue">
+              <i class="fa-solid fa-scroll"></i>
+            </div>
+            <div class="title-text-group">
+              <h3>BASES TÉCNICAS</h3>
+            </div>
+          </div>
+          <div class="card-body-content">
+            <div class="technical-description-box">
+              {{licitacion.bases || 'Las bases técnicas detallan los requerimientos funcionales y no funcionales del proyecto, arquitectura de red, seguridad, integraciones requeridas y soporte técnico mínimo.'}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta: Requisitos de Postulación -->
+        <div class="premium-detail-card">
+          <div class="card-title-header">
+            <div class="title-icon blue">
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+            <div class="title-text-group">
+              <h3>REQUISITOS DE POSTULACIÓN</h3>
+            </div>
+          </div>
+          <div class="card-body-content">
+            <div class="technical-description-box">
+              {{licitacion.requisitos || 'Experiencia mínima de 3 años en integraciones similares, estados financieros auditados del último ejercicio fiscal, personería jurídica vigente y no tener conflictos de interés.'}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Cards Inferiores en 3 Columnas (Fechas Clave, Presupuesto, Alcance) -->
+        <div class="three-columns-grid">
+          
+          <!-- Fechas Clave -->
+          <div class="mini-info-card">
+            <div class="mini-header">
+              <i class="fa-regular fa-calendar-days mini-icon"></i>
+              <h4>FECHAS CLAVE</h4>
+            </div>
+            <div class="mini-body date-timeline">
+              <div class="timeline-point">
+                <span class="point-dot blue-dot"></span>
+                <div class="point-content">
+                  <label>Fecha de Publicación</label>
+                  <span class="date">{{(licitacion.fechaPublicacion | date:'dd/MM/yyyy') || '02/05/2026'}}</span>
+                </div>
+              </div>
+              <div class="timeline-point">
+                <span class="point-dot red-dot"></span>
+                <div class="point-content">
+                  <label>Fecha de Cierre</label>
+                  <span class="date">{{(licitacion.fechaCierre | date:'dd/MM/yyyy, HH:mm') || '03/05/2026 00:00'}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Presupuesto -->
+          <div class="mini-info-card">
+            <div class="mini-header">
+              <i class="fa-solid fa-coins mini-icon"></i>
+              <h4>PRESUPUESTO</h4>
+            </div>
+            <div class="mini-body budget-box">
+              <label>Presupuesto Base</label>
+              <span class="budget-value green-text">{{(licitacion.presupuesto | currency) || '15.000,00 US$'}}</span>
+              
+              <label class="second-label">Moneda</label>
+              <span class="currency-value">USD - Dólar Americano</span>
+            </div>
+          </div>
+
+          <!-- Alcance del Proyecto -->
+          <div class="mini-info-card">
+            <div class="mini-header">
+              <i class="fa-solid fa-briefcase mini-icon"></i>
+              <h4>ALCANCE DEL PROYECTO</h4>
+            </div>
+            <div class="mini-body text-scope">
+              <p>{{licitacion.descripcion || 'Implementación completa del sistema de gestión seleccionado incluyendo sus respectivos módulos, capacitación de personal e integración de bases de datos.'}}</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Columna Derecha (Gestión y Trazabilidad) -->
+      <div class="right-panel-stack">
+        
+        <!-- Tarjeta: Detalles de Gestión -->
+        <div class="premium-detail-card">
+          <div class="card-title-header">
+            <div class="title-icon blue">
+              <i class="fa-solid fa-circle-info"></i>
+            </div>
+            <div class="title-text-group">
+              <h3>DETALLES DE GESTIÓN</h3>
+            </div>
+          </div>
+          <div class="card-body-content p-0">
+            <ul class="prop-detail-list">
+              <li>
+                <div class="list-item-left">
+                  <i class="fa-solid fa-building icon-list"></i>
+                  <span>Área Responsable</span>
+                </div>
+                <div class="list-item-right font-bold">
+                  {{licitacion.area?.nombre || 'TI'}}
+                </div>
+              </li>
+              <li>
+                <div class="list-item-left">
+                  <i class="fa-solid fa-tag icon-list"></i>
+                  <span>Tipo de Proceso</span>
+                </div>
+                <div class="list-item-right">
+                  {{licitacion.tipo || 'Pública'}}
+                </div>
+              </li>
+              <li>
+                <div class="list-item-left">
+                  <i class="fa-solid fa-coins icon-list text-success"></i>
+                  <span>Presupuesto Base</span>
+                </div>
+                <div class="list-item-right text-success font-bold">
+                  {{(licitacion.presupuesto | currency) || '15.000,00 US$'}}
+                </div>
+              </li>
+              <li>
+                <div class="list-item-left">
+                  <i class="fa-regular fa-calendar icon-list"></i>
+                  <span>Fecha Cierre</span>
+                </div>
+                <div class="list-item-right">
+                  {{(licitacion.fechaCierre | date:'dd/MM/yyyy, HH:mm') || '03/05/2026, 00:00'}}
+                </div>
+              </li>
+              <li>
+                <div class="list-item-left">
+                  <i class="fa-regular fa-user icon-list"></i>
+                  <span>Responsable</span>
+                </div>
+                <div class="list-item-right">
+                  {{licitacion.creadoPor?.nombre || 'Jahir Marroquin'}}
+                </div>
+              </li>
+              <li>
+                <div class="list-item-left">
+                  <i class="fa-regular fa-star icon-list"></i>
+                  <span>Prioridad</span>
+                </div>
+                <div class="list-item-right">
+                  <span class="status-badge-premium en-evaluacion">Media</span>
+                </div>
+              </li>
+              <li>
+                <div class="list-item-left">
+                  <i class="fa-solid fa-hourglass-half icon-list"></i>
+                  <span>Estado Actual</span>
+                </div>
+                <div class="list-item-right">
+                  <span class="status-badge-premium text-uppercase" [ngClass]="getStatusClass(licitacion.estado)">
+                    {{licitacion.estado}}
+                  </span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tarjeta: Trazabilidad / Timeline -->
+        <div class="premium-detail-card">
+          <div class="card-title-header">
+            <div class="title-icon blue">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div class="title-text-group">
+              <h3>TRAZABILIDAD</h3>
+            </div>
+          </div>
+          <div class="card-body-content">
+            <div class="trazabilidad-timeline-premium">
+              <div class="timeline-step-item" *ngFor="let step of getTimelineEvents(); let last = last" [class.pending]="!step.completado">
+                <div class="step-line-wrapper">
+                  <div class="step-circle" [ngClass]="step.class">
+                    <i class="fa-solid" [ngClass]="step.icon"></i>
+                  </div>
+                  <div class="vertical-connecting-line" *ngIf="!last"></div>
+                </div>
+                <div class="step-text-content">
+                  <span class="step-date">{{ step.fecha | date:'dd/MM/yyyy, HH:mm' }}</span>
+                  <h4 class="step-event-title">{{ step.titulo }}</h4>
+                  <span class="step-operator" *ngIf="step.completado && step.usuario">Por: {{ step.usuario }}</span>
+                  <span class="step-operator pending" *ngIf="!step.completado">Pendiente</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB: DOCUMENTOS ==================== -->
+    <div class="tab-pane fade-in" *ngIf="currentTab === 'documentos'">
+      <div class="premium-detail-card">
+        <div class="card-title-header">
+          <div class="title-icon blue">
+            <i class="fa-solid fa-folder-open"></i>
+          </div>
+          <div class="title-text-group">
+            <h3>Documentos Técnicos de la Licitación</h3>
+            <p>Listado de pliegos, bases y anexos adjuntos cargados para el proceso de postulación.</p>
+          </div>
+        </div>
+        <div class="card-body-content">
+          <div class="docs-grid-list" *ngIf="licitacion.documentos?.length">
+            
+            <div class="doc-grid-card-item" *ngFor="let doc of licitacion.documentos">
+              <div class="card-upper-row">
+                <div class="doc-circle-badge font-pdf">
+                  <i class="fa-regular fa-file-pdf"></i>
+                </div>
+                <a [href]="getDownloadUrl(doc.rutaArchivo)" target="_blank" class="btn-card-download" title="Descargar pliego">
+                  <i class="fa-solid fa-download"></i>
+                </a>
+              </div>
+              <div class="card-lower-text">
+                <span class="file-title" [title]="doc.nombreArchivo">{{doc.nombreArchivo}}</span>
+                <span class="file-size-spec">Publicado: {{doc.fechaSubida | date:'dd/MM/yyyy'}} • Anexo Técnico</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Estado vacío para pestaña documentos -->
+          <div class="empty-tab-documents text-center py-5" *ngIf="!licitacion.documentos?.length">
+            <i class="fa-solid fa-folder-closed text-muted mb-3" style="font-size: 4rem;"></i>
+            <h3>Expediente sin Adjuntos</h3>
+            <p class="text-muted">No se registran bases administrativas ni pliegos técnicos cargados en esta licitación.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: PROPUESTAS ==================== -->
+    <div class="tab-pane fade-in" *ngIf="currentTab === 'propuestas'">
+      
+      <!-- 1. CASO PROVEEDOR (NO ADMIN/STAFF): Ver su propia propuesta o presentar una -->
+      <ng-container *ngIf="isProveedor && !isAdmin">
+        
+        <!-- A. Si ya envió su propuesta -->
+        <div class="premium-detail-card" *ngIf="miPropuesta">
+          <div class="card-title-header">
+            <div class="title-icon green">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="title-text-group">
+              <h3>Tu Propuesta Presentada</h3>
+              <p>Hemos recibido correctamente tu postulación técnica y económica para esta licitación.</p>
+            </div>
+          </div>
+          <div class="card-body-content">
+            <div class="my-proposal-summary-grid">
+              <div class="summary-item">
+                <span class="label">Código de Propuesta</span>
+                <span class="value-highlight">PRP-2026-{{ miPropuesta.id | number:'3.0-0' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Monto Ofertado</span>
+                <span class="value-highlight text-success">{{ miPropuesta.montoOfertado | currency }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Tiempo de Entrega</span>
+                <span class="value">{{ miPropuesta.tiempoEntregaDias }} días</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Fecha de Envío</span>
+                <span class="value">{{ miPropuesta.fechaEnvio | date:'dd/MM/yyyy, HH:mm' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Estado de Calificación</span>
+                <span class="status-badge-premium text-uppercase" [ngClass]="miPropuesta.estado.toLowerCase()">
+                  {{ miPropuesta.estado }}
+                </span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Empresa</span>
+                <span class="value">{{ miPropuesta.empresaNombre }} (RUC: {{ miPropuesta.identificacionRuc }})</span>
+              </div>
+            </div>
+            
+            <div class="technical-description-box mt-4">
+              <strong>Descripción/Justificación de la propuesta:</strong>
+              <p class="mt-2 text-justify italic">{{ miPropuesta.descripcion || 'No se ingresó una descripción adicional.' }}</p>
+            </div>
+
+            <div class="actions-row mt-4 justify-end">
+              <button class="btn-stack-action blue-filled w-auto px-5 py-3" [routerLink]="['/propuestas', miPropuesta.id]">
+                <i class="fa-regular fa-eye mr-2"></i> Ver Expediente Completo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- B. Si está inscrito pero no ha enviado propuesta -->
+        <div class="premium-detail-card" *ngIf="!miPropuesta && isEnrolled">
+          <div class="card-body-content text-center py-5">
+            <i class="fa-solid fa-paper-plane text-primary mb-3" style="font-size: 4rem;"></i>
+            <h3>¡Inscripción Aprobada! Presenta tu Oferta</h3>
+            <p class="text-muted max-w-xl mx-auto">Te encuentras apto para participar en esta licitación. Prepara tu oferta económica y tus documentos técnicos y preséntalos antes de la fecha de cierre.</p>
+            <div class="mt-4" *ngIf="userParticipant?.estado === 'VALIDADO'">
+              <button class="btn-stack-action green w-auto px-5 py-3" [routerLink]="['/licitaciones/postular', licitacion.id]">
+                <i class="fa-solid fa-paper-plane mr-2"></i> Presentar Propuesta Ahora
+              </button>
+            </div>
+            <div class="pending-validation-badge mt-3" *ngIf="userParticipant?.estado === 'INSCRITO'">
+              <i class="fa-solid fa-spinner fa-spin"></i> Tu perfil de participante está en revisión. Podrás postular una vez validado.
+            </div>
+          </div>
+        </div>
+
+        <!-- C. Si ni siquiera está inscrito -->
+        <div class="premium-detail-card" *ngIf="!miPropuesta && !isEnrolled">
+          <div class="card-body-content text-center py-5">
+            <i class="fa-solid fa-user-plus text-muted mb-3" style="font-size: 4rem;"></i>
+            <h3>Inscríbete para Participar</h3>
+            <p class="text-muted max-w-xl mx-auto">Para poder subir tu propuesta técnica y económica, primero debes inscribirte en el proceso de licitación pública.</p>
+            <div class="mt-4">
+              <button class="btn-stack-action blue-filled w-auto px-5 py-3" (click)="inscribirme()">
+                <i class="fa-solid fa-user-plus mr-2"></i> Inscribirme en el Proceso
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
+
+      <!-- 2. CASO ADMIN / AREA / STAFF: Ver todas las propuestas recibidas -->
+      <ng-container *ngIf="isAdmin || isArea || canEvaluate() || isAutoridad">
+        
+        <!-- A. Consola de Evaluación -->
+        <div class="admin-evaluation-panel-box mb-4" *ngIf="isAdmin || canEvaluate()">
+          <div class="panel-left-content">
+            <div class="panel-icon-shield">
+              <i class="fa-solid fa-laptop-code"></i>
+            </div>
+            <div class="panel-text-details">
+              <h4>Consola de Apertura y Calificación</h4>
+              <p>Las propuestas técnicas y económicas se encuentran listas para la revisión del comité técnico. Puede proceder a la evaluación detallada de cada criterio técnico-económico.</p>
+            </div>
+          </div>
+          <div class="panel-right-action">
+            <button class="btn-panel-eval" [routerLink]="['/evaluaciones', licitacion.id]">
+              <span>Ir al Panel de Calificación</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- B. Listado de Propuestas Recibidas -->
+        <div class="premium-detail-card">
+          <div class="card-title-header justify-between">
+            <div class="flex items-center gap-3">
+              <div class="title-icon blue">
+                <i class="fa-solid fa-clipboard-list"></i>
+              </div>
+              <div class="title-text-group">
+                <h3>Registro de Propuestas Recibidas</h3>
+                <p>Postulantes que han enviado su expediente técnico y económico para este proceso.</p>
+              </div>
+            </div>
+            <div class="table-badge-count bg-blue-light" *ngIf="propuestasRecibidas?.length">
+              <span>{{ propuestasRecibidas.length }} Recibidas</span>
+            </div>
+          </div>
+          <div class="card-body-content p-0">
+            
+            <div class="premium-table-container" *ngIf="propuestasRecibidas?.length">
+              <table class="modern-premium-table">
+                <thead>
+                  <tr>
+                    <th>Código Propuesta</th>
+                    <th>Proveedor / Postor</th>
+                    <th class="text-right">Oferta Económica</th>
+                    <th class="text-center">Tiempo Entrega</th>
+                    <th>Fecha de Envío</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let prop of getPaginatedPropuestas()" class="table-row-hover">
+                    <td class="font-bold">
+                      <span class="code-column link-adj" [routerLink]="['/propuestas', prop.id]">
+                        PRP-2026-{{ prop.id | number:'3.0-0' }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="postulante-meta">
+                        <span class="post-name font-bold">{{ prop.empresaNombre || prop.usuario.nombre }}</span>
+                        <span class="post-ruc">RUC: {{ prop.identificacionRuc || 'N/A' }}</span>
+                      </div>
+                    </td>
+                    <td class="text-right amount font-bold text-success">
+                      {{ prop.montoOfertado | currency }}
+                    </td>
+                    <td class="text-center font-bold">
+                      {{ prop.tiempoEntregaDias }} días
+                    </td>
+                    <td>
+                      {{ prop.fechaEnvio | date:'dd/MM/yyyy, HH:mm' }}
+                    </td>
+                    <td>
+                      <span class="status-badge-premium text-uppercase" [ngClass]="prop.estado.toLowerCase()">
+                        {{ prop.estado }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <div class="actions-group-modern justify-center">
+                        <button class="btn-action-circle view" [routerLink]="['/propuestas', prop.id]" title="Ver Propuesta Completa">
+                          <i class="fa-regular fa-eye"></i>
+                        </button>
+                        <button class="btn-action-circle doc" *ngIf="prop.documentos?.length" (click)="openDocument(prop.documentos[0].rutaArchivo)" title="Ver Pliego Adjunto">
+                          <i class="fa-regular fa-file-pdf"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- PAGINACIÓN PROPUESTAS -->
+            <footer class="modern-pagination-tabs" *ngIf="getTotalPagesPropuestas() > 1">
+              <div class="page-info">
+                Mostrando {{ currentPagePropuestas * pageSizePropuestas + 1 }} a {{ getMin((currentPagePropuestas + 1) * pageSizePropuestas, propuestasRecibidas.length) }} de {{ propuestasRecibidas.length }} propuestas
+              </div>
+              <div class="page-controls">
+                <button class="btn-page-arrow" (click)="changePagePropuestas(currentPagePropuestas - 1)" [disabled]="currentPagePropuestas === 0">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button class="btn-page-number" *ngFor="let p of getPageNumbersPropuestas()" [class.active]="p === currentPagePropuestas" (click)="changePagePropuestas(p)">
+                  {{ p + 1 }}
+                </button>
+                <button class="btn-page-arrow" (click)="changePagePropuestas(currentPagePropuestas + 1)" [disabled]="currentPagePropuestas === getTotalPagesPropuestas() - 1">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            </footer>
+
+            <!-- Si no hay propuestas -->
+            <div class="empty-state-centered py-5" *ngIf="!propuestasRecibidas?.length">
+              <i class="fa-solid fa-folder-open text-muted mb-3" style="font-size: 3.5rem;"></i>
+              <h3>Sin Propuestas Recibidas</h3>
+              <p class="text-muted">Aún no se han recibido ofertas de los proveedores registrados en este proceso.</p>
+            </div>
+
+          </div>
+        </div>
+
+      </ng-container>
+
+    </div>
+
+    <!-- ==================== TAB: RESULTADOS / RANKING ==================== -->
+    <div class="tab-pane fade-in" *ngIf="currentTab === 'ranking'">
+      <div class="premium-detail-card">
+        <div class="card-title-header justify-between">
+          <div class="flex items-center gap-4">
+            <div class="title-icon green">
+              <i class="fa-solid fa-award"></i>
+            </div>
+            <div class="title-text-group">
+              <h3>Resultados Consolidados del Ranking</h3>
+              <p>Cuadro comparativo y orden de mérito de las propuestas evaluadas.</p>
+            </div>
+          </div>
+          <div class="actions-header-btn" *ngIf="(isAdmin || isAutoridad) && licitacion.estado === EstadoLicitacion.EN_EVALUACION">
+            <button class="btn-stack-action green px-4 py-2 w-auto font-bold" (click)="aprobarResultados()">
+              <i class="fa-solid fa-check-double"></i> Aprobar Dictamen
+            </button>
+          </div>
+        </div>
+        <div class="card-body-content p-0">
+          <div class="premium-table-container">
+            <table class="modern-premium-table">
+              <thead>
+                <tr>
+                  <th class="text-center">Posición</th>
+                  <th>Empresa Postulante</th>
+                  <th class="text-right">Oferta Económica</th>
+                  <th class="text-center">Calificación</th>
+                  <th>Estado</th>
+                  <th *ngIf="(isAdmin || isAutoridad) && licitacion.estado === EstadoLicitacion.EVALUADA" class="text-center">Decisión</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of ranking; let i = index" [class.winner-row]="p.estado === 'GANADORA'">
+                  <td class="text-center font-bold">
+                    <span class="position-badge" [class.first-place]="i === 0">0{{ i + 1 }}</span>
+                  </td>
+                  <td>
+                    <div class="postulante-meta">
+                      <span class="post-name font-bold">{{ p.empresaNombre }}</span>
+                      <span class="post-ruc">RUC: {{ p.identificacionRuc }}</span>
+                    </div>
+                  </td>
+                  <td class="text-right amount font-bold">{{ p.montoOfertado | currency }}</td>
+                  <td class="text-center">
+                    <div class="table-score-badge" [class.high-score]="p.puntajeTotal >= 80">
+                      <span class="obtained font-bold">{{ p.puntajeTotal }}</span>
+                      <span class="max">/ 100</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="status-badge-premium text-uppercase" [ngClass]="p.estado.toLowerCase()">
+                      {{ p.estado }}
+                    </span>
+                  </td>
+                  <td *ngIf="(isAdmin || isAutoridad) && licitacion.estado === EstadoLicitacion.EVALUADA" class="text-center">
+                    <button class="btn-adjudicate-action" (click)="adjudicar(p.id)" title="Adjudicar licitación a esta propuesta">
+                      <i class="fa-solid fa-gavel"></i> Adjudicar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: PARTICIPANTES ==================== -->
+    <div class="tab-pane fade-in" *ngIf="currentTab === 'participantes'">
+      <div class="premium-detail-card">
+        <div class="card-title-header">
+          <div class="title-icon blue">
+            <i class="fa-solid fa-user-group"></i>
+          </div>
+          <div class="title-text-group">
+            <h3>Registro de Postulantes Inscritos</h3>
+            <p>Validación de participantes y estatus de precalificación administrativa.</p>
+          </div>
+        </div>
+        <div class="card-body-content p-0">
+          <div class="premium-table-container">
+            <table class="modern-premium-table">
+              <thead>
+                <tr>
+                  <th>Proveedor</th>
+                  <th>Fecha de Inscripción</th>
+                  <th>Estado Administrativo</th>
+                  <th *ngIf="isAdmin || isAutoridad" class="text-center">Acción / Veredicto</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of getPaginatedParticipantes()">
+                  <td>
+                    <div class="postulante-meta flex-row gap-3">
+                      <div class="avatar-circle">
+                        <i class="fa-solid fa-building-user"></i>
+                      </div>
+                      <div class="flex-column">
+                        <span class="post-name font-bold">{{ p.usuario.nombre || p.usuario.username }}</span>
+                        <span class="post-ruc">{{ p.usuario.email }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ p.fechaInscripcion | date:'dd/MM/yyyy, HH:mm' }}</td>
+                  <td>
+                    <span class="status-badge-premium text-uppercase" [ngClass]="p.estado.toLowerCase()">
+                      {{ p.estado }}
+                    </span>
+                  </td>
+                  <td *ngIf="isAdmin || isAutoridad" class="text-center">
+                    <div class="table-actions-row justify-center" *ngIf="p.estado === 'INSCRITO'">
+                      <button class="btn-circle-action green" (click)="validarParticipante(p.id, true)" title="Validar Registro">
+                        <i class="fa-solid fa-check"></i>
+                      </button>
+                      <button class="btn-circle-action red" (click)="validarParticipante(p.id, false)" title="Rechazar Registro">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                    <span class="obs-box text-muted italic" *ngIf="p.estado !== 'INSCRITO'">{{ p.observaciones }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <!-- PAGINACIÓN PARTICIPANTES -->
+            <footer class="modern-pagination-tabs" *ngIf="getTotalPagesParticipantes() > 1">
+              <div class="page-info">
+                Mostrando {{ currentPageParticipantes * pageSizeParticipantes + 1 }} a {{ getMin((currentPageParticipantes + 1) * pageSizeParticipantes, participantes.length) }} de {{ participantes.length }} participantes
+              </div>
+              <div class="page-controls">
+                <button class="btn-page-arrow" (click)="changePageParticipantes(currentPageParticipantes - 1)" [disabled]="currentPageParticipantes === 0">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button class="btn-page-number" *ngFor="let p of getPageNumbersParticipantes()" [class.active]="p === currentPageParticipantes" (click)="changePageParticipantes(p)">
+                  {{ p + 1 }}
+                </button>
+                <button class="btn-page-arrow" (click)="changePageParticipantes(currentPageParticipantes + 1)" [disabled]="currentPageParticipantes === getTotalPagesParticipantes() - 1">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            </footer>
+            
+            <div class="empty-state-centered py-5" *ngIf="!participantes?.length">
+              <i class="fa-solid fa-users-slash text-muted mb-3" style="font-size: 3rem;"></i>
+              <p class="text-muted">No se registran firmas de proveedores postulados para esta licitación pública.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: CRONOGRAMA ==================== -->
+    <div class="tab-pane fade-in" *ngIf="currentTab === 'cronograma'">
+      <div class="premium-detail-card">
+        <div class="card-title-header">
+          <div class="title-icon blue">
+            <i class="fa-regular fa-calendar-check"></i>
+          </div>
+          <div class="title-text-group">
+            <h3>Cronograma de Hitos y Fechas Clave</h3>
+            <p>Agenda cronológica del flujo del proceso de adquisición pública.</p>
+          </div>
+        </div>
+        <div class="card-body-content">
+          <div class="cronograma-vertical-flow">
+            
+            <!-- Hito 1: Publicación -->
+            <div class="hitos-step active">
+              <div class="hito-bullet current"><i class="fa-regular fa-calendar"></i></div>
+              <div class="hito-content-box">
+                <span class="hito-date">{{(licitacion.fechaPublicacion | date:'dd/MM/yyyy') || '02/05/2026'}}</span>
+                <h4>Publicación del Proceso</h4>
+                <p>Apertura del portal de transparencia y publicación del pliego de bases para consulta pública de postores.</p>
+              </div>
+            </div>
+
+            <!-- Hito 1.5: Presentación de Propuestas (Dinámico en base a propuestas presentadas) -->
+            <div class="hitos-step" [class.active]="propuestasRecibidas.length > 0 || miPropuesta">
+              <div class="hito-bullet" [class.current]="propuestasRecibidas.length > 0 || miPropuesta">
+                <i class="fa-solid fa-paper-plane"></i>
+              </div>
+              <div class="hito-content-box">
+                <span class="hito-date" *ngIf="propuestasRecibidas.length > 0 || miPropuesta">Fase Activa</span>
+                <span class="hito-date" *ngIf="propuestasRecibidas.length === 0 && !miPropuesta">Fase Activa</span>
+                <h4>Presentación de Propuestas (Envío de Ofertas)</h4>
+                <p *ngIf="propuestasRecibidas.length === 0 && !miPropuesta" class="text-muted">
+                  Los proveedores válidos se encuentran preparando y registrando sus ofertas en la plataforma.
+                </p>
+                <!-- Si hay propuestas recibidas (Admin/Area) -->
+                <div class="cronograma-proposals-list mt-3" *ngIf="propuestasRecibidas.length > 0">
+                  <div class="cronograma-proposal-item" *ngFor="let p of propuestasRecibidas">
+                    <i class="fa-solid fa-circle-check text-success"></i>
+                    <span>Propuesta de <strong>{{ p.empresaNombre }}</strong> registrada con éxito el {{ p.fechaEnvio | date:'dd/MM/yyyy a las HH:mm' }}hs.</span>
+                  </div>
+                </div>
+                <!-- Si es un proveedor y ve su propia propuesta -->
+                <div class="cronograma-proposals-list mt-3" *ngIf="!isAdmin && !isArea && miPropuesta">
+                  <div class="cronograma-proposal-item">
+                    <i class="fa-solid fa-circle-check text-success"></i>
+                    <span>Tu propuesta (<strong>{{ miPropuesta.empresaNombre }}</strong>) ha sido presentada correctamente el {{ miPropuesta.fechaEnvio | date:'dd/MM/yyyy a las HH:mm' }}hs.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hito 2: Cierre Recepción -->
+            <div class="hitos-step" [class.active]="licitacion.estado !== EstadoLicitacion.BORRADOR && licitacion.estado !== EstadoLicitacion.PUBLICADA">
+              <div class="hito-bullet"><i class="fa-solid fa-lock"></i></div>
+              <div class="hito-content-box">
+                <span class="hito-date">{{(licitacion.fechaCierre | date:'dd/MM/yyyy, HH:mm') || '03/05/2026, 00:00'}}</span>
+                <h4>Cierre de Recepción de Propuestas</h4>
+                <p>Fecha límite improrrogable para la presentación encriptada de ofertas técnicas y económicas.</p>
+              </div>
+            </div>
+
+            <!-- Hito 3: Calificación -->
+            <div class="hitos-step" [class.active]="[EstadoLicitacion.EVALUADA, EstadoLicitacion.ADJUDICADA, EstadoLicitacion.CONTRATADA].includes(licitacion.estado)">
+              <div class="hito-bullet"><i class="fa-solid fa-clipboard-check"></i></div>
+              <div class="hito-content-box">
+                <span class="hito-date">Fase Evaluativa</span>
+                <h4>Revisión de Rúbricas por el Jurado</h4>
+                <p>Calificación individualizada de propuestas técnicas por los evaluadores habilitados y ordenamiento de ranking.</p>
+              </div>
+            </div>
+
+            <!-- Hito 4: Adjudicación -->
+            <div class="hitos-step" [class.active]="[EstadoLicitacion.ADJUDICADA, EstadoLicitacion.CONTRATADA].includes(licitacion.estado)">
+              <div class="hito-bullet"><i class="fa-solid fa-gavel"></i></div>
+              <div class="hito-content-box">
+                <span class="hito-date">Dictamen Final</span>
+                <h4>Adjudicación del Ganador</h4>
+                <p>Resolución formal que declara la propuesta económica más conveniente que cumpla con los puntajes de bases.</p>
+              </div>
+            </div>
+
+            <!-- Hito 5: Contratación -->
+            <div class="hitos-step" [class.active]="licitacion.estado === EstadoLicitacion.CONTRATADA">
+              <div class="hito-bullet"><i class="fa-solid fa-file-signature"></i></div>
+              <div class="hito-content-box">
+                <span class="hito-date">Formalización</span>
+                <h4>Suscripción y Firma del Contrato</h4>
+                <p>Generación de minutas de contrato oficial e inscripción de garantías de fiel cumplimiento.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB: AUDITORÍA ==================== -->
+    <div class="tab-pane fade-in" *ngIf="currentTab === 'auditoria'">
+      <div class="premium-detail-card">
+        <div class="card-title-header">
+          <div class="title-icon blue">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div class="title-text-group">
+            <h3>Bitácora de Auditoría Gubernamental</h3>
+            <p>Registro histórico inmutable de transacciones, versiones y validaciones del proceso.</p>
+          </div>
+        </div>
+        <div class="card-body-content">
+          
+          <div class="audit-history-timeline" *ngIf="getAuditTrail().length > 0">
+            
+            <div class="audit-timeline-item-premium" *ngFor="let item of getAuditTrail()">
+              <div class="audit-icon-bullet" [ngClass]="item.class">
+                <i class="fa-solid" [ngClass]="item.icon"></i>
+              </div>
+              <div class="audit-text-block-premium">
+                <div class="audit-header-row">
+                  <h4 class="audit-action-title">{{ item.accion }}</h4>
+                  <span class="audit-hash-badge" title="Hash criptográfico inmutable de auditoría">{{ item.txHash }}</span>
+                </div>
+                <p class="audit-description">{{ item.descripcion }}</p>
+                <div class="audit-meta-row">
+                  <span class="user-meta">
+                    <i class="fa-regular fa-user"></i>
+                    <strong>{{ item.usuario }}</strong> 
+                    <span class="user-badge" [ngClass]="item.username.toLowerCase()">{{ item.rol }}</span>
+                  </span>
+                  <span class="meta-dot">•</span>
+                  <span class="date-meta">
+                    <i class="fa-regular fa-clock"></i> {{ item.fecha | date:'dd/MM/yyyy, HH:mm:ss' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Estado vacío si no hay historial -->
+          <div class="empty-state-centered py-5" *ngIf="getAuditTrail().length === 0">
+            <i class="fa-solid fa-shield text-muted mb-3" style="font-size: 3rem;"></i>
+            <p class="text-muted">No se registran cambios de versión o transacciones administrativas auditadas.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Loading State Spinner -->
+<div class="loading-overlay" *ngIf="loading">
+  <div class="spinner-container">
+    <div class="double-bounce1"></div>
+    <div class="double-bounce2"></div>
+  </div>
+  <p class="loading-text">Cargando expediente de licitación pública...</p>
+</div>

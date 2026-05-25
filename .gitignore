@@ -1,0 +1,43 @@
+# Git ignore global para SistemaLicitaciones
+
+# Node.js (Frontend)
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/*.log
+frontend/.netlify/
+
+# Maven (Backend)
+backend/target/
+backend/*.log
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.iml
+.DS_Store
+
+# Java specific
+backend/*.class
+backend/*.jar
+backend/*.war
+backend/*.ear
+
+# Spring Boot related
+backend/bin/
+backend/out/
+backend/.factorypath
+backend/src/main/resources/static/
+backend/src/main/resources/public/
+backend/src/main/resources/resources/
+backend/src/main/resources/META-INF/resources/
+backend/src/main/resources/*.db
+
+# Local OS / Extraction Scripts / Temp Files
+Microsoft/
+*.ps1
+*.py
+*.txt
+package-lock.json

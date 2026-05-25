@@ -1,0 +1,61 @@
+<div class="login-container">
+  <div class="glass-box">
+    <div class="header">
+      <div class="logo-animation">
+        <img src="assets/img/logo.png" alt="Logo" class="main-logo">
+        <div class="logo-glow"></div>
+      </div>
+      <p>Bienvenido al centro de control operativo</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="input-group">
+        <label for="username">Identificación</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-user-shield input-icon"></i>
+          <input type="text" id="username" formControlName="username" placeholder="Tu usuario"
+                 [class.error]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="password">Clave de Acceso</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-lock-open input-icon"></i>
+          <input type="password" id="password" formControlName="password" placeholder="••••••••"
+                 [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+        </div>
+      </div>
+
+      <div class="form-options">
+        <label class="remember-me">
+          <input type="checkbox" formControlName="rememberMe">
+          <span class="checkmark"></span>
+          Recordar usuario
+        </label>
+        <a href="#" class="forgot-link">¿Olvido su acceso?</a>
+      </div>
+
+      <div class="error-message" *ngIf="isLoginFailed">
+        <i class="fa-solid fa-circle-exclamation"></i> {{ errorMessage }}
+      </div>
+
+      <button type="submit" [disabled]="loginForm.invalid" class="btn-login-premium">
+        <span>Ingresar al Sistema</span>
+        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+      </button>
+    </form>
+
+    <div class="footer">
+      <p>¿Eres proveedor? <a routerLink="/register">Regístrate aquí</a></p>
+      <p>¿Necesitas ayuda? <a href="#">Contacta al administrador</a></p>
+    </div>
+  </div>
+  
+  <div class="bg-circles">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+    <div class="circle circle-4"></div>
+  </div>
+</div>

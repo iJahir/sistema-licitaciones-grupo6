@@ -1,0 +1,488 @@
+<!-- MAIN WORKSPACE PAGE WRAPPER -->
+<div class="event-dashboard-wrapper animate-fade-in">
+
+  <!-- KPI CARDS EXECUTIVE ROW -->
+  <div class="kpi-cards-row">
+    
+    <div class="kpi-card card-glow border-purple">
+      <div class="kpi-iconbg bg-purple-light">
+        <i class="fa-solid fa-calendar-days text-purple"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ kpis.total }}</span>
+        <span class="kpi-label">Eventos Totales</span>
+        <span class="kpi-subtext">Registrados este mes</span>
+      </div>
+    </div>
+
+    <div class="kpi-card card-glow border-green">
+      <div class="kpi-iconbg bg-green-light">
+        <i class="fa-solid fa-circle-arrow-down text-green"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ kpis.proximos }}</span>
+        <span class="kpi-label">Próximos Eventos</span>
+        <span class="kpi-subtext">Siguientes 7 días</span>
+      </div>
+    </div>
+
+    <div class="kpi-card card-glow border-red">
+      <div class="kpi-iconbg bg-red-light">
+        <i class="fa-solid fa-triangle-exclamation text-red"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ kpis.vencidos }}</span>
+        <span class="kpi-label">Eventos Vencidos</span>
+        <span class="kpi-subtext">Requieren atención</span>
+      </div>
+    </div>
+
+    <div class="kpi-card card-glow border-violet">
+      <div class="kpi-iconbg bg-violet-light">
+        <i class="fa-solid fa-flag text-violet"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ kpis.criticos }}</span>
+        <span class="kpi-label">Prioridad Alta</span>
+        <span class="kpi-subtext">Críticos del sistema</span>
+      </div>
+    </div>
+
+    <div class="kpi-card card-glow border-blue">
+      <div class="kpi-iconbg bg-blue-light">
+        <i class="fa-solid fa-shield-check text-blue"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ kpis.completados }}</span>
+        <span class="kpi-label">Completados</span>
+        <span class="kpi-subtext">Culminados este mes</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ADVANCED SEARCH & FILTERS BAR -->
+  <div class="advanced-filters-bar card-glow">
+    
+    <div class="filter-top-row">
+      <!-- Search input -->
+      <div class="filter-search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" 
+               [(ngModel)]="searchText" 
+               (input)="applyFilters()" 
+               placeholder="Buscar por título, encargado, palabra clave..." 
+               class="search-input" />
+      </div>
+
+      <!-- Action buttons -->
+      <div class="filter-action-buttons">
+        <button class="btn btn-reset-filters" (click)="resetFilters()" title="Limpiar todos los filtros">
+          <i class="fa-solid fa-rotate-left"></i> Restablecer
+        </button>
+        <button class="btn btn-export" (click)="descargarCronogramaPdf()">
+          <i class="fa-solid fa-file-pdf"></i> Descargar Cronograma PDF
+        </button>
+        <button class="btn btn-primary btn-new-event" (click)="showCreateEventModal()">
+          <i class="fa-solid fa-plus"></i> Nuevo Evento
+        </button>
+      </div>
+    </div>
+
+    <!-- Collapsible/Advanced filter selects grid -->
+    <div class="filter-dropdowns-grid">
+      
+      <div class="dropdown-item">
+        <label class="dropdown-lbl">Licitación vinculada</label>
+        <select [(ngModel)]="selectedLicitacionId" (change)="applyFilters()" class="dropdown-select">
+          <option value="">Todas las licitaciones</option>
+          <option *ngFor="let l of licitaciones" [value]="l.id">#{{ l.id }} - {{ l.titulo | slice:0:30 }}...</option>
+        </select>
+      </div>
+
+      <div class="dropdown-item">
+        <label class="dropdown-lbl">Tipo de Evento</label>
+        <select [(ngModel)]="selectedTipoEvento" (change)="applyFilters()" class="dropdown-select">
+          <option value="">Todas las categorías</option>
+          <option value="LICITACION_PUBLICADA">Licitación Publicada</option>
+          <option value="CIERRE_LICITACION">Cierre de Propuestas</option>
+          <option value="PROPUESTA_RECIBIDA">Propuestas</option>
+          <option value="EVALUACION_EN_CURSO">Evaluación en Curso</option>
+          <option value="REUNION_EVALUACION">Reunión de Comité</option>
+          <option value="NOTA">Nota / Memorando</option>
+          <option value="MANTENIMIENTO_SISTEMA">Mantenimiento</option>
+          <option value="EVENTO_GENERAL">Evento General</option>
+        </select>
+      </div>
+
+      <div class="dropdown-item">
+        <label class="dropdown-lbl">Prioridad</label>
+        <select [(ngModel)]="selectedPrioridad" (change)="applyFilters()" class="dropdown-select">
+          <option value="">Cualquier prioridad</option>
+          <option value="1">Alta (Crítica)</option>
+          <option value="2">Media</option>
+          <option value="3">Baja</option>
+          <option value="4">Informativa</option>
+        </select>
+      </div>
+
+      <div class="dropdown-item">
+        <label class="dropdown-lbl">Estado</label>
+        <select [(ngModel)]="selectedEstado" (change)="applyFilters()" class="dropdown-select">
+          <option value="">Cualquier estado</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="Próximo">Próximo</option>
+          <option value="Completado">Completado</option>
+          <option value="Vencido">Vencido</option>
+          <option value="Cancelado">Cancelado</option>
+        </select>
+      </div>
+
+      <div class="dropdown-item">
+        <label class="dropdown-lbl">Responsable</label>
+        <select [(ngModel)]="selectedResponsable" (change)="applyFilters()" class="dropdown-select">
+          <option value="">Todos los responsables</option>
+          <option *ngFor="let r of responsablesList" [value]="r">{{ r }}</option>
+        </select>
+      </div>
+
+      <div class="dropdown-item">
+        <label class="dropdown-lbl">Fecha Desde</label>
+        <input type="date" [(ngModel)]="selectedFechaDesde" (change)="applyFilters()" class="dropdown-select" />
+      </div>
+
+      <div class="dropdown-item">
+        <label class="dropdown-lbl">Fecha Hasta</label>
+        <input type="date" [(ngModel)]="selectedFechaHasta" (change)="applyFilters()" class="dropdown-select" />
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Two Columns Master Register Table Workspace -->
+  <div class="events-table-workspace">
+    
+    <!-- Left Column: Master Table Card -->
+    <div class="table-container card-glow">
+      <div class="table-header-bar">
+        <div class="title-with-count">
+          <h4>Listado de Eventos de Planificación</h4>
+          <span class="count-badge">{{ filteredEvents.length }}</span>
+        </div>
+        <div class="table-actions-right">
+          <span class="record-count">Mostrando {{ paginatedEvents.length }} de {{ filteredEvents.length }} eventos</span>
+        </div>
+      </div>
+
+      <div class="premium-table-responsive">
+        <table class="premium-table">
+          <thead>
+            <tr>
+              <th>Evento / Actividad</th>
+              <th>Proceso / Referencia</th>
+              <th>Tipo</th>
+              <th>Fecha y Hora</th>
+              <th>Responsable</th>
+              <th>Prioridad</th>
+              <th>Estado</th>
+              <th style="text-align: center;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ev of paginatedEvents" [class.cancelled-row]="ev.estado === 'Cancelado'">
+              <td>
+                <div class="table-act-info">
+                  <div class="act-icon-wrapper" 
+                       [style.background-color]="ev.color + '12'"
+                       [style.color]="ev.color">
+                    <i class="fa-solid" [ngClass]="ev.icon"></i>
+                  </div>
+                  <div class="act-text">
+                    <span class="title-bold" (click)="showEventDetails(ev)">{{ ev.titulo }}</span>
+                    <span class="desc-thin" *ngIf="ev.descripcion">{{ ev.descripcion | slice:0:65 }}{{ ev.descripcion.length > 65 ? '...' : '' }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="ref-link" *ngIf="ev.referenciaId">
+                  <i class="fa-solid fa-link text-slate-400"></i> 
+                  <span class="ref-text">
+                    #{{ ev.referenciaId }} ({{ ev.referenciaTipo | titlecase }})
+                  </span>
+                </span>
+                <span class="ref-none" *ngIf="!ev.referenciaId">Sin vinculación</span>
+              </td>
+              <td>
+                <span class="badge" 
+                      [style.background]="ev.color + '15'"
+                      [style.color]="ev.color"
+                      style="border-radius: 6px; font-weight: 700; border: 1px solid {{ ev.color }}18;">
+                  {{ ev.tipoLabel }}
+                </span>
+              </td>
+              <td>
+                <span class="date-lbl">
+                  <i class="fa-regular fa-clock"></i> {{ ev.fechaEvento | date:'dd/MM/yyyy hh:mm a' }}
+                </span>
+              </td>
+              <td>
+                <div class="resp-avatar-wrapper">
+                  <div class="avatar-circle">
+                    {{ ev.responsable ? ev.responsable.substring(0,2).toUpperCase() : 'JM' }}
+                  </div>
+                  <span class="resp-lbl">{{ ev.responsable || 'Jahir Marroquín' }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="priority-dot-badge" [ngClass]="{
+                  'high': ev.prioridad === 1,
+                  'medium': ev.prioridad === 2,
+                  'low': ev.prioridad === 3,
+                  'info': ev.prioridad === 4 || !ev.prioridad
+                }">
+                  <span class="dot"></span>
+                  <span>
+                    {{ ev.prioridad === 1 ? 'Alta' : ev.prioridad === 2 ? 'Media' : ev.prioridad === 3 ? 'Baja' : 'Informativa' }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="badge-pill" [ngClass]="{
+                  'pill-completado': ev.estado === 'Completado',
+                  'pill-proximo': ev.estado === 'Próximo',
+                  'pill-pendiente': ev.estado === 'Pendiente',
+                  'pill-vencido': ev.estado === 'Vencido',
+                  'pill-cancelado': ev.estado === 'Cancelado'
+                }">
+                  <i class="fa-solid" [ngClass]="{
+                    'fa-circle-check': ev.estado === 'Completado',
+                    'fa-clock': ev.estado === 'Próximo',
+                    'fa-circle-question': ev.estado === 'Pendiente',
+                    'fa-triangle-exclamation': ev.estado === 'Vencido',
+                    'fa-ban': ev.estado === 'Cancelado'
+                  }"></i>
+                  <span>{{ ev.estado }}</span>
+                </span>
+              </td>
+              <td>
+                <div class="actions-cell">
+                  <button class="action-btn view" title="Ver Detalles" (click)="showEventDetails(ev)">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                  <button class="action-btn edit" *ngIf="ev.id && ev.id > 0" title="Editar Evento" (click)="showEditEventModal(ev)">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button class="action-btn reschedule" *ngIf="ev.id && ev.id > 0" title="Reprogramar" (click)="rescheduleEvento(ev)">
+                    <i class="fa-solid fa-calendar-days"></i>
+                  </button>
+                  <button class="action-btn cancel" *ngIf="ev.id && ev.id > 0 && ev.estado !== 'Cancelado'" title="Cancelar Evento" (click)="cancelEvento(ev)">
+                    <i class="fa-solid fa-ban"></i>
+                  </button>
+                  <button class="action-btn delete" *ngIf="ev.id && ev.id > 0" title="Eliminar Evento" (click)="deleteEvento(ev.id)">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <tr *ngIf="filteredEvents.length === 0">
+              <td colspan="8" class="empty-table-row">
+                <i class="fa-regular fa-folder-open"></i>
+                <h5>No se encontraron resultados</h5>
+                <p>Pruebe limpiando o reajustando los filtros avanzados de la parte superior.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Block -->
+      <div class="pagination-footer-bar" *ngIf="filteredEvents.length > 0">
+        <div class="pagination-info">
+          <span>Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ (currentPage * pageSize > totalEvents) ? totalEvents : currentPage * pageSize }} de {{ totalEvents }} eventos</span>
+          
+          <div class="rows-selector">
+            <label>Filas por página:</label>
+            <select [(ngModel)]="pageSize" (change)="currentPage = 1; applyFilters()" class="rows-select">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="12">12</option>
+              <option [value]="20">20</option>
+              <option [value]="50">50</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pagination-controls">
+          <button class="pag-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          
+          <button class="pag-btn page-num" 
+                  *ngFor="let p of pages" 
+                  [class.active]="p === currentPage"
+                  (click)="changePage(p)">
+            {{ p }}
+          </button>
+
+          <button class="pag-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Sidebar Panels -->
+    <div class="events-right-sidebar">
+      
+      <!-- Block A: Dynamic Mini Calendar Widget -->
+      <div class="sidebar-block border-bottom">
+        <div class="mini-calendar-header">
+          <h4><i class="fa-regular fa-calendar-days text-slate-400"></i> Calendario Activo</h4>
+          <div class="calendar-nav-chevrons">
+            <button class="btn-chevron" (click)="prevMonth()"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="btn-chevron" (click)="nextMonth()"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="mini-calendar-map">
+          <div class="mini-month-lbl">{{ monthNames[currentDate.getMonth()] | uppercase }} {{ currentDate.getFullYear() }}</div>
+          <div class="mini-weekdays-grid">
+            <span>LU</span><span>MA</span><span>MI</span><span>JU</span><span>VI</span><span>SA</span><span>DO</span>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-day-cell" 
+                 *ngFor="let cell of calendarDays"
+                 [class.today]="cell.isToday"
+                 [class.selected-day]="cell.isSelected"
+                 [class.inactive-month]="!cell.isCurrentMonth"
+                 [class.has-events]="cell.hasEvents"
+                 (click)="selectDay(cell)">
+              {{ cell.day }}
+              <span class="mini-event-indicator" *ngIf="cell.hasEvents"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block B: Category Checklist Keys -->
+      <div class="sidebar-block border-bottom">
+        <h4>Checklist de Hitos Críticos</h4>
+        <div class="milestones-checklist">
+          <label class="checklist-item">
+            <input type="checkbox" checked disabled />
+            <span class="strike-through">Aprobación y publicación de bases</span>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox" checked disabled />
+            <span class="strike-through">Recepción de preguntas de aclaración</span>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox" checked disabled />
+            <span class="strike-through">Cierre y recepción de sobres/propuestas</span>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox" disabled />
+            <span>Reunión de comité y dictamen de fallo técnico</span>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox" disabled />
+            <span>Suscripción de contrato con adjudicatario</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Block C: Reciente Actividad -->
+      <div class="sidebar-block border-bottom">
+        <h4>Actividad Reciente</h4>
+        <div class="recent-activity-timeline">
+          <div class="activity-timeline-item" *ngFor="let act of recentActivities">
+            <div class="activity-line"></div>
+            <div class="activity-icon" [style.background-color]="act.color + '12'" [style.color]="act.color">
+              <i class="fa-solid" [ngClass]="act.icon"></i>
+            </div>
+            <div class="activity-text-info">
+              <span class="act-title">{{ act.titulo }}</span>
+              <span class="act-time">{{ act.tiempo }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block D: Acciones Rápidas -->
+      <div class="sidebar-block border-bottom">
+        <h4>Acciones Rápidas</h4>
+        <div class="action-buttons-vertical">
+          <button class="action-btn-premium" (click)="showCreateEventModal()">
+            <span class="icon-wrap bg-blue"><i class="fa-solid fa-circle-plus"></i></span>
+            <span class="label">Nuevo Evento</span>
+          </button>
+          <button class="action-btn-premium" (click)="descargarCronogramaPdf()">
+            <span class="icon-wrap bg-teal"><i class="fa-solid fa-file-pdf"></i></span>
+            <span class="label">Descargar Cronograma PDF</span>
+          </button>
+          <button class="action-btn-premium" (click)="configureReminders()">
+            <span class="icon-wrap bg-amber"><i class="fa-solid fa-bell-concierge"></i></span>
+            <span class="label">Configurar Notificaciones</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Block E: Leyenda de Prioridad -->
+      <div class="sidebar-block">
+        <h4>Leyenda de Prioridad</h4>
+        <div class="priority-legend-layout">
+          <div class="legend-item"><span class="legend-dot bg-red"></span> <span>Alta (Crítica)</span></div>
+          <div class="legend-item"><span class="legend-dot bg-orange"></span> <span>Media</span></div>
+          <div class="legend-item"><span class="legend-dot bg-cyan"></span> <span>Baja</span></div>
+          <div class="legend-item"><span class="legend-dot bg-blue"></span> <span>Informativa</span></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Bottom Section: Próximos Eventos Críticos -->
+  <div class="bottom-critical-shelf-card card-glow">
+    <div class="shelf-header">
+      <div class="shelf-title-box">
+        <i class="fa-solid fa-triangle-exclamation text-red animate-pulse"></i>
+        <h4>Próximos Eventos Críticos y Vencimientos</h4>
+      </div>
+      <span class="shelf-count-tag">{{ criticalEvents.length }} hitos críticos</span>
+    </div>
+
+    <div class="shelf-horizontal-layout">
+      
+      <div class="critical-shelf-item" *ngFor="let ev of criticalEvents" [style.border-left-color]="ev.color">
+        <div class="item-icon-circle" [style.background-color]="ev.color + '12'" [style.color]="ev.color">
+          <i class="fa-solid" [ngClass]="ev.icon"></i>
+        </div>
+        
+        <div class="item-content-info">
+          <span class="item-title" (click)="showEventDetails(ev)">{{ ev.titulo }}</span>
+          <span class="item-date">
+            <i class="fa-regular fa-calendar"></i> {{ ev.fechaEvento | date:'dd MMM yyyy - hh:mm a' }}
+          </span>
+          <span class="item-subtext" *ngIf="ev.responsable">
+            <i class="fa-regular fa-user"></i> {{ ev.responsable }}
+          </span>
+        </div>
+
+        <div class="item-badge-box">
+          <span class="badge" [style.background-color]="ev.color + '15'" [style.color]="ev.color">
+            {{ ev.tipoLabel }}
+          </span>
+        </div>
+      </div>
+
+      <div class="critical-empty" *ngIf="criticalEvents.length === 0">
+        <i class="fa-solid fa-circle-check text-green"></i>
+        <p>No se registran eventos críticos o vencimientos pendientes en el corto plazo.</p>
+      </div>
+
+    </div>
+  </div>
+
+</div>

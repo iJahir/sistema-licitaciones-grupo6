@@ -1,0 +1,440 @@
+<div class="evaluaciones-container fade-in">
+  <!-- Page Top Header -->
+  <header class="page-header">
+    <div class="title-group">
+      <div class="breadcrumb-mini">Gestión y evaluación de propuestas</div>
+      <h1>Evaluaciones</h1>
+    </div>
+  </header>
+
+  <!-- KPI cards at the top -->
+  <div class="metrics-grid">
+    <!-- Card 1: Total Evaluaciones -->
+    <div class="metric-glass-card blue">
+      <div class="card-icon"><i class="fa-regular fa-folder-open"></i></div>
+      <div class="card-data">
+        <span class="label">Total Evaluaciones</span>
+        <h3 class="value">{{ kpiStats.total }}</h3>
+        <span class="subtext">En total</span>
+      </div>
+    </div>
+    <!-- Card 2: En Proceso -->
+    <div class="metric-glass-card green">
+      <div class="card-icon"><i class="fa-regular fa-clock"></i></div>
+      <div class="card-data">
+        <span class="label">En Proceso</span>
+        <h3 class="value">{{ kpiStats.enProceso }}</h3>
+        <span class="subtext">{{ kpiStats.pctProceso }}% del total</span>
+      </div>
+    </div>
+    <!-- Card 3: Completadas -->
+    <div class="metric-glass-card orange">
+      <div class="card-icon"><i class="fa-regular fa-check-circle"></i></div>
+      <div class="card-data">
+        <span class="label">Completadas</span>
+        <h3 class="value">{{ kpiStats.completadas }}</h3>
+        <span class="subtext">{{ kpiStats.pctCompletadas }}% del total</span>
+      </div>
+    </div>
+    <!-- Card 4: Pendientes -->
+    <div class="metric-glass-card purple">
+      <div class="card-icon"><i class="fa-solid fa-list-check"></i></div>
+      <div class="card-data">
+        <span class="label">Pendientes</span>
+        <h3 class="value">{{ kpiStats.pendientes }}</h3>
+        <span class="subtext">{{ kpiStats.pctPendientes }}% del total</span>
+      </div>
+    </div>
+    <!-- Card 5: Adjudicadas -->
+    <div class="metric-glass-card teal">
+      <div class="card-icon"><i class="fa-regular fa-star"></i></div>
+      <div class="card-data">
+        <span class="label">Adjudicadas</span>
+        <h3 class="value">{{ kpiStats.adjudicadas }}</h3>
+        <span class="subtext">Licitaciones</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Horizontal Advanced Filters Row -->
+  <section class="filters-glass-card">
+    <div class="filters-grid">
+      <!-- Search Input -->
+      <div class="filter-group search">
+        <label>BÚSQUEDA RÁPIDA</label>
+        <div class="input-glass">
+          <input type="text" [(ngModel)]="filters.search" (ngModelChange)="onFilter()" placeholder="Buscar evaluación, participante o licitación...">
+          <i class="fa-solid fa-magnifying-glass search-icon-right"></i>
+        </div>
+      </div>
+      <!-- Licitación dropdown filter -->
+      <div class="filter-group">
+        <label>LICITACIÓN</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.licitacion" (change)="onFilter()">
+            <option value="">Todas</option>
+            <option *ngFor="let l of uniqueLicitaciones" [value]="l">
+              {{ l }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <!-- Participante dropdown filter -->
+      <div class="filter-group">
+        <label>PARTICIPANTE</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.participante" (change)="onFilter()">
+            <option value="">Todos</option>
+            <option *ngFor="let p of uniqueParticipantes" [value]="p">
+              {{ p }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <!-- Estado dropdown filter -->
+      <div class="filter-group">
+        <label>ESTADO</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.estado" (change)="onFilter()">
+            <option value="">Todos</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Completada">Completada</option>
+            <option value="Subsanación">Subsanación</option>
+            <option value="En evaluación">En evaluación</option>
+          </select>
+        </div>
+      </div>
+      <!-- Evaluador dropdown filter -->
+      <div class="filter-group">
+        <label>EVALUADOR</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.evaluador" (change)="onFilter()">
+            <option value="">Todos</option>
+            <option *ngFor="let ev of uniqueEvaluadores" [value]="ev">
+              {{ ev }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <!-- Actions buttons -->
+      <div class="filter-actions">
+        <button class="btn-glass clear" (click)="clearFilters()">
+          <i class="fa-solid fa-arrow-rotate-left"></i> Limpiar
+        </button>
+        <button class="btn-glass search" (click)="onFilter()">
+          <i class="fa-solid fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Layout Row -->
+  <div class="main-layout-row">
+    <!-- Left panel (72% width) -->
+    <div class="left-main-panel">
+      <!-- Listado de Evaluaciones Card -->
+      <div class="premium-glass-card no-padding">
+        <div class="card-header-bar">
+          <h2>Lista de Evaluaciones</h2>
+        </div>
+
+        <div class="table-responsive" *ngIf="!loading && filteredEvaluaciones.length > 0">
+          <table class="modern-list-table">
+            <thead>
+              <tr>
+                <th>ID Evaluación</th>
+                <th>Licitación</th>
+                <th>Participante</th>
+                <th>Evaluador</th>
+                <th class="text-center">Criterios</th>
+                <th>Estado</th>
+                <th>Progreso</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Límite</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of filteredEvaluaciones" class="table-row-hover">
+                <!-- ID Evaluación -->
+                <td><span class="code-column">EVAL-2026-{{ p.id | number:'3.0-0' }}</span></td>
+                
+                <!-- Licitación Ref column -->
+                <td>
+                  <div class="licitacion-ref-wrapper">
+                    <span class="licitacion-title">{{ p.licitacionTitulo }}</span>
+                    <span class="licitacion-code">LP-2026-{{ p.id + 8 | number:'3.0-0' }}</span>
+                  </div>
+                </td>
+
+                <!-- Participante column -->
+                <td>
+                  <div class="supplier-cell-mini clickable-supplier" (click)="verEvaluadoresPropuesta(p)" title="Ver Evaluadores y Aprobaciones">
+                    <span class="company-name">{{ p.proveedor || 'N/A' }}</span>
+                    <span class="ruc-tag">RUC: 119876{{ p.id + 1000 | number:'4.0-0' }}</span>
+                  </div>
+                </td>
+
+                <!-- Evaluador column -->
+                <td>
+                  <div class="evaluator-cell-mini">
+                    <span class="evaluator-name">{{ getEvaluatorName(p.id) }}</span>
+                    <span class="committee-tag">{{ getEvaluatorRole() }}</span>
+                  </div>
+                </td>
+
+                <!-- Criterios Count (Centered) -->
+                <td class="text-center">
+                  <span class="criteria-number-clean">{{ getCriteriaCount(p.id) }}</span>
+                </td>
+
+                <!-- Estado badge column -->
+                <td>
+                  <span class="status-badge-premium" [ngClass]="getStatusClass(p.estadoEvaluacion)">
+                    {{ getFriendlyEstado(p.estadoEvaluacion) }}
+                  </span>
+                </td>
+
+                <!-- Progreso Column (With progress fill mini) -->
+                <td>
+                  <div class="progress-cell-wrapper">
+                    <span class="progress-pct-lbl">{{ p.progreso | number:'1.0-0' }}%</span>
+                    <div class="mini-progress-bar-wrapper">
+                      <div class="progress-bar-fill" [style.width.%]="p.progreso" [class.complete]="p.progreso === 100"></div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Fecha Inicio Column (Date on top, Time below) -->
+                <td>
+                  <div class="date-cell-wrapper">
+                    <span class="date-main">{{ getFechaInicio(p).date }}</span>
+                    <span class="date-sub">{{ getFechaInicio(p).time }}</span>
+                  </div>
+                </td>
+
+                <!-- Fecha Límite Column (Date on top, Remaining subtext below) -->
+                <td>
+                  <div class="date-cell-wrapper">
+                    <span class="date-main">{{ getFechaLimite(p).date }}</span>
+                    <span class="date-sub deadline-text" [ngClass]="getFechaLimite(p).subClass">
+                      {{ getFechaLimite(p).sub }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Acciones Column (Eye, Edit/File, Three-dots menu dropdown) -->
+                <td class="text-center">
+                  <div class="actions-group-modern">
+                    <!-- Action 1: View details / Start evaluating -->
+                    <button class="btn-action-circle view" [routerLink]="['/evaluaciones/evaluar', p.id]" 
+                            [title]="p.estadoEvaluacion === 'FINALIZADO' ? 'Ver Detalles' : 'Calificar Propuesta'">
+                      <i class="fa-regular" [ngClass]="p.estadoEvaluacion === 'FINALIZADO' ? 'fa-eye' : 'fa-play'"></i>
+                    </button>
+                    
+                    <!-- Action 2: Secondary review / Edit (Rúbrica de Criterios) -->
+                    <button class="btn-action-circle doc" [routerLink]="['/evaluaciones/evaluar', p.id]" [queryParams]="{ criterios: 'true' }" title="Rúbrica de Criterios">
+                      <i class="fa-regular fa-file-lines"></i>
+                    </button>
+
+                    <!-- Action 3: Three dots vertical menu for dropdown options -->
+                    <div class="actions-dropdown-wrapper">
+                      <button class="btn-action-circle more" [class.active]="activeDropdownId === p.id" (click)="toggleDropdown(p.id!, $event)" title="Más Opciones">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                      </button>
+                      <div class="dropdown-menu-list" *ngIf="activeDropdownId === p.id" (click)="$event.stopPropagation()">
+                        <button class="dropdown-item" *ngIf="p.estadoEvaluacion !== 'FINALIZADO'" [routerLink]="['/evaluaciones/evaluar', p.id]">
+                          <i class="fas fa-play"></i> Continuar Evaluación
+                        </button>
+                        <button class="dropdown-item" (click)="descargarFichaTecnica(p.id!)">
+                          <i class="fa-regular fa-file-pdf"></i> Descargar Ficha Técnica
+                        </button>
+                        <button class="dropdown-item" [routerLink]="['/evaluaciones/evaluar', p.id]" [queryParams]="{ criterios: 'true' }">
+                          <i class="fas fa-info-circle"></i> Ver Rúbricas
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State inside evaluations -->
+        <div class="empty-state-modern" *ngIf="filteredEvaluaciones.length === 0 && !loading">
+          <div class="empty-icon-box"><i class="fas fa-folder-open"></i></div>
+          <h3>Sin evaluaciones pendientes</h3>
+          <p>Actualmente no tiene propuestas asignadas para calificar en este filtro.</p>
+        </div>
+
+        <!-- Loading State inside evaluations -->
+        <div class="loading-state-modern" *ngIf="loading">
+          <div class="premium-spinner"></div>
+          <p>Sincronizando sus evaluaciones...</p>
+        </div>
+
+        <!-- Pagination matching Image 1 -->
+        <footer class="modern-pagination" *ngIf="!loading && filteredEvaluaciones.length > 0">
+          <div class="page-info">
+            Mostrando 1 a {{ filteredEvaluaciones.length }} de {{ propuestas.length }} evaluaciones
+          </div>
+          <div class="page-controls">
+            <button class="btn-page-arrow" disabled><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="btn-page-number active">1</button>
+            <button class="btn-page-arrow" disabled><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </footer>
+      </div>
+
+      <!-- Actividad Reciente horizontal timeline matching Image 1 -->
+      <section class="activities-timeline-card fade-in delay-2">
+        <div class="card-header-bar">
+          <h2>Actividad Reciente</h2>
+        </div>
+        <div class="activities-horizontal-list">
+          <div class="activity-timeline-item" *ngFor="let act of (ultimasActividades.length > 0 ? ultimasActividades : [
+            { title: 'Evaluación completada', class: 'awarded', empresa: 'Tech Solutions S.A.', licitacionCode: 'LP-2026-015', time: 'Hace 15 minutos' },
+            { title: 'Subsanación solicitada', class: 'rejected', empresa: 'ServiMag S.A.', licitacionCode: 'LP-2026-013', time: 'Hace 1 hora' },
+            { title: 'Nuevo evaluador asignado', class: 'received', empresa: getEvaluatorName(0), licitacionCode: 'LP-2026-015', time: 'Hace 2 horas' },
+            { title: 'Evaluación iniciada', class: 'evaluating', empresa: 'Constructora del Norte', licitacionCode: 'LP-2026-013', time: 'Hace 3 horas' }
+          ])">
+            <div class="activity-icon-container" [ngClass]="act.class">
+              <i class="fa-solid" [ngClass]="{
+                'fa-check': act.class === 'received' || act.class === 'awarded',
+                'fa-clock': act.class === 'evaluating',
+                'fa-file-alt': act.class === 'pending',
+                'fa-ban': act.class === 'rejected'
+              }"></i>
+            </div>
+            <div class="activity-text-info">
+              <span class="activity-label">{{ act.title }}</span>
+              <span class="activity-desc">{{ act.empresa }} - {{ act.licitacionCode }}</span>
+              <span class="activity-time">{{ act.time }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right panel (28% width) -->
+    <div class="right-main-panel">
+      <!-- Card A: Resumen por Estado (SVG Donut Chart) -->
+      <div class="premium-glass-card dashboard-kpi-card">
+        <div class="card-header-bar small">
+          <h2>Resumen por Estado</h2>
+        </div>
+        <div class="donut-chart-container">
+          <div class="donut-svg-wrapper">
+            <svg viewBox="0 0 42 42" class="donut-svg">
+              <circle class="donut-hole" cx="21" cy="21" r="15.915" fill="transparent"></circle>
+              <circle class="donut-ring" cx="21" cy="21" r="15.915" fill="transparent" stroke="#e2e8f0" stroke-width="4"></circle>
+              
+              <!-- Segment 1: En proceso (Blue) -->
+              <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#3b82f6" stroke-width="4"
+                      [attr.stroke-dasharray]="StrokeDashArrayEnProceso"
+                      [attr.stroke-dashoffset]="StrokeDashOffsetEnProceso"></circle>
+                      
+              <!-- Segment 2: Completadas (Green) -->
+              <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#10b981" stroke-width="4"
+                      [attr.stroke-dasharray]="StrokeDashArrayCompletadas"
+                      [attr.stroke-dashoffset]="StrokeDashOffsetCompletadas"></circle>
+                      
+              <!-- Segment 3: Pendientes (Purple) -->
+              <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#8b5cf6" stroke-width="4"
+                      [attr.stroke-dasharray]="StrokeDashArrayPendientes"
+                      [attr.stroke-dashoffset]="StrokeDashOffsetPendientes"></circle>
+                      
+              <!-- Segment 4: Subsanación (Orange) -->
+              <circle class="donut-segment" cx="21" cy="21" r="15.915" fill="transparent" 
+                      stroke="#f59e0b" stroke-width="4"
+                      [attr.stroke-dasharray]="StrokeDashArraySubsanacion"
+                      [attr.stroke-dashoffset]="StrokeDashOffsetSubsanacion"></circle>
+            </svg>
+            <div class="donut-center-labels">
+              <span class="total-count">{{ kpiStats.total }}</span>
+              <span class="total-lbl">Total</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Legend of colors and counts matching Image 1 exactly -->
+        <ul class="donut-legend-list">
+          <li>
+            <span class="dot-indicator blue"></span>
+            <span class="label">En proceso</span>
+            <span class="count-pct">{{ kpiStats.enProceso }} ({{ kpiStats.pctProceso }}%)</span>
+          </li>
+          <li>
+            <span class="dot-indicator green"></span>
+            <span class="label">Completadas</span>
+            <span class="count-pct">{{ kpiStats.completadas }} ({{ kpiStats.pctCompletadas }}%)</span>
+          </li>
+          <li>
+            <span class="dot-indicator purple"></span>
+            <span class="label">Pendientes</span>
+            <span class="count-pct">{{ kpiStats.pendientes }} ({{ kpiStats.pctPendientes }}%)</span>
+          </li>
+          <li>
+            <span class="dot-indicator orange"></span>
+            <span class="label">Subsanación</span>
+            <span class="count-pct">{{ kpiStats.subsanacion }} ({{ kpiStats.pctSubsanacion }}%)</span>
+          </li>
+          <li>
+            <span class="dot-indicator teal"></span>
+            <span class="label">Adjudicadas</span>
+            <span class="count-pct">{{ kpiStats.adjudicadas }} Licitaciones</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Card B: Evaluaciones por Licitación (Dynamic Progress Bars) -->
+      <div class="premium-glass-card dashboard-kpi-card">
+        <div class="card-header-bar small">
+          <h2>Evaluaciones por Licitación</h2>
+        </div>
+        <div class="progress-lines-list" *ngIf="evaluacionesPorLicitacion.length > 0">
+          <div class="progress-line-item" *ngFor="let el of evaluacionesPorLicitacion">
+            <div class="line-header">
+              <span class="lic-title">{{ el.title }}</span>
+              <span class="lic-count">{{ el.count }}</span>
+            </div>
+            <div class="mini-progress-bar-wrapper">
+              <div class="progress-bar-fill" [style.width.%]="kpiStats.total > 0 ? (el.count / kpiStats.total * 100) : 0"></div>
+            </div>
+            <span class="lic-code">{{ el.code }}</span>
+          </div>
+        </div>
+        <div class="empty-progress-state" *ngIf="evaluacionesPorLicitacion.length === 0">
+          <span>No hay información de evaluaciones asignadas.</span>
+        </div>
+      </div>
+
+      <!-- Card C: Acciones Rápidas -->
+      <div class="premium-glass-card dashboard-kpi-card" *ngIf="isAdmin || isEvaluador">
+        <div class="card-header-bar small">
+          <h2>Acciones Rápidas</h2>
+        </div>
+        <div class="action-buttons-vertical">
+          <button class="action-btn-premium" (click)="nuevaEvaluacion()" *ngIf="isAdmin">
+            <span class="icon-wrap bg-blue"><i class="fa-solid fa-plus"></i></span>
+            <span class="label">Nueva Evaluación</span>
+          </button>
+          <button class="action-btn-premium" (click)="asignarEvaluadores()" *ngIf="isAdmin">
+            <span class="icon-wrap bg-teal"><i class="fa-solid fa-users"></i></span>
+            <span class="label">Asignar Evaluadores</span>
+          </button>
+          <button class="action-btn-premium" (click)="criteriosEvaluacion()" *ngIf="isAdmin">
+            <span class="icon-wrap bg-green"><i class="fa-solid fa-list-check"></i></span>
+            <span class="label">Criterios de Evaluación</span>
+          </button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

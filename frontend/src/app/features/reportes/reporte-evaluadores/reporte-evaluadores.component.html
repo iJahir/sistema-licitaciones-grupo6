@@ -1,0 +1,187 @@
+<div class="eval-report-premium">
+  <!-- HEADER -->
+  <header class="report-header-premium">
+    <div class="header-content">
+      <div class="header-badge">BENCHMARK DE EVALUADORES</div>
+      <h1 class="header-title">Panel de Desempeño Técnico</h1>
+      <p class="header-subtitle">Análisis de eficiencia, carga operativa y calidad de dictamen</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-export-premium" (click)="openFormatSelector()">
+        <i class="fas fa-file-export"></i>
+        <span>Exportar Métricas</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MÉTRICAS SUPERIORES -->
+  <div class="metrics-dashboard-grid">
+    <div class="metric-glass-card blue">
+      <div class="m-icon"><i class="fas fa-user-check"></i></div>
+      <div class="m-info">
+        <span class="m-label">Estructura Activa</span>
+        <h2 class="m-value">{{ reportData?.totalEvaluadores || 0 }} <small>Personal</small></h2>
+      </div>
+    </div>
+    <div class="metric-glass-card purple">
+      <div class="m-icon"><i class="fas fa-clipboard-list"></i></div>
+      <div class="m-info">
+        <span class="m-label">Volumen de Evaluaciones</span>
+        <h2 class="m-value">{{ reportData?.totalEvaluaciones || 0 }}</h2>
+      </div>
+    </div>
+    <div class="metric-glass-card gold">
+      <div class="m-icon"><i class="fas fa-award"></i></div>
+      <div class="m-info">
+        <span class="m-label">Calidad Promedio</span>
+        <h2 class="m-value">{{ reportData?.promedioEstrellasGeneral | number:'1.1-1' }} <small>/ 5</small></h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE DESEMPEÑO -->
+  <div class="performance-table-card">
+    <div class="table-card-header">
+      <div class="t-title">
+        <i class="fas fa-chart-line"></i>
+        <span>Ranking de Eficiencia y Carga de Trabajo</span>
+      </div>
+      <div class="loader-state-shimmer" *ngIf="isLoading">
+        <div class="shimmer-line"></div>
+      </div>
+    </div>
+
+    <div class="table-container desktop-only">
+      <table class="table-premium">
+        <thead>
+          <tr>
+            <th class="w-80">RANGO</th>
+            <th>EVALUADOR</th>
+            <th class="text-center">VOLUMEN</th>
+            <th class="text-center">REPUTACIÓN</th>
+            <th class="text-center">PUNTAJE PROM.</th>
+            <th>APROBACIONES</th>
+            <th>INDICADOR DE CARGA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of reportData?.items; let i = index" [ngClass]="getRankClass(i)">
+            <td class="w-80 text-center">
+              <div class="rank-badge-container">
+                <span class="rank-pos" *ngIf="i >= 3">#{{ i + 1 }}</span>
+                <div class="medal-wrapper" *ngIf="i < 3">
+                  <i *ngIf="i === 0" class="fas fa-medal medal-gold"></i>
+                  <i *ngIf="i === 1" class="fas fa-medal medal-silver"></i>
+                  <i *ngIf="i === 2" class="fas fa-medal medal-bronze"></i>
+                </div>
+              </div>
+            </td>
+            <td class="evaluator-profile">
+              <div class="user-avatar">
+                <span>{{ item.nombre.substring(0,1) }}</span>
+              </div>
+              <div class="user-details">
+                <span class="u-name">{{ item.nombre }}</span>
+                <span class="u-role">@{{ item.username }}</span>
+              </div>
+            </td>
+            <td class="text-center font-technical">{{ item.evaluacionesRealizadas }}</td>
+            <td class="text-center">
+              <div class="star-rating-premium">
+                <i class="fas fa-star active"></i>
+                <span>{{ item.promedioEstrellas | number:'1.1-1' }}</span>
+              </div>
+            </td>
+            <td class="text-center">
+              <div class="avg-score-pill">
+                {{ item.promedioPuntaje | number:'1.1-1' }}<small>/50</small>
+              </div>
+            </td>
+            <td>
+              <span class="approval-badge">
+                <i class="fas fa-check-circle"></i>
+                {{ item.propuestasAprobadas }} Aprobadas
+              </span>
+            </td>
+            <td>
+              <div class="performance-metric">
+                <div class="p-bar-rail">
+                  <div class="p-bar-fill" 
+                       [style.width.%]="(item.promedioPuntaje / 50) * 100"
+                       [style.background-color]="getPerformanceColor(item.promedioPuntaje)">
+                  </div>
+                </div>
+                <span class="p-val">{{ (item.promedioPuntaje / 50) * 100 | number:'1.0-0' }}%</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Vista Móvil: Cards de Evaluadores -->
+    <div class="evaluadores-cards-mobile mobile-only" *ngIf="!isLoading">
+      <div class="evaluator-mobile-card glass-card" *ngFor="let item of reportData?.items; let i = index" [ngClass]="getRankClass(i)">
+        <div class="card-mobile-top">
+          <div class="rank-indicator">
+            <span *ngIf="i >= 3">#{{ i + 1 }}</span>
+            <i *ngIf="i === 0" class="fas fa-crown gold"></i>
+            <i *ngIf="i === 1" class="fas fa-award silver"></i>
+            <i *ngIf="i === 2" class="fas fa-medal bronze"></i>
+          </div>
+          <div class="eval-main-info">
+            <div class="avatar-sm">{{ item.nombre.substring(0,1) }}</div>
+            <div class="name-box">
+              <span class="full-name">{{ item.nombre }}</span>
+              <span class="user-tag">@{{ item.username }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-mobile-metrics">
+          <div class="metric-mini">
+            <label>Realizadas</label>
+            <span class="val">{{ item.evaluacionesRealizadas }}</span>
+          </div>
+          <div class="metric-mini">
+            <label>Puntaje Ø</label>
+            <span class="val">{{ item.promedioPuntaje | number:'1.1-1' }}</span>
+          </div>
+          <div class="metric-mini">
+            <label>Estrellas</label>
+            <div class="star-box">
+              <i class="fas fa-star active"></i>
+              <span>{{ item.promedioEstrellas | number:'1.1-1' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-mobile-progress">
+          <div class="progress-labels">
+            <span>Eficiencia operativa</span>
+            <span>{{ (item.promedioPuntaje / 50) * 100 | number:'1.0-0' }}%</span>
+          </div>
+          <div class="p-bar-rail-sm">
+            <div class="p-bar-fill-sm" 
+                 [style.width.%]="(item.promedioPuntaje / 50) * 100"
+                 [style.background-color]="getPerformanceColor(item.promedioPuntaje)">
+            </div>
+          </div>
+        </div>
+
+        <div class="card-mobile-footer">
+          <span class="approval-tag">
+            <i class="fas fa-check-circle"></i> {{ item.propuestasAprobadas }} Aprobadas
+          </span>
+          <button class="btn-profile-mobile">Ver Perfil</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-results" *ngIf="reportData?.items?.length === 0 && !isLoading">
+      <i class="fas fa-user-slash"></i>
+      <p>No se encontraron datos de evaluadores</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,306 @@
+// Variables & Theme Palette
+$color-bg-primary: #f8fafc;
+$color-slate-900: #0f172a;
+$color-slate-800: #1e293b;
+$color-slate-700: #334155;
+$color-slate-600: #475569;
+$color-slate-500: #64748b;
+$color-slate-400: #94a3b8;
+$color-slate-300: #cbd5e1;
+$color-slate-200: #e2e8f0;
+$color-slate-100: #f1f5f9;
+
+$color-blue-primary: #2563eb;
+$color-blue-hover: #1d4ed8;
+$color-blue-light: #eff6ff;
+
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-premium: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Helper Classes
+.card-glow {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  box-shadow: $shadow-premium;
+  transition: $transition-smooth;
+
+  &:hover {
+    border-color: rgba(37, 99, 235, 0.15);
+    box-shadow: 0 25px 40px -10px rgba(15, 23, 42, 0.12);
+  }
+}
+
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+// Layout Main Container Wrapper
+.planner-wrapper {
+  padding: 1.5rem;
+  background-color: $color-bg-primary;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+// Workspace Title Header
+.workspace-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid $color-slate-200;
+  padding-bottom: 1.25rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: $color-slate-900;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+
+  .page-subtitle {
+    font-size: 0.9rem;
+    color: $color-slate-500;
+    margin: 0.25rem 0 0 0;
+  }
+
+  .header-actions-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+// Quick Tabs Navigation Pills
+.quick-nav-pills {
+  display: flex;
+  background: #f1f5f9;
+  padding: 0.35rem;
+  border-radius: 10px;
+  gap: 0.25rem;
+
+  .nav-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #475569;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+
+    i {
+      font-size: 0.9rem;
+    }
+
+    &:hover {
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    &.active {
+      color: #2563eb;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+// Nested router views wrapper space
+.nested-view-container {
+  min-height: 100px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+// ==========================================
+// BOTTOM TIMELINE LAYOUT
+// ==========================================
+.timeline-container-card {
+  padding: 1.5rem;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: $shadow-premium;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  margin-top: 1rem;
+
+  .timeline-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+
+    .left-titles {
+      h4 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+      }
+      .subtitle-thin {
+        font-size: 0.82rem;
+        color: #64748b;
+        margin: 0.25rem 0 0 0;
+      }
+    }
+
+    .timeline-link {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #2563eb;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .timeline-horizontal-scroll {
+    overflow-x: auto;
+    padding: 1rem 0;
+    
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 4px;
+    }
+  }
+
+  .timeline-line-wrapper {
+    position: relative;
+    min-width: 900px;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .timeline-connecting-line {
+    position: absolute;
+    top: 36px;
+    left: 50px;
+    right: 50px;
+    height: 4px;
+    background-color: #e2e8f0;
+    z-index: 1;
+  }
+
+  .timeline-hitos-row {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+  }
+
+  .timeline-hito-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 120px;
+    text-align: center;
+
+    .node-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      border: 4px solid #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .node-details {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+
+      .node-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #334155;
+        line-height: 1.2;
+      }
+
+      .node-code {
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+      }
+
+      .node-date {
+        font-size: 0.68rem;
+        color: #94a3b8;
+      }
+    }
+
+    &.active {
+      .node-circle {
+        transform: scale(1.1);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+      }
+    }
+  }
+
+  .timeline-arrow-head {
+    position: absolute;
+    right: 15px;
+    top: 26px;
+    z-index: 3;
+    font-size: 1.2rem;
+  }
+}
+
+// Animations utilities
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: slideUp 0.4s ease-out forwards;
+}
+
+@keyframes slideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,12 @@
+package com.licitaciones.sistema.entity;
+
+public enum TipoEvento {
+    LICITACION_PUBLICADA,
+    PROPUESTA_RECIBIDA,
+    EVALUACION_EN_CURSO,
+    CIERRE_LICITACION,
+    NOTA,
+    EVENTO_GENERAL,
+    MANTENIMIENTO_SISTEMA,
+    REUNION_EVALUACION
+}

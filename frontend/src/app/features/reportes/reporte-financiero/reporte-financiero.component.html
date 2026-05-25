@@ -1,0 +1,163 @@
+<div class="report-premium-container">
+  <!-- HEADER EJECUTIVO -->
+  <header class="report-premium-header fade-in">
+    <div class="header-content">
+      <div class="breadcrumb-mini">Análisis Corporativo</div>
+      <h1 class="title-primary">Análisis Financiero y Presupuestario</h1>
+      <p class="subtitle-secondary">Monitoreo ejecutivo de presupuestos asignados, ejecutados y proyecciones de gasto real</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-premium secondary" (click)="openFormatSelector()">
+        <i class="fas fa-file-export"></i>
+        <span>Exportar Informe</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD DE MÉTRICAS -->
+  <div class="metrics-grid fade-in delay-1">
+    <div class="metric-glass-card blue">
+      <div class="card-icon"><i class="fas fa-coins"></i></div>
+      <div class="card-data">
+        <span class="label">Presupuesto Estimado Total</span>
+        <h3 class="value">{{ reportData?.presupuestoTotal | currency:'USD':'symbol':'1.0-0' }}</h3>
+      </div>
+    </div>
+
+    <div class="metric-glass-card green">
+      <div class="card-icon"><i class="fas fa-file-signature"></i></div>
+      <div class="card-data">
+        <span class="label">Presupuesto Ejecutado</span>
+        <h3 class="value">{{ reportData?.presupuestoEjecutado | currency:'USD':'symbol':'1.0-0' }}</h3>
+      </div>
+    </div>
+
+    <div class="metric-glass-card amber">
+      <div class="card-icon"><i class="fas fa-balance-scale"></i></div>
+      <div class="card-data">
+        <span class="label">Monto Total Adjudicado</span>
+        <h3 class="value">{{ reportData?.montoAdjudicado | currency:'USD':'symbol':'1.0-0' }}</h3>
+      </div>
+    </div>
+
+    <div class="metric-glass-card purple">
+      <div class="card-icon"><i class="fas fa-file-contract"></i></div>
+      <div class="card-data">
+        <span class="label">Contratos en Ejecución</span>
+        <h3 class="value">{{ reportData?.contratosActivos || 0 }} <small class="text-xs text-slate-400">Activos</small></h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPLIT PANEL VIEW -->
+  <div class="split-view fade-in delay-2">
+    <!-- LEFT COLUMN: TABLES -->
+    <div class="left-split-content">
+      <!-- TOP CONTRATOS -->
+      <div class="premium-glass-card" style="margin-bottom: 2rem;">
+        <div class="card-title-bar">
+          <h3><i class="fas fa-medal text-warning" style="margin-right: 8px;"></i> Contratos Top (Mayor Cuantía)</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="modern-list-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Licitación Vinculada</th>
+                <th>Proveedor</th>
+                <th class="text-right">Monto Contratado</th>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of reportData?.topContratos" class="table-row-hover">
+                <td><span class="id-tag">{{ item.codigo }}</span></td>
+                <td>
+                  <div class="title-cell-premium">{{ item.licitacionTitulo }}</div>
+                </td>
+                <td>
+                  <span class="area-tag">{{ item.proveedorNombre }}</span>
+                </td>
+                <td class="text-right text-success font-bold">
+                  {{ item.monto | currency:'USD' }}
+                </td>
+                <td class="text-center">
+                  <span class="status-badge-premium firmados" style="background:#dcfce7; color:#15803d;">
+                    {{ item.estado }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TOP PROVEEDORES -->
+      <div class="premium-glass-card">
+        <div class="card-title-bar">
+          <h3><i class="fas fa-building text-primary" style="margin-right: 8px;"></i> Proveedores Top por Adjudicación</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="modern-list-table">
+            <thead>
+              <tr>
+                <th>Nombre del Proveedor / Corporación</th>
+                <th class="text-center">Contratos Registrados</th>
+                <th class="text-right">Monto Total Acumulado (USD)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of reportData?.topProveedores" class="table-row-hover">
+                <td>
+                  <div class="title-cell-premium" style="font-size:1.05rem;">{{ item.proveedorNombre }}</div>
+                </td>
+                <td class="text-center font-bold" style="font-size:1.1rem; color: #1e293b;">
+                  {{ item.contratosAdjudicados }}
+                </td>
+                <td class="text-right text-success font-bold" style="font-size:1.15rem;">
+                  {{ item.montoTotal | currency:'USD' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: CHART & AREA EXECUTION -->
+    <div class="right-sidebar-column">
+      <!-- GRAFICO GASTO -->
+      <div class="analytics-card">
+        <h4 class="card-title-mini">Tendencia Mensual de Gasto (USD)</h4>
+        <div class="chart-placeholder" style="margin-top: 1.5rem;">
+          <div class="css-bar-chart" *ngIf="chartBars.length > 0">
+            <div class="bars-area" style="height: 180px; align-items: flex-end;">
+              <div class="bar-col" *ngFor="let bar of chartBars">
+                <div class="bar" [style.height.%]="bar.heightPercent" [title]="bar.amount | currency:'USD'" style="background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);"></div>
+                <span class="lbl">{{ bar.label }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="css-bar-chart empty" *ngIf="chartBars.length === 0" style="text-align: center; color: #94a3b8; padding: 2rem 0;">
+            <i class="fa-solid fa-chart-bar" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+            <span>Sin transacciones este periodo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EJECUCION POR AREA -->
+      <div class="analytics-card card-recent" style="margin-top: 2rem;">
+        <h4 class="card-title-mini" style="border:none; padding-bottom:0;">Gasto Ejecutado por Unidad Requirente</h4>
+        <ul class="recent-reports-list" style="margin-top:1rem;">
+          <li class="recent-report-item" *ngFor="let item of reportData?.ejecucionPorArea | keyvalue" style="border-bottom: 1px solid #f1f5f9; padding: 12px 4px;">
+            <div class="format-icon" style="background:#eff6ff; color:#3b82f6;"><i class="fas fa-sitemap"></i></div>
+            <div class="details">
+              <strong>{{ item.key }}</strong>
+              <span class="text-success font-bold" style="font-size:0.95rem; margin-top:4px;">{{ item.value | currency:'USD' }}</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

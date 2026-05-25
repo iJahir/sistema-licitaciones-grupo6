@@ -1,0 +1,234 @@
+<div class="layout-container" [class.sidebar-open]="isSidebarMobileOpen" [class.collapsed]="isSidebarCollapsed">
+  
+  <!-- Mobile Header (Visible only on small screens) -->
+  <div class="mobile-top-bar">
+    <button class="btn-menu-mobile" (click)="toggleSidebarMobile()">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="mobile-logo-box">
+      <div class="logo-icon-wrapper-mobile">
+        <i class="fa-solid fa-scale-balanced"></i>
+      </div>
+      <span>Licitaciones</span>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="isSidebarCollapsed">
+    <div class="brand">
+      <div class="logo-container" (click)="toggleSidebar()">
+        <div class="logo-icon-wrapper">
+          <img src="assets/img/logo.png" alt="Logo" class="logo-img" *ngIf="!logoError" (error)="logoError = true">
+          <i *ngIf="logoError" class="fa-solid fa-scale-balanced brand-logo-icon"></i>
+        </div>
+        <div class="brand-text-wrapper">
+          <h2 class="brand-name">Licitaciones</h2>
+          <span class="brand-subtitle">Gestión Pública</span>
+        </div>
+      </div>
+      
+      <button class="btn-toggle-desktop" (click)="toggleSidebar()">
+        <i class="fa-solid" [class.fa-chevron-left]="!isSidebarCollapsed" [class.fa-chevron-right]="isSidebarCollapsed"></i>
+      </button>
+
+      <button class="btn-close-mobile" (click)="toggleSidebarMobile()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <ul>
+        <!-- Main Dashboard Link -->
+        <li routerLink="/dashboard" routerLinkActive="active" (click)="isSidebarMobileOpen = false">
+          <i class="fa-solid fa-house m-icon i-dashboard"></i> <span>Dashboard</span>
+        </li>
+
+        <!-- Section 1: PROCESOS -->
+        <li class="sidebar-group-header">Procesos</li>
+
+        <!-- Licitaciones: Admin, Gestor, Area Solicitante, Auditor, Evaluador(read), Proveedor(read) -->
+        <li routerLink="/licitaciones" routerLinkActive="active" (click)="isSidebarMobileOpen = false">
+          <i class="fa-solid fa-folder-open m-icon i-licitaciones"></i> <span>Licitaciones</span>
+        </li>
+
+        <!-- Propuestas: Admin, Gestor, Area Solicitante, Proveedor. NOT pure-evaluador -->
+        <li routerLink="/propuestas" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
+            *ngIf="!isEvaluadorOnly || hasAnyRole('ADMINISTRADOR','ADMIN','GESTOR_LICITACIONES','AREA_SOLICITANTE','PROVEEDOR')">
+          <i class="fa-solid fa-file-import m-icon i-propuestas"></i> <span>Propuestas</span>
+        </li>
+
+        <!-- Evaluaciones: todos except Proveedor -->
+        <li routerLink="/evaluaciones" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
+            *ngIf="!hasAnyRole('PROVEEDOR')">
+          <i class="fa-solid fa-scale-balanced m-icon i-evaluaciones"></i> <span>Evaluaciones</span>
+        </li>
+
+        <!-- Adjudicaciones: Admin, Gestor, Auditor, Proveedor(read). NOT pure-evaluador -->
+        <li routerLink="/resultados" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
+            *ngIf="!isEvaluadorOnly || hasAnyRole('ADMINISTRADOR','ADMIN','GESTOR_LICITACIONES')">
+          <i class="fa-solid fa-trophy m-icon i-resultados"></i> <span>Adjudicaciones</span>
+        </li>
+
+        <!-- Contratos: Admin, Gestor, Area Solicitante, Proveedor. NOT pure-evaluador -->
+        <li routerLink="/contratos" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
+            *ngIf="!isEvaluadorOnly">
+          <i class="fa-solid fa-file-contract m-icon i-contratos"></i> <span>Contratos</span>
+        </li>
+
+        <!-- Section: PLANIFICACIÓN -->
+        <li class="sidebar-group-header">Planificación</li>
+
+        <li routerLink="/planificacion/calendario" routerLinkActive="active" (click)="isSidebarMobileOpen = false">
+          <i class="fa-solid fa-calendar-days m-icon i-calendario"></i> <span>Calendario</span>
+        </li>
+        <li routerLink="/planificacion/cronograma" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
+            *ngIf="!isEvaluadorOnly && !hasAnyRole('PROVEEDOR')">
+          <i class="fa-solid fa-chart-gantt m-icon i-cronograma"></i> <span>Cronograma</span>
+        </li>
+        <li routerLink="/planificacion/eventos" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
+            *ngIf="!isEvaluadorOnly && !hasAnyRole('AREA_SOLICITANTE', 'PROVEEDOR')">
+          <i class="fa-solid fa-calendar-check m-icon i-eventos"></i> <span>Eventos</span>
+        </li>
+
+        <!-- Section 2: ADMINISTRACIÓN (Admin & Autoridad) -->
+        <ng-container *ngIf="hasAnyRole('ADMINISTRADOR','ADMIN','SUPER_ADMIN','AUTORIDAD')">
+          <li class="sidebar-group-header">Administración</li>
+
+          <li routerLink="/usuarios" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
+              *ngIf="hasAnyRole('ADMINISTRADOR','ADMIN','SUPER_ADMIN','AUTORIDAD')">
+            <i class="fa-solid fa-users-gear m-icon i-usuarios"></i> <span>Usuarios</span>
+          </li>
+
+          <li routerLink="/administracion/roles-permisos" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
+              *ngIf="hasAnyRole('ADMINISTRADOR','ADMIN','SUPER_ADMIN','AUTORIDAD')">
+            <i class="fa-solid fa-user-shield m-icon i-roles"></i> <span>Roles y Permisos</span>
+          </li>
+        </ng-container>
+
+        <!-- Section 3: REPORTES Y CONTROL (Admin, Auditor, Gestor, Autoridad) -->
+        <ng-container *ngIf="hasAnyRole('ADMINISTRADOR','ADMIN','GESTOR_LICITACIONES','AUDITOR','SUPER_ADMIN','AUTORIDAD')">
+          <li class="sidebar-group-header">Reportes y Control</li>
+
+          <li routerLink="/reportes" routerLinkActive="active" (click)="isSidebarMobileOpen = false">
+            <i class="fa-solid fa-chart-column m-icon i-reportes"></i> <span>Reportes</span>
+          </li>
+
+          <li routerLink="/auditoria" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
+              *ngIf="hasAnyRole('ADMINISTRADOR','ADMIN','SUPER_ADMIN','AUTORIDAD','AUDITOR')">
+            <i class="fa-solid fa-shield-halved m-icon i-auditoria"></i> <span>Auditoría</span>
+          </li>
+        </ng-container>
+      </ul>
+    </nav>
+
+    <!-- Sidebar footer matching Image 1: collapse control -->
+    <div class="sidebar-footer">
+      <button class="btn-collapse-sidebar-bottom" (click)="toggleSidebar()">
+        <i class="fa-solid" [class.fa-arrow-left-long]="!isSidebarCollapsed" [class.fa-arrow-right-long]="isSidebarCollapsed"></i>
+        <span>Cerrar menú</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Overlay for mobile sidebar -->
+  <div class="sidebar-overlay" (click)="toggleSidebarMobile()" *ngIf="isSidebarMobileOpen"></div>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+    <header class="top-header">
+      <div class="header-left">
+        <div class="header-nav-actions">
+          <button class="btn-back" *ngIf="router.url !== '/dashboard'" (click)="navigateBack()">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          
+          <nav class="breadcrumbs-container">
+            <ol class="breadcrumb-list">
+              <li *ngFor="let b of breadcrumbs; let last = last" [class.active]="last">
+                <a [routerLink]="b.url" *ngIf="!last">{{ b.label }}</a>
+                <span *ngIf="last">{{ b.label === 'Resultados' ? 'Adjudicaciones' : b.label }}</span>
+                <i class="fa-solid fa-chevron-right separator" *ngIf="!last"></i>
+              </li>
+            </ol>
+            <h1 class="page-title-dynamic">
+              {{ breadcrumbs[breadcrumbs.length - 1]?.label === 'Resultados' ? 'Adjudicaciones' : (breadcrumbs[breadcrumbs.length - 1]?.label || 'Dashboard') }}
+            </h1>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Top Header Actions matching Image 1: Search bar, notification bell, user profile card -->
+      <div class="header-actions">
+
+        <!-- Notification Bell Icon Premium -->
+        <div class="bell-notification" [class.active]="isNotificationsOpen">
+          <div class="bell-wrapper" (click)="toggleNotifications($event)">
+            <i class="fa-solid fa-bell bell-main"></i>
+            <span class="notification-count" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+          </div>
+
+          <!-- Notification Dropdown Panel -->
+          <div class="notification-panel" [class.show]="isNotificationsOpen" (click)="$event.stopPropagation()">
+            <div class="panel-header">
+              <h3>Notificaciones</h3>
+              <button class="btn-mark-all" (click)="marcarTodasLeidas()">Marcar todas leídas</button>
+            </div>
+            
+            <div class="panel-body">
+              <div class="notification-empty" *ngIf="notifications.length === 0">
+                <i class="fa-solid fa-bell-slash"></i>
+                <p>No hay notificaciones recientes</p>
+              </div>
+
+              <div class="notif-item" 
+                   *ngFor="let n of notifications" 
+                   [class.unread]="!n.leida" 
+                   (click)="marcarLeida(n, $event)">
+                <div class="notif-icon" [style.background]="n.color">
+                  <i class="fa-solid" [ngClass]="n.icono || 'fa-info-circle'"></i>
+                </div>
+                <div class="notif-content">
+                  <div class="notif-title">{{ n.titulo }}</div>
+                  <div class="notif-message">{{ n.mensaje }}</div>
+                  <div class="notif-time">{{ n.fecha | date:'short' }}</div>
+                </div>
+                <div class="notif-status" *ngIf="!n.leida"></div>
+              </div>
+            </div>
+
+            <div class="panel-footer" *ngIf="isPrivileged" routerLink="/auditoria" (click)="isNotificationsOpen = false">
+              Ver todo el historial de auditoría
+            </div>
+          </div>
+        </div>
+
+        <div class="action-divider"></div>
+
+        <!-- User profile details & avatar -->
+        <div class="header-user-profile" routerLink="/usuarios">
+          <div class="user-avatar-wrapper">
+            <img *ngIf="currentUser?.urlFoto" [src]="getPhotoUrl()" alt="Profile" />
+            <div *ngIf="!currentUser?.urlFoto" class="user-avatar-initials">
+              {{ currentUser?.nombre?.substring(0,1) }}{{ currentUser?.apellido?.substring(0,1) }}
+            </div>
+          </div>
+          <div class="user-profile-details">
+            <span class="user-name">{{ getFullName() }}</span>
+            <span class="user-role">{{ getRoleLabel() }}</span>
+          </div>
+        </div>
+
+        <div class="action-divider"></div>
+
+        <!-- Sleek logout icon button -->
+        <button class="btn-logout-icon" (click)="logout()" title="Cerrar Sesión">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

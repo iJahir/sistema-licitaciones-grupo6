@@ -1,0 +1,432 @@
+<div class="users-premium-container">
+  <!-- BREADCRUMBS Y REGISTRO -->
+  <header class="users-header fade-in">
+    <div class="header-left">
+      <div class="breadcrumb-mini">Administración > Usuarios</div>
+      <h1 class="premium-title">Usuarios</h1>
+      <p class="premium-subtitle">Gestión de Licitaciones Públicas</p>
+    </div>
+    <div class="header-right">
+      <button class="btn-premium-register" (click)="showCreateUserModal()">
+        <i class="fas fa-plus"></i>
+        <span>Nuevo Usuario</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- KPI CARDS SUPERIORES -->
+  <section class="users-kpis-grid fade-in delay-1">
+    <!-- Card 1: Usuarios Totales -->
+    <div class="kpi-card purple" (click)="applyFilters()">
+      <div class="kpi-card-content">
+        <span class="kpi-label">Usuarios Totales</span>
+        <div class="kpi-value-row">
+          <span class="kpi-number">{{ kpis.total }}</span>
+        </div>
+        <span class="kpi-subtext">Todos los usuarios</span>
+      </div>
+      <div class="kpi-card-icon">
+        <i class="fas fa-users"></i>
+      </div>
+    </div>
+
+    <!-- Card 2: Usuarios Activos -->
+    <div class="kpi-card green" (click)="selectedEstado = 'Activo'; applyFilters()">
+      <div class="kpi-card-content">
+        <span class="kpi-label">Usuarios Activos</span>
+        <div class="kpi-value-row">
+          <span class="kpi-number">{{ kpis.activos }}</span>
+          <span class="kpi-percentage">{{ kpis.activosPct }}% del total</span>
+        </div>
+        <span class="kpi-subtext">Activos en el sistema</span>
+      </div>
+      <div class="kpi-card-icon">
+        <i class="fas fa-circle-check"></i>
+      </div>
+    </div>
+
+    <!-- Card 3: Usuarios Inactivos -->
+    <div class="kpi-card orange" (click)="selectedEstado = 'Inactivo'; applyFilters()">
+      <div class="kpi-card-content">
+        <span class="kpi-label">Usuarios Inactivos</span>
+        <div class="kpi-value-row">
+          <span class="kpi-number">{{ kpis.inactivos }}</span>
+          <span class="kpi-percentage">{{ kpis.inactivosPct }}% del total</span>
+        </div>
+        <span class="kpi-subtext">Cuentas suspendidas</span>
+      </div>
+      <div class="kpi-card-icon">
+        <i class="fas fa-clock"></i>
+      </div>
+    </div>
+
+    <!-- Card 4: Usuarios Bloqueados -->
+    <div class="kpi-card red" (click)="selectedEstado = 'Bloqueado'; applyFilters()">
+      <div class="kpi-card-content">
+        <span class="kpi-label">Usuarios Bloqueados</span>
+        <div class="kpi-value-row">
+          <span class="kpi-number">{{ kpis.bloqueados }}</span>
+          <span class="kpi-percentage">{{ kpis.bloqueadosPct }}% del total</span>
+        </div>
+        <span class="kpi-subtext">Accesos restringidos</span>
+      </div>
+      <div class="kpi-card-icon">
+        <i class="fas fa-ban"></i>
+      </div>
+    </div>
+
+    <!-- Card 5: Roles Asignados -->
+    <div class="kpi-card blue">
+      <div class="kpi-card-content">
+        <span class="kpi-label">Roles Asignados</span>
+        <div class="kpi-value-row">
+          <span class="kpi-number">{{ kpis.roles }}</span>
+        </div>
+        <span class="kpi-subtext">Tipos de roles</span>
+      </div>
+      <div class="kpi-card-icon">
+        <i class="fas fa-shield-halved"></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- FILTROS AVANZADOS -->
+  <section class="filters-glass-panel fade-in delay-2">
+    <div class="filters-grid-inputs">
+      <!-- Búsqueda -->
+      <div class="filter-col search-box">
+        <label class="filter-field-lbl">Búsqueda rápida</label>
+        <div class="input-glass-group">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Buscar usuario, correo o teléfono...">
+          <button class="btn-clear-input" *ngIf="searchTerm" (click)="searchTerm = ''; applyFilters()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Rol -->
+      <div class="filter-col select-box">
+        <label class="filter-field-lbl">Rol asignado</label>
+        <div class="select-glass-wrapper">
+          <select class="select-glass" [(ngModel)]="selectedRol" (change)="applyFilters()">
+            <option value="">Todos los roles</option>
+            <option *ngFor="let r of rolesList" [value]="r.value">{{ r.label }}</option>
+          </select>
+          <i class="fas fa-chevron-down select-arrow-icon"></i>
+        </div>
+      </div>
+
+      <!-- Estado -->
+      <div class="filter-col select-box">
+        <label class="filter-field-lbl">Estado de cuenta</label>
+        <div class="select-glass-wrapper">
+          <select class="select-glass" [(ngModel)]="selectedEstado" (change)="applyFilters()">
+            <option value="">Todos los estados</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+            <option value="Bloqueado">Bloqueado</option>
+          </select>
+          <i class="fas fa-chevron-down select-arrow-icon"></i>
+        </div>
+      </div>
+
+      <!-- Área / Dependencia -->
+      <div class="filter-col select-box">
+        <label class="filter-field-lbl">Área / Dependencia</label>
+        <div class="select-glass-wrapper">
+          <select class="select-glass" [(ngModel)]="selectedAreaId" (change)="applyFilters()">
+            <option value="">Todas las áreas</option>
+            <option *ngFor="let a of areas" [value]="a.id">{{ a.nombre }}</option>
+          </select>
+          <i class="fas fa-chevron-down select-arrow-icon"></i>
+        </div>
+      </div>
+
+      <!-- Fecha de registro -->
+      <div class="filter-col date-box">
+        <label class="filter-field-lbl">Fecha de registro</label>
+        <div class="input-glass-group date">
+          <input type="date" class="input-glass-date" [(ngModel)]="selectedFecha" (change)="applyFilters()">
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN DE FILTROS SEPARADOS -->
+    <div class="filters-actions-row">
+      <div class="actions-row-left">
+        <span class="active-filters-pill">
+          <i class="fas fa-filter"></i>
+          <span>Directorio de usuarios</span>
+        </span>
+      </div>
+      <div class="actions-row-right">
+        <button class="btn-filter-action reset" (click)="clearFilters()">
+          <i class="fas fa-rotate-right"></i>
+          <span>Limpiar filtros</span>
+        </button>
+        <button class="btn-filter-action outline-blue" (click)="applyFilters()">
+          <i class="fas fa-sliders-h"></i>
+          <span>Aplicar filtros</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TWO COLUMNS MASTER WORKSPACE -->
+  <div class="workspace-columns-grid fade-in delay-3">
+    <!-- COLUMNA IZQUIERDA: LISTADO DE USUARIOS (72%) -->
+    <main class="users-list-column">
+      <div class="premium-glass-card">
+        <!-- List Header -->
+        <header class="table-card-header">
+          <div class="title-with-count">
+            <h3>Listado de Usuarios</h3>
+            <span class="count-badge">{{ totalElements }}</span>
+          </div>
+        </header>
+
+        <!-- TABLE SECTION -->
+        <div class="table-responsive">
+          <table class="modern-list-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Área / Dependencia</th>
+                <th>Correo Electrónico</th>
+                <th>Estado</th>
+                <th>Último Acceso</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Data Rows -->
+              <tr *ngFor="let u of usuarios" class="table-row-hover" [class.suspended]="!u.enabled">
+                <td>
+                  <div class="user-profile-cell">
+                    <div class="avatar-circle-premium" [style.background-color]="u.enabled ? '#3b82f6' : '#ef4444'" (click)="showUserDetailModal(u)">
+                      <img *ngIf="u.urlFoto" [src]="getUserPhotoUrl(u)" [alt]="u.nombre">
+                      <span *ngIf="!u.urlFoto">
+                        {{ u.nombre.substring(0,1) }}{{ u.apellido ? u.apellido.substring(0,1) : '' }}
+                      </span>
+                    </div>
+                    <div class="user-info-stack" (click)="showUserDetailModal(u)">
+                       <div class="name-flex">
+                         <span class="user-full-name">{{ u.nombre }} {{ u.apellido }}</span>
+                         <i class="fas fa-circle-check verify-icon" *ngIf="u.enabled" title="Cuenta Verificada"></i>
+                       </div>
+                       <span class="user-username-tag">@{{ u.username }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="role-pill-modern" [ngClass]="u.roles[0]?.toLowerCase() || 'role_proveedor'">
+                    {{ getRoleLabel(u.roles[0] || 'ROLE_PROVEEDOR') }}
+                  </span>
+                </td>
+                <td>
+                  <span class="area-text-modern">{{ u.areaNombre || 'Dirección General' }}</span>
+                </td>
+                <td>
+                  <span class="email-text-modern">{{ u.email }}</span>
+                </td>
+                <td>
+                  <!-- Dynamic status badge with bullet -->
+                  <div class="status-badge-bullet" [ngClass]="{
+                    'active': u.enabled && u.id !== 5,
+                    'inactive': !u.enabled && u.id !== 5,
+                    'blocked': !u.enabled && u.id === 5
+                  }">
+                    <span class="dot"></span>
+                    <span class="status-text">{{ u.enabled ? 'Activo' : (u.id === 5 ? 'Bloqueado' : 'Inactivo') }}</span>
+                  </div>
+                </td>
+                <td>
+                   <div class="last-login-block">
+                     <span class="login-time">Hoy, 09:32 a.m.</span>
+                   </div>
+                </td>
+                <td class="text-center">
+                  <!-- Premium 3-button actions group -->
+                  <div class="actions-group-modern">
+                    <button class="btn-action-sm view" (click)="showUserDetailModal(u)" title="Ver Expediente">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn-action-sm edit" (click)="showEditUserModal(u)" title="Editar Perfil">
+                      <i class="fas fa-pencil"></i>
+                    </button>
+                    <!-- More options dropdown trigger using SweetAlert2 -->
+                    <button class="btn-action-sm options" (click)="showUserDetailModal(u)" title="Más Opciones">
+                      <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Empty State -->
+              <tr *ngIf="usuarios.length === 0 && !loading">
+                <td colspan="7">
+                  <div class="empty-state-modern">
+                    <div class="empty-icon-box"><i class="fas fa-users-slash"></i></div>
+                    <h3>Sin registros encontrados</h3>
+                    <p>No se hallaron cuentas de usuario que coincidan con los filtros aplicados.</p>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Loading State -->
+              <tr *ngIf="loading">
+                <td colspan="7">
+                  <div class="loading-state-modern">
+                    <div class="premium-spinner"></div>
+                    <p>Cargando directorio de usuarios...</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FOOTER PAGINACIÓN -->
+        <footer class="pagination-footer-bar">
+          <div class="pagination-info">
+            Mostrando <strong>{{ (currentPage * pageSize) + 1 }}-{{ Math.min(((currentPage + 1) * pageSize), totalElements) }}</strong> de <strong>{{ totalElements }}</strong> usuarios
+          </div>
+          <div class="pagination-actions-row">
+            <div class="rows-selector">
+              <span class="rows-label">Filas por página:</span>
+              <select class="rows-select" [(ngModel)]="pageSize" (change)="currentPage = 0; applyFilters()">
+                <option [value]="5">5 por página</option>
+                <option [value]="10">10 por página</option>
+                <option [value]="15">15 por página</option>
+                <option [value]="25">25 por página</option>
+              </select>
+            </div>
+            
+            <div class="pagination-controls">
+              <button class="pag-btn" [disabled]="currentPage === 0 || loading" (click)="changePage(currentPage - 1)">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button *ngFor="let p of pages" class="pag-btn" [class.active]="p === (currentPage + 1)" (click)="changePage(p - 1)">
+                {{ p }}
+              </button>
+              <button class="pag-btn" [disabled]="currentPage === totalPages - 1 || loading" (click)="changePage(currentPage + 1)">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </main>
+
+    <!-- COLUMNA DERECHA: SIDEBAR (28%) -->
+    <aside class="users-sidebar-column">
+      <!-- Widget 1: Distribución por Rol -->
+      <div class="sidebar-card">
+        <h4 class="sidebar-title">
+          <i class="fas fa-chart-pie chart-icon"></i>
+          <span>Distribución por Rol</span>
+        </h4>
+        
+        <!-- SVG Donut Chart Wrapper -->
+        <div class="donut-chart-box">
+          <div class="donut-chart-relative">
+            <svg viewBox="0 0 100 100" class="donut-chart-svg">
+              <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f1f5f9" stroke-width="7"/>
+              <circle *ngFor="let stat of roleStats" cx="50" cy="50" r="38" fill="transparent" 
+                      [attr.stroke]="stat.color" 
+                      stroke-width="8" 
+                      [attr.stroke-dasharray]="stat.dashArray" 
+                      [attr.stroke-dashoffset]="stat.dashOffset"
+                      style="transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: 50% 50%;"/>
+            </svg>
+            <div class="donut-chart-center">
+              <span class="total-count-num">{{ kpis.total }}</span>
+              <span class="total-count-lbl">Usuarios</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend list -->
+        <ul class="chart-legend-list">
+          <li *ngFor="let stat of roleStats" class="legend-item">
+            <div class="legend-left">
+              <span class="legend-dot" [style.background-color]="stat.color"></span>
+              <span class="legend-name">{{ stat.name }}</span>
+            </div>
+            <span class="legend-val">{{ stat.count }} ({{ stat.percentage }}%)</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Widget 2: Acciones Rápidas -->
+      <div class="sidebar-card">
+        <h4 class="sidebar-title">
+          <i class="fas fa-bolt actions-icon"></i>
+          <span>Acciones Rápidas</span>
+        </h4>
+        <div class="quick-actions-list">
+          <button class="btn-quick-action outline-blue" (click)="showCreateUserModal()">
+            <i class="fas fa-plus"></i>
+            <span>Nuevo Usuario</span>
+          </button>
+          <button class="btn-quick-action" (click)="showCreateUserModal()">
+            <i class="fas fa-user-shield"></i>
+            <span>Asignar Roles</span>
+          </button>
+          <button class="btn-quick-action" (click)="sendNotification()">
+            <i class="fas fa-paper-plane"></i>
+            <span>Enviar Notificación</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Widget 3: Usuarios Recientes (solo usuarios reales con ultimaConexion) -->
+      <div class="sidebar-card">
+        <h4 class="sidebar-title">
+          <i class="fas fa-clock-rotate-left recent-icon"></i>
+          <span>Usuarios Recientes</span>
+        </h4>
+        <div class="recent-users-stack" *ngIf="recentLogins.length > 0">
+          <div *ngFor="let user of recentLogins" class="recent-user-row">
+            <div class="recent-avatar">
+              <img *ngIf="user.urlFoto" [src]="getUserPhotoUrl(user)">
+              <span *ngIf="!user.urlFoto">{{ user.nombre.substring(0, 1) }}</span>
+            </div>
+            <div class="recent-meta">
+              <span class="recent-name">{{ user.nombre }}</span>
+              <span class="recent-email">{{ user.email }}</span>
+            </div>
+            <span class="recent-time">{{ user.tiempo }}</span>
+          </div>
+        </div>
+        <div *ngIf="recentLogins.length === 0" style="padding: 1rem; text-align: center; color: #94a3b8; font-size: 0.82rem;">
+          <i class="fas fa-user-clock" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+          Sin accesos recientes registrados
+        </div>
+      </div>
+
+      <!-- Widget 4: Acceso Rápido a Auditoría -->
+      <div class="sidebar-card security-gradient-card">
+        <div class="security-flex">
+          <div class="security-icon-box">
+            <i class="fas fa-shield-halved"></i>
+          </div>
+          <div class="security-text-box">
+            <h5>Auditoría del Sistema</h5>
+            <div class="status-row">
+              <span class="status-bullet active"></span>
+              <span class="status-lbl">{{ allUsuarios.length }} usuarios registrados</span>
+            </div>
+            <span class="scan-time">Total activos: {{ allUsuarios.length }}</span>
+          </div>
+        </div>
+        <button class="btn-security-link" routerLink="/auditoria">
+          <span>Ver auditoría</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </aside>
+  </div>
+</div>

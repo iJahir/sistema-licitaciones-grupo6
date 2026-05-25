@@ -1,0 +1,324 @@
+:root {
+  --color-canvas: #ffffff;
+  --color-surface-light: #f8fafc;
+  --color-accent-soft: #cbd5e1;
+  --color-accent-med: #64748b;
+  --color-accent-dark: #324e66; /* Mantengo el azul oscuro para contraste en textos/iconos */
+  
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #475569;
+  
+  /* Additional SaaS colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  
+  --radius-md: 12px;
+  --radius-lg: 20px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: radial-gradient(circle at top right, #f8fafc, #ffffff);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-accent-soft);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-med);
+}
+
+/* Responsive Utilities */
+.desktop-only {
+  display: block;
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}
+
+.mobile-only {
+  display: none;
+  @media (max-width: 768px) {
+    display: block !important;
+  }
+}
+
+.cards-container-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-md);
+}
+
+/* =========================================================
+   ENTERPRISE UI UNIFICATION LAYER (GLOBAL OVERRIDES)
+   =========================================================
+   Propósito: Estandarizar la interfaz visual de todo el 
+   sistema (Cards, Botones, Tablas, Badges) eliminando las 
+   inconsistencias entre módulos sin alterar la lógica.
+*/
+
+/* 1. KPI CARDS & PANELS UNIFICATION */
+.kpi-card, .metric-glass-card, .timeline-activity-card, .dashboard-card, 
+.filters-glass-card, .filters-glass-panel, .premium-glass-card, .modern-table-card, .table-card, .result-card {
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.kpi-card:hover, .metric-glass-card:hover, .timeline-activity-card:hover, .dashboard-card:hover, .result-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06) !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* 2. TABLAS UNIFICATION */
+.modern-list-table, .premium-table, .modern-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+
+.modern-list-table th, .premium-table th, .modern-table th {
+  padding: 1.15rem 1.5rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 800 !important;
+  color: #64748b !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  border-bottom: 1.5px solid #f1f5f9 !important;
+  background: #ffffff !important;
+}
+
+.modern-list-table td, .premium-table td, .modern-table td {
+  padding: 1.25rem 1.5rem !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 0.85rem !important;
+  color: #475569 !important;
+}
+
+.modern-list-table tr:hover, .premium-table tr:hover, .modern-table tr:hover {
+  background: #f8fafc !important;
+}
+
+/* 3. BUTTONS UNIFICATION */
+.btn-premium, .btn-glass.search, .btn-new-lic, .action-btn {
+  border-radius: 10px !important;
+  padding: 0.65rem 1.25rem !important;
+  font-size: 0.85rem !important;
+  font-weight: 800 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.65rem !important;
+  border: none !important;
+}
+
+.btn-premium.primary, .btn-glass.search, .btn-new-lic {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2) !important;
+}
+
+.btn-premium.primary:hover, .btn-glass.search:hover, .btn-new-lic:hover {
+  background: #2563eb !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35) !important;
+}
+
+/* CIRCLE BUTTONS */
+.btn-action-circle, .action-btn-circle {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-size: 0.85rem !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.01) !important;
+}
+
+/* 4. INPUTS & SELECTS (FILTERS) UNIFICATION */
+.input-glass input, .input-glass select, .filter-group input, .filter-group select {
+  width: 100% !important;
+  padding: 0.6rem 1rem !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  font-size: 0.85rem !important;
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  transition: all 0.2s !important;
+  outline: none !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01) !important;
+}
+
+.input-glass input:focus, .input-glass select:focus, .filter-group input:focus, .filter-group select:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08) !important;
+}
+
+/* 5. BADGES & STATUS UNIFICATION */
+.status-badge-premium, .badge-status-pill, .tipo-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.35rem 0.85rem !important;
+  border-radius: 20px !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  white-space: nowrap !important;
+  border: none !important;
+}
+
+/* Core Colors Unification for Badges */
+.status-badge-premium.borrador, .badge-status-pill.borrador { background: #f1f5f9 !important; color: #64748b !important; }
+.status-badge-premium.publicada, .badge-status-pill.publicada { background: #eff6ff !important; color: #3b82f6 !important; }
+.status-badge-premium.en_proceso, .badge-status-pill.en_proceso, .status-badge-premium.en-proceso, .badge-status-pill.en-proceso { background: #eff6ff !important; color: #3b82f6 !important; }
+.status-badge-premium.en_inscripcion, .badge-status-pill.en_inscripcion, .status-badge-premium.en-inscripcion { background: #ecfdf5 !important; color: #10b981 !important; }
+.status-badge-premium.en_evaluacion, .badge-status-pill.en_evaluacion, .status-badge-premium.en-evaluacion, .status-badge-premium.evaluada, .badge-status-pill.evaluada { background: #fffbeb !important; color: #d97706 !important; }
+.status-badge-premium.adjudicada, .badge-status-pill.adjudicada, .status-badge-premium.contratada, .badge-status-pill.contratada { background: #f5f3ff !important; color: #8b5cf6 !important; }
+.status-badge-premium.cerrada, .badge-status-pill.cerrada { background: #f1f5f9 !important; color: #475569 !important; }
+.status-badge-premium.cancelada, .badge-status-pill.cancelada, .status-badge-premium.desierta, .badge-status-pill.desierta { background: #fef2f2 !important; color: #ef4444 !important; }
+
+/* 6. TYPOGRAPHY & SPACING UNIFICATION */
+h1, h2, h3, h4, h5, .list-title-row h2, .section-header-timeline h3 {
+  font-family: 'Inter', sans-serif !important;
+  color: #0f172a !important;
+  letter-spacing: -0.3px !important;
+}
+
+.kpi-title, .label, .subtitle, .card-subtitle {
+  font-family: 'Inter', sans-serif !important;
+  color: #64748b !important;
+  font-weight: 700 !important;
+}
+
+/* 7. MODALS UNIFICATION */
+.modal-container-modern, .swal2-popup {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  padding: 1.5rem !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* Force SweetAlert2 titles and texts to be dark/slate in white theme */
+.swal2-title, .swal2-html-container, .swal2-content {
+  color: #1e293b !important;
+}
+
+/* Force cards and inner text inside Swal grids to have high contrast */
+.swal-lic-card, .swal-eval-user-card, .swal-evaluator-card {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+.swal-lic-title, .swal-eval-user-name, .eval-name {
+  color: #0f172a !important;
+}
+
+/* 8. QUICK ACTIONS UNIFICATION */
+.action-buttons-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+}
+
+.action-btn-premium {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  width: 100% !important;
+  padding: 0.75rem 1rem !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  outline: none !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+  
+  .icon-wrap {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.82rem !important;
+    flex-shrink: 0 !important;
+    
+    &.bg-blue { background: rgba(59, 130, 246, 0.08) !important; color: #3b82f6 !important; }
+    &.bg-teal { background: rgba(20, 184, 166, 0.08) !important; color: #14b8a6 !important; }
+    &.bg-green { background: rgba(16, 185, 129, 0.08) !important; color: #10b981 !important; }
+    &.bg-amber { background: rgba(245, 158, 11, 0.08) !important; color: #f59e0b; }
+    &.bg-blue-dark { background: rgba(30, 41, 59, 0.08) !important; color: #1e293b; }
+    &.bg-pink { background: rgba(244, 63, 94, 0.08) !important; color: #f43f5e; }
+    &.bg-red { background: rgba(239, 68, 68, 0.08) !important; color: #ef4444; }
+  }
+  
+  .label {
+    font-size: 0.82rem !important;
+    font-weight: 750 !important;
+    color: #475569 !important;
+    transition: color 0.2s !important;
+  }
+  
+  &:hover {
+    background: #ffffff !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
+    transform: translateY(-2px) !important;
+    
+    .label {
+      color: #3b82f6 !important;
+    }
+  }
+}
+

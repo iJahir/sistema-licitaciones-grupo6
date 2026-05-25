@@ -1,0 +1,86 @@
+<div class="planner-wrapper animate-fade-in">
+  
+  <!-- WORKSPACE TITLE HEADER BLOCK -->
+  <div class="workspace-header">
+    <div>
+      <h1 class="page-title">Planificación</h1>
+      <p class="page-subtitle">Calendario, cronograma y línea de tiempo de actividades del sistema de licitaciones</p>
+    </div>
+    
+    <!-- Header Quick Tabs Navigation Pills -->
+    <div class="header-actions-box">
+      <div class="quick-nav-pills">
+        <a class="nav-pill" 
+           [routerLink]="['/planificacion/calendario']" 
+           routerLinkActive="active"
+           [class.active]="activeTab === 'calendario'">
+          <i class="fa-regular fa-calendar-days"></i> Calendario
+        </a>
+        <a *ngIf="!tokenService.isProveedor() && !tokenService.isObservador()" class="nav-pill" 
+           [routerLink]="['/planificacion/cronograma']" 
+           routerLinkActive="active"
+           [class.active]="activeTab === 'cronograma'">
+          <i class="fa-solid fa-chart-gantt"></i> Cronograma
+        </a>
+        <a *ngIf="!tokenService.isProveedor() && !tokenService.isObservador() && !tokenService.isArea()" class="nav-pill" 
+           [routerLink]="['/planificacion/eventos']" 
+           routerLinkActive="active"
+           [class.active]="activeTab === 'eventos'">
+          <i class="fa-solid fa-list-check"></i> Eventos
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- NESTED ROUTER OUTLET (Lazy-Loads CalendarioComponent, CronogramaComponent, or EventosComponent) -->
+  <div class="nested-view-container">
+    <router-outlet></router-outlet>
+  </div>
+
+  <!-- BOTTOM COMMON WORKSPACE AREA: LÍNEA DE TIEMPO DE ACTIVIDADES -->
+  <div class="timeline-container-card card-glow animate-slide-up" style="animation-delay: 0.4s;">
+    <div class="timeline-header-bar">
+      <div class="left-titles">
+        <h4>Línea de Tiempo de Actividades</h4>
+        <p class="subtitle-thin">Flujo secuencial cronológico de hitos del mes</p>
+      </div>
+      <a *ngIf="!tokenService.isArea()" class="timeline-link" [routerLink]="['/planificacion/eventos']">
+        Ver detalles de hitos <i class="fa-solid fa-arrow-right-long"></i>
+      </a>
+    </div>
+
+    <div class="timeline-horizontal-scroll">
+      <div class="timeline-line-wrapper">
+        <!-- Gray connecting line -->
+        <div class="timeline-connecting-line"></div>
+        
+        <!-- Arrowhead indicating progression -->
+        <div class="timeline-arrow-head text-slate-300">
+          <i class="fa-solid fa-caret-right"></i>
+        </div>
+
+        <div class="timeline-hitos-row">
+          <div class="timeline-hito-node" 
+               *ngFor="let h of timelineHitos" 
+               [class.active]="h.active">
+            
+            <div class="node-circle" 
+                 [style.background-color]="h.active ? h.color : '#ffffff'"
+                 [style.color]="h.active ? '#ffffff' : h.color"
+                 [style.border-color]="h.color">
+              <i class="fa-solid" [ngClass]="h.icon"></i>
+            </div>
+            
+            <div class="node-details">
+              <span class="node-title font-bold">{{ h.titulo }}</span>
+              <span class="node-code text-slate-400 font-semibold">{{ h.codigo }}</span>
+              <span class="node-date font-semibold">{{ h.fecha | date:'dd MMM yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>

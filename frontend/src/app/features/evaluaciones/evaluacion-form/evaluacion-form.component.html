@@ -1,0 +1,144 @@
+<div class="eval-form-container">
+  <!-- Header -->
+  <div class="form-header" *ngIf="propuesta">
+    <div class="breadcrumb">
+      <span [routerLink]="['/evaluaciones', propuesta.licitacion.id]">Panel de Control</span>
+      <span class="sep">/</span>
+      <span class="active">Nueva Calificación</span>
+    </div>
+    <h1>Emitir Evaluación Técnica</h1>
+    <div class="summary-card glass">
+      <div class="info">
+        <label>Propuesta</label>
+        <h3>{{ propuesta.nombre }}</h3>
+        <p>Proveedor: 👤 {{ propuesta.usuario.nombre }}</p>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <label>Monto</label>
+          <span>{{ propuesta.montoOfertado | currency:'USD' }}</span>
+        </div>
+        <div class="metric">
+          <label>Entrega</label>
+          <span>{{ propuesta.tiempoEntregaDias }} días</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content" *ngIf="!loading">
+    <form [formGroup]="evaluacionForm" (ngSubmit)="onSubmit()" class="rubric-form">
+      <div class="sections-grid">
+        <!-- Rúbrica Section -->
+        <div class="form-section glass">
+          <div class="section-header">
+            <span class="icon">📊</span>
+            <h2>Rúbrica de Calificación (0 - 10)</h2>
+          </div>
+          
+          <div class="criteria-list">
+            <!-- Criterio: Precio -->
+            <div class="criterion-row">
+              <div class="label-group">
+                <label>💰 Precio</label>
+                <p>Evaluación de la oferta económica respecto al presupuesto.</p>
+              </div>
+              <div class="input-group">
+                <input type="range" min="0" max="10" step="1" formControlName="puntajePrecio">
+                <span class="score-value">{{ evaluacionForm.get('puntajePrecio')?.value }}</span>
+              </div>
+            </div>
+
+            <!-- Criterio: Calidad -->
+            <div class="criterion-row">
+              <div class="label-group">
+                <label>💎 Calidad Técnica</label>
+                <p>Solidez técnica, materiales y cumplimiento de requisitos.</p>
+              </div>
+              <div class="input-group">
+                <input type="range" min="0" max="10" step="1" formControlName="puntajeCalidad">
+                <span class="score-value">{{ evaluacionForm.get('puntajeCalidad')?.value }}</span>
+              </div>
+            </div>
+
+            <!-- Criterio: Experiencia -->
+            <div class="criterion-row">
+              <div class="label-group">
+                <label>🏢 Experiencia del Proveedor</label>
+                <p>Historial y respaldo de la empresa en proyectos similares.</p>
+              </div>
+              <div class="input-group">
+                <input type="range" min="0" max="10" step="1" formControlName="puntajeExperiencia">
+                <span class="score-value">{{ evaluacionForm.get('puntajeExperiencia')?.value }}</span>
+              </div>
+            </div>
+
+            <!-- Criterio: Tiempo -->
+            <div class="criterion-row">
+              <div class="label-group">
+                <label>⏱️ Tiempo de Entrega</label>
+                <p>Capacidad de respuesta y optimización de plazos.</p>
+              </div>
+              <div class="input-group">
+                <input type="range" min="0" max="10" step="1" formControlName="puntajeTiempo">
+                <span class="score-value">{{ evaluacionForm.get('puntajeTiempo')?.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comentarios Section -->
+        <div class="form-section glass">
+          <div class="section-header">
+            <span class="icon">📝</span>
+            <h2>Retroalimentación</h2>
+          </div>
+
+          <div class="field-group">
+            <label>Comentarios Generales *</label>
+            <textarea formControlName="comentarios" placeholder="Justifique su calificación técnica..."></textarea>
+            <span class="error" *ngIf="evaluacionForm.get('comentarios')?.touched && evaluacionForm.get('comentarios')?.invalid">
+              Este campo es obligatorio.
+            </span>
+          </div>
+
+          <div class="field-group">
+            <label>Observaciones Adicionales</label>
+            <textarea formControlName="observaciones" placeholder="Documentación faltante, notas internas, etc."></textarea>
+          </div>
+
+          <div class="field-group">
+            <label>⭐ Recomendación Final *</label>
+            <select formControlName="estado" class="modern-select">
+              <option value="PENDIENTE">⏳ Pendiente / En Revisión</option>
+              <option value="APROBADO">✔️ Aprobado / Recomendado</option>
+              <option value="RECHAZADO">❌ Rechazado / No Recomendado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer / Total -->
+      <div class="form-footer glass">
+        <div class="total-display">
+          <label>Puntaje Final Promedio:</label>
+          <div class="score-circle" [class.high]="totalScore >= 8" [class.med]="totalScore >= 5 && totalScore < 8" [class.low]="totalScore < 5">
+            {{ totalScore | number:'1.1-1' }}
+          </div>
+        </div>
+        
+        <div class="actions">
+          <button type="button" class="btn-cancel" [routerLink]="['/evaluaciones', propuesta.licitacion.id]">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="saving || evaluacionForm.invalid">
+            {{ saving ? 'Guardando...' : '💾 Guardar Evaluación' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando datos de la propuesta...</p>
+  </div>
+</div>

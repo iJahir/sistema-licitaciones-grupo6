@@ -1,0 +1,593 @@
+<div class="providers-premium-container">
+  <!-- BREADCRUMBS Y CABECERA -->
+  <div class="providers-header">
+    <div class="header-left">
+      <div class="breadcrumb-mini">Administración > Participantes / Proveedores</div>
+      <h2 class="premium-title">Participantes / Proveedores</h2>
+      <span class="premium-subtitle">Directorio de Entidades Externas y Contratistas</span>
+    </div>
+    <div class="header-right">
+      <button class="btn-premium-register" (click)="openCreateModal()">
+        <i class="fa-solid fa-plus"></i>
+        <span>Nuevo Proveedor</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI METRIC CARDS SUPERIORES -->
+  <div class="providers-kpis-grid">
+    <div class="kpi-card purple">
+      <div class="kpi-card-content">
+        <span class="kpi-label">Proveedores Totales</span>
+        <div class="kpi-value-row">
+          <span class="kpi-number">{{ stats.total }}</span>
+        </div>
+        <span class="kpi-subtext">Todos los registros</span>
+      </div>
+      <div class="kpi-card-icon">
+        <i class="fa-solid fa-users"></i>
+      </div>
+    </div>
+
+    <div class="kpi-card green">
+      <div class="kpi-card-content">
+        <span class="kpi-label">Activos</span>
+        <div class="kpi-value-row">
+          <span class="kpi-number">{{ stats.activos }}</span>
+          <span class="kpi-percentage">{{ stats.activosPct }}%</span>
+        </div>
+        <span class="kpi-subtext">del total</span>
+      </div>
+      <div class="kpi-card-icon">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+    </div>
+
+    <div class="kpi-card orange">
+      <div class="kpi-card-content">
+        <span class="kpi-label">En Proceso</span>
+        <div class="kpi-value-row">
+          <span class="kpi-number">{{ stats.enProceso }}</span>
+          <span class="kpi-percentage">{{ stats.enProcesoPct }}%</span>
+        </div>
+        <span class="kpi-subtext">del total</span>
+      </div>
+      <div class="kpi-card-icon">
+        <i class="fa-solid fa-hourglass-half"></i>
+      </div>
+    </div>
+
+    <div class="kpi-card red">
+      <div class="kpi-card-content">
+        <span class="kpi-label">Inactivos</span>
+        <div class="kpi-value-row">
+          <span class="kpi-number">{{ stats.inactivos }}</span>
+          <span class="kpi-percentage">{{ stats.inactivosPct }}%</span>
+        </div>
+        <span class="kpi-subtext">del total</span>
+      </div>
+      <div class="kpi-card-icon">
+        <i class="fa-solid fa-circle-xmark"></i>
+      </div>
+    </div>
+
+    <div class="kpi-card blue">
+      <div class="kpi-card-content">
+        <span class="kpi-label">Participaciones</span>
+        <div class="kpi-value-row">
+          <span class="kpi-number">{{ stats.participaciones | number }}</span>
+        </div>
+        <span class="kpi-subtext">En procesos</span>
+      </div>
+      <div class="kpi-card-icon">
+        <i class="fa-solid fa-chart-line"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE FILTROS GLASSMORPHISM PREMIUM -->
+  <div class="filters-glass-panel">
+    <div class="filters-grid-inputs">
+      <div class="filter-col">
+        <span class="filter-field-lbl">Búsqueda rápida</span>
+        <div class="input-glass-group">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" 
+                 [(ngModel)]="searchTerm" 
+                 (keyup.enter)="applyFilters()"
+                 placeholder="Buscar proveedor, NIT, correo o contacto..." />
+        </div>
+      </div>
+
+      <div class="filter-col">
+        <span class="filter-field-lbl">Estado</span>
+        <div class="select-glass-wrapper">
+          <select class="select-glass" [(ngModel)]="selectedEstado" (change)="applyFilters()">
+            <option value="">Todos</option>
+            <option *ngFor="let est of estados" [value]="est">{{ est }}</option>
+          </select>
+          <i class="fa-solid fa-chevron-down select-arrow-icon"></i>
+        </div>
+      </div>
+
+      <div class="filter-col">
+        <span class="filter-field-lbl">Categoría</span>
+        <div class="select-glass-wrapper">
+          <select class="select-glass" [(ngModel)]="selectedCategoria" (change)="applyFilters()">
+            <option value="">Todas</option>
+            <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
+          </select>
+          <i class="fa-solid fa-chevron-down select-arrow-icon"></i>
+        </div>
+      </div>
+
+      <div class="filter-col">
+        <span class="filter-field-lbl">Clasificación</span>
+        <div class="select-glass-wrapper">
+          <select class="select-glass" [(ngModel)]="selectedClasificacion" (change)="applyFilters()">
+            <option value="">Todas</option>
+            <option value="Excelente">Excelente</option>
+            <option value="Regular">Regular</option>
+            <option value="Pendiente">Pendiente</option>
+          </select>
+          <i class="fa-solid fa-chevron-down select-arrow-icon"></i>
+        </div>
+      </div>
+
+      <div class="filter-col">
+        <span class="filter-field-lbl">País</span>
+        <div class="select-glass-wrapper">
+          <select class="select-glass" [(ngModel)]="selectedPais" (change)="applyFilters()">
+            <option value="">Todos</option>
+            <option value="Guatemala">Guatemala</option>
+            <option value="El Salvador">El Salvador</option>
+            <option value="Honduras">Honduras</option>
+          </select>
+          <i class="fa-solid fa-chevron-down select-arrow-icon"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="filters-actions-row">
+      <div class="actions-row-left">
+        <div class="active-filters-pill" *ngIf="searchTerm || selectedEstado || selectedCategoria">
+          <i class="fa-solid fa-filter"></i>
+          <span>Filtros Activos</span>
+        </div>
+      </div>
+      <div class="actions-row-right">
+        <button class="btn-filter-action reset" (click)="clearFilters()">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>Limpiar</span>
+        </button>
+        <button class="btn-filter-action outline-blue" (click)="applyFilters()">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Filtros Avanzados</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TWO COLUMN WORKSPACE GRID -->
+  <div class="workspace-columns-grid">
+    
+    <!-- COLUMNA IZQUIERDA: LISTADO PRINCIPAL -->
+    <div class="left-main-column">
+      <div class="premium-glass-card">
+        <div class="table-card-header">
+          <div class="title-with-count">
+            <h3>Listado de Participantes / Proveedores</h3>
+            <span class="count-badge">{{ totalElements }}</span>
+          </div>
+          <div class="header-sort-option">
+            <span class="sort-lbl">Ordenar por:</span>
+            <select class="select-sort-mini">
+              <option value="recientes">Más recientes</option>
+              <option value="antiguos">Más antiguos</option>
+              <option value="nombre">Razón Social</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- TABLE LOADER -->
+        <div class="table-loading-overlay" *ngIf="loading">
+          <div class="spinner-premium"></div>
+          <p>Cargando proveedores...</p>
+        </div>
+
+        <!-- MODERN TABLE DESIGN -->
+        <div class="table-responsive" *ngIf="!loading">
+          <table class="modern-list-table">
+            <thead>
+              <tr>
+                <th>Proveedor</th>
+                <th>NIT / Identificación</th>
+                <th>Contacto Principal</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+                <th>Registro</th>
+                <th>Última Participación</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="table-row-hover" *ngFor="let p of proveedores" [class.suspended]="p.estado === 'Inactivo'">
+                <!-- PROVEEDOR CELL -->
+                <td>
+                  <div class="provider-profile-cell">
+                    <div class="avatar-circle-premium" [ngClass]="p.avatarColor || 'blue'">
+                      <span>{{ p.razonSocial.substring(0, 2).toUpperCase() }}</span>
+                    </div>
+                    <div class="provider-info-stack">
+                      <span class="provider-company-name" (click)="openEditModal(p)">{{ p.razonSocial }}</span>
+                      <span class="provider-email">{{ p.correo }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- NIT -->
+                <td>
+                  <span class="nit-text-modern">{{ p.nit }}</span>
+                </td>
+
+                <!-- CONTACTO PRINCIPAL -->
+                <td>
+                  <div class="contact-info-stack">
+                    <span class="contact-name">{{ p.representanteLegal || 'No especificado' }}</span>
+                    <span class="contact-phone">{{ p.telefono || '--' }}</span>
+                  </div>
+                </td>
+
+                <!-- CATEGORÍA -->
+                <td>
+                  <span class="category-pill-modern" [ngClass]="p.categoria ? p.categoria.toLowerCase() : ''">
+                    {{ p.categoria }}
+                  </span>
+                </td>
+
+                <!-- ESTADO -->
+                <td>
+                  <span class="status-badge-bullet" 
+                        [class.active]="p.estado === 'Activo'"
+                        [class.blocked]="p.estado === 'Inactivo'"
+                        [class.in-process]="p.estado === 'En Proceso'"
+                        (click)="toggleStatus(p)">
+                    <span class="dot"></span>
+                    <span>{{ p.estado }}</span>
+                  </span>
+                </td>
+
+                <!-- FECHA REGISTRO -->
+                <td>
+                  <span class="date-text-modern">{{ p.fechaRegistro | date:'dd/MM/yyyy' }}</span>
+                </td>
+
+                <!-- ÚLTIMA PARTICIPACIÓN -->
+                <td>
+                  <span class="date-text-modern">{{ p.ultimaParticipacion ? (p.ultimaParticipacion | date:'dd/MM/yyyy') : '--' }}</span>
+                </td>
+
+                <!-- ACCIONES -->
+                <td>
+                  <div class="actions-group-modern">
+                    <button class="btn-action-sm view" title="Ver Detalle" (click)="openEditModal(p)">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button class="btn-action-sm edit" title="Editar" (click)="openEditModal(p)">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="btn-action-sm delete" title="Eliminar" (click)="deleteProveedor(p)">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- EMPTY STATE -->
+              <tr *ngIf="proveedores.length === 0">
+                <td colspan="8">
+                  <div class="empty-state-container">
+                    <i class="fa-solid fa-handshake-slash empty-icon"></i>
+                    <h4>No se encontraron participantes</h4>
+                    <p>Intente modificando los parámetros de búsqueda o registre un nuevo proveedor.</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="table-pagination-footer" *ngIf="!loading && totalPages > 1">
+          <div class="pagination-info">
+            Mostrando <strong>{{ currentPage * pageSize + 1 }}</strong> a 
+            <strong>{{ Math.min((currentPage + 1) * pageSize, totalElements) }}</strong> de 
+            <strong>{{ totalElements }}</strong> registros
+          </div>
+          
+          <div class="pagination-controls">
+            <button class="btn-page-step" [disabled]="currentPage === 0" (click)="changePage(currentPage - 1)">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            
+            <button class="btn-page-number" 
+                    *ngFor="let page of pages" 
+                    [class.active]="page === currentPage" 
+                    (click)="changePage(page)">
+              {{ page + 1 }}
+            </button>
+
+            <button class="btn-page-step" [disabled]="currentPage === totalPages - 1" (click)="changePage(currentPage + 1)">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INFORMATIVE ALERT AL PIE DE PÁGINA -->
+      <div class="informative-alert-panel">
+        <div class="alert-icon-wrap">
+          <i class="fa-solid fa-circle-info"></i>
+        </div>
+        <div class="alert-msg-wrap">
+          <h4>Información Importante</h4>
+          <p>Mantenga actualizada la información de sus proveedores para garantizar la transparencia y la correcta participación en los procesos de contratación.</p>
+        </div>
+        <div class="alert-btn-wrap">
+          <button class="btn-alert-action" (click)="loadStats()">Actualizar Información</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: SIDEBAR DE METRICAS Y ANALYTICS -->
+    <div class="right-sidebar-column">
+      
+      <!-- DISTRIBUCIÓN POR CATEGORÍA -->
+      <div class="analytics-card card-donut-chart">
+        <h4 class="card-title-mini">Distribución por Categoría</h4>
+        
+        <div class="donut-chart-workspace">
+          <div class="donut-svg-wrapper">
+            <svg class="donut-svg" viewBox="0 0 100 100">
+              <!-- Círculo de fondo vacío -->
+              <circle class="donut-bg-circle" cx="50" cy="50" r="38"></circle>
+              
+              <!-- Segmentos Dinámicos de Categorías -->
+              <circle *ngFor="let stat of categoryStats"
+                      class="donut-segment" 
+                      cx="50" 
+                      cy="50" 
+                      r="38" 
+                      fill="transparent"
+                      [attr.stroke]="stat.color" 
+                      stroke-width="7" 
+                      [attr.stroke-dasharray]="stat.dashArray" 
+                      [attr.stroke-dashoffset]="stat.dashOffset"
+                      stroke-linecap="round">
+              </circle>
+            </svg>
+            <div class="donut-center-text">
+              <span class="donut-num">{{ stats.total }}</span>
+              <span class="donut-lbl">Proveedores</span>
+            </div>
+          </div>
+
+          <!-- LEYENDA DEL DONUT -->
+          <ul class="donut-legend-stack">
+            <li class="legend-item" *ngFor="let stat of categoryStats">
+              <span class="bullet" [style.background-color]="stat.color"></span>
+              <span class="name">{{ stat.name }}</span>
+              <span class="metrics">
+                <strong>{{ stat.count }}</strong> 
+                <span class="pct">({{ stat.percentage }}%)</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- PROVEEDORES RECIENTES -->
+      <div class="analytics-card card-recent-logins">
+        <div class="recent-header">
+          <h4 class="card-title-mini">Proveedores Recientes</h4>
+          <span class="action-link" (click)="clearFilters()">Ver todos</span>
+        </div>
+
+        <ul class="recent-list">
+          <li class="recent-item" *ngFor="let p of recentProviders">
+            <div class="recent-avatar" [ngClass]="p.avatarColor || 'blue'">
+              <span>{{ p.razonSocial.substring(0, 2).toUpperCase() }}</span>
+            </div>
+            <div class="recent-details">
+              <div class="recent-name">{{ p.razonSocial }}</div>
+              <div class="recent-sub">{{ p.correo }}</div>
+              <div class="recent-time">Registrado el {{ p.fechaRegistro | date:'dd/MM/yyyy' }}</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- ACCIONES RÁPIDAS -->
+      <div class="analytics-card card-quick-actions">
+        <h4 class="card-title-mini">Acciones Rápidas</h4>
+        <div class="action-buttons-vertical">
+          <button class="action-btn-premium" (click)="openCreateModal()">
+            <span class="icon-wrap bg-pink"><i class="fa-solid fa-plus"></i></span>
+            <span class="label">Nuevo Proveedor</span>
+          </button>
+          <button class="action-btn-premium" (click)="clearFilters()">
+            <span class="icon-wrap bg-green"><i class="fa-solid fa-file-excel"></i></span>
+            <span class="label">Importar Proveedores</span>
+          </button>
+          <button class="action-btn-premium" (click)="clearFilters()">
+            <span class="icon-wrap bg-red"><i class="fa-solid fa-file-pdf"></i></span>
+            <span class="label">Exportar Proveedores</span>
+          </button>
+          <button class="action-btn-premium" (click)="selectedEstado = 'Inactivo'; applyFilters();">
+            <span class="icon-wrap bg-amber"><i class="fa-solid fa-user-xmark"></i></span>
+            <span class="label">Ver Proveedores Inactivos</span>
+          </button>
+          <button class="action-btn-premium" (click)="selectedEstado = 'En Proceso'; applyFilters();">
+            <span class="icon-wrap bg-blue"><i class="fa-solid fa-rotate"></i></span>
+            <span class="label">Ver Proveedores en Proceso</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ESTADO DE PARTICIPACIÓN -->
+      <div class="analytics-card card-participation-state">
+        <h4 class="card-title-mini">Estado de Participación</h4>
+        <div class="participation-grid">
+          <div class="part-metric-box">
+            <i class="fa-solid fa-briefcase icon-part-total"></i>
+            <span class="number">{{ stats.participaciones }}</span>
+            <span class="label">Total Participaciones</span>
+          </div>
+          <div class="part-metric-box">
+            <i class="fa-solid fa-circle-play icon-part-active"></i>
+            <span class="number">{{ stats.activas }}</span>
+            <span class="label">Activas</span>
+          </div>
+          <div class="part-metric-box">
+            <i class="fa-solid fa-circle-check icon-part-done"></i>
+            <span class="number">{{ stats.finalizadas }}</span>
+            <span class="label">Finalizadas</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREAR Y EDITAR PROVEEDOR MODAL DIALOG -->
+<div class="premium-modal-backdrop" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="premium-modal-dialog" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="modal-dialog-header">
+      <div class="header-title-wrapper">
+        <i class="fa-solid" [class.fa-handshake]="!isEditMode" [class.fa-pen-to-square]="isEditMode"></i>
+        <h3>{{ isEditMode ? 'Editar Proveedor' : 'Registrar Nuevo Proveedor' }}</h3>
+      </div>
+      <button class="btn-close-modal" (click)="closeModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body Form -->
+    <div class="modal-dialog-body">
+      <div class="form-grid-layout">
+        <!-- Razón Social -->
+        <div class="form-group-col full">
+          <label class="form-label-bold">Razón Social *</label>
+          <input type="text" 
+                 class="form-input-premium" 
+                 [(ngModel)]="currentProveedor.razonSocial" 
+                 placeholder="Ej. Constructora Eléctrica, S.A." />
+        </div>
+
+        <!-- NIT -->
+        <div class="form-group-col">
+          <label class="form-label-bold">NIT / RUC *</label>
+          <input type="text" 
+                 class="form-input-premium" 
+                 [(ngModel)]="currentProveedor.nit" 
+                 placeholder="Ej. 123456-7" />
+        </div>
+
+        <!-- Representante Legal -->
+        <div class="form-group-col">
+          <label class="form-label-bold">Representante Legal</label>
+          <input type="text" 
+                 class="form-input-premium" 
+                 [(ngModel)]="currentProveedor.representanteLegal" 
+                 placeholder="Ej. Ing. Carlos López" />
+        </div>
+
+        <!-- Correo Electrónico -->
+        <div class="form-group-col">
+          <label class="form-label-bold">Correo Electrónico *</label>
+          <input type="email" 
+                 class="form-input-premium" 
+                 [(ngModel)]="currentProveedor.correo" 
+                 placeholder="contacto@empresa.com" />
+        </div>
+
+        <!-- Teléfono -->
+        <div class="form-group-col">
+          <label class="form-label-bold">Teléfono de Contacto</label>
+          <input type="text" 
+                 class="form-input-premium" 
+                 [(ngModel)]="currentProveedor.telefono" 
+                 placeholder="Ej. 5550-1234" />
+        </div>
+
+        <!-- Categoría -->
+        <div class="form-group-col">
+          <label class="form-label-bold">Categoría de Rubro</label>
+          <div class="select-premium-wrapper">
+            <select class="select-premium" [(ngModel)]="currentProveedor.categoria">
+              <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="form-group-col">
+          <label class="form-label-bold">Estado de Cuenta</label>
+          <div class="select-premium-wrapper">
+            <select class="select-premium" [(ngModel)]="currentProveedor.estado">
+              <option *ngFor="let est of estados" [value]="est">{{ est }}</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+        </div>
+
+        <!-- País -->
+        <div class="form-group-col">
+          <label class="form-label-bold">País de Origen</label>
+          <div class="select-premium-wrapper">
+            <select class="select-premium" [(ngModel)]="currentProveedor.pais">
+              <option value="Guatemala">Guatemala</option>
+              <option value="El Salvador">El Salvador</option>
+              <option value="Honduras">Honduras</option>
+              <option value="Costa Rica">Costa Rica</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+        </div>
+
+        <!-- Clasificación -->
+        <div class="form-group-col">
+          <label class="form-label-bold">Clasificación Interna</label>
+          <div class="select-premium-wrapper">
+            <select class="select-premium" [(ngModel)]="currentProveedor.clasificacion">
+              <option value="Excelente">Excelente</option>
+              <option value="Regular">Regular</option>
+              <option value="Pendiente">Pendiente</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="form-group-col full">
+          <label class="form-label-bold">Observaciones / Historial</label>
+          <textarea class="form-textarea-premium" 
+                    rows="3" 
+                    [(ngModel)]="currentProveedor.observaciones" 
+                    placeholder="Detalles sobre acreditación, certificaciones o notas internas..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="modal-dialog-footer">
+      <button class="btn-modal-action cancel" (click)="closeModal()">Cancelar</button>
+      <button class="btn-modal-action save" (click)="saveProveedor()">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span>Guardar Registro</span>
+      </button>
+    </div>
+  </div>
+</div>

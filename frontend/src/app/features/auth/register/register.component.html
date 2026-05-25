@@ -1,0 +1,102 @@
+<div class="register-container">
+  <div class="glass-card fade-in">
+    <div class="logo-area">
+      <div class="logo-icon"><i class="fas fa-building"></i></div>
+      <h2>Portal de Proveedores</h2>
+      <p>Crea tu cuenta corporativa para participar en licitaciones</p>
+    </div>
+
+    <form name="form" (ngSubmit)="f.form.valid && onSubmit()" #f="ngForm" novalidate>
+      <div class="form-grid">
+        <!-- Columna Izquierda: Datos de Usuario -->
+        <div class="form-column">
+          <div class="section-title"><i class="fas fa-user-shield"></i> Acceso al Sistema</div>
+          
+          <div class="input-group">
+            <i class="fas fa-user icon"></i>
+            <input type="text" name="username" [(ngModel)]="form.username" required #username="ngModel" placeholder="Usuario">
+          </div>
+
+          <div class="input-group">
+            <i class="fas fa-envelope icon"></i>
+            <input type="email" name="email" [(ngModel)]="form.email" required email #email="ngModel" placeholder="Correo electrónico">
+          </div>
+
+          <div class="input-group">
+            <i class="fas fa-lock icon"></i>
+            <input type="password" name="password" [(ngModel)]="form.password" required minlength="6" #password="ngModel" placeholder="Contraseña">
+          </div>
+
+          <div class="input-group">
+            <i class="fas fa-phone icon"></i>
+            <input type="text" name="telefono" [(ngModel)]="form.telefono" placeholder="Teléfono de Contacto">
+          </div>
+
+          <div class="input-group select-wrapper">
+            <i class="fas fa-globe-americas icon"></i>
+            <select name="pais" [(ngModel)]="form.pais">
+              <option value="Guatemala">Guatemala</option>
+              <option value="El Salvador">El Salvador</option>
+              <option value="Honduras">Honduras</option>
+              <option value="Costa Rica">Costa Rica</option>
+            </select>
+            <i class="fas fa-chevron-down select-arrow"></i>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Datos de Empresa -->
+        <div class="form-column">
+          <div class="section-title"><i class="fas fa-briefcase"></i> Información Legal</div>
+
+          <div class="input-group-row">
+            <i class="fas fa-id-card icon"></i>
+            <div class="row">
+              <input type="text" name="nombre" [(ngModel)]="form.nombre" required #nombre="ngModel" placeholder="Nombre Rep.">
+              <input type="text" name="apellido" [(ngModel)]="form.apellido" required #apellido="ngModel" placeholder="Apellido Rep.">
+            </div>
+          </div>
+
+          <div class="input-group">
+            <i class="fas fa-landmark icon"></i>
+            <input type="text" name="empresaNombre" [(ngModel)]="form.empresaNombre" required #empresaNombre="ngModel" placeholder="Nombre de la Empresa (Razón Social)">
+          </div>
+
+          <div class="input-group">
+            <i class="fas fa-fingerprint icon"></i>
+            <input type="text" name="ruc" [(ngModel)]="form.ruc" required #ruc="ngModel" placeholder="RUC / Identificación Fiscal">
+          </div>
+
+          <div class="input-group select-wrapper">
+            <i class="fas fa-tags icon"></i>
+            <select name="categoria" [(ngModel)]="form.categoria">
+              <option value="Construcción">Construcción</option>
+              <option value="Servicios">Servicios</option>
+              <option value="Tecnología">Tecnología</option>
+              <option value="Suministros">Suministros</option>
+              <option value="Ingeniería">Ingeniería</option>
+              <option value="Consultoría">Consultoría</option>
+              <option value="Logística">Logística</option>
+              <option value="Arquitectura">Arquitectura</option>
+            </select>
+            <i class="fas fa-chevron-down select-arrow"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="full-width-group input-group">
+        <i class="fas fa-file-alt icon"></i>
+        <textarea name="observaciones" [(ngModel)]="form.observaciones" rows="3" placeholder="Descripción de la Empresa / Observaciones / Certificaciones..."></textarea>
+      </div>
+
+      <div class="actions-area">
+        <button type="submit" class="btn-register" [disabled]="loading">
+          <span *ngIf="!loading">Completar Registro</span>
+          <span *ngIf="loading" class="spinner"><i class="fas fa-circle-notch fa-spin"></i> Procesando...</span>
+        </button>
+        <div class="footer-links">
+          ¿Ya tienes cuenta? <a routerLink="/login">Inicia Sesión</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

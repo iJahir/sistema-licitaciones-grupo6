@@ -1,0 +1,339 @@
+<div class="page-container fade-in">
+  <!-- ENCABEZADO PREMIUM -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1>Historial</h1>
+        <div class="breadcrumb">
+          <span class="text-muted">Reportes y Control</span>
+          <i class="fa-solid fa-chevron-right separator"></i>
+          <span class="current">Historial</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI GRID SUPERIOR -->
+  <div class="kpi-grid">
+    <!-- Registros Históricos -->
+    <div class="kpi-card glass-card purple">
+      <div class="kpi-icon"><i class="fa-solid fa-database"></i></div>
+      <div class="kpi-info">
+        <span class="label">Registros Históricos</span>
+        <span class="value">{{totalRegistros | number}}</span>
+        <span class="subtext"><span class="trend up"><i class="fa-solid fa-arrow-up"></i> 18.7%</span> vs periodo anterior</span>
+      </div>
+    </div>
+    
+    <!-- Usuarios con Actividad -->
+    <div class="kpi-card glass-card green">
+      <div class="kpi-icon"><i class="fa-solid fa-user-check"></i></div>
+      <div class="kpi-info">
+        <span class="label">Usuarios con Actividad</span>
+        <span class="value">{{usuariosConActividad}}</span>
+        <span class="subtext"><span class="trend up"><i class="fa-solid fa-arrow-up"></i> 12.4%</span> vs periodo anterior</span>
+      </div>
+    </div>
+    
+    <!-- Módulos Utilizados -->
+    <div class="kpi-card glass-card orange">
+      <div class="kpi-icon"><i class="fa-solid fa-border-all"></i></div>
+      <div class="kpi-info">
+        <span class="label">Módulos Utilizados</span>
+        <span class="value">{{modulosUtilizados}}</span>
+        <span class="subtext"><span class="trend up"><i class="fa-solid fa-arrow-up"></i> 8.6%</span> vs periodo anterior</span>
+      </div>
+    </div>
+    
+    <!-- Datos Modificados -->
+    <div class="kpi-card glass-card blue">
+      <div class="kpi-icon"><i class="fa-solid fa-file-lines"></i></div>
+      <div class="kpi-info">
+        <span class="label">Datos Modificados</span>
+        <span class="value">{{datosModificados | number}}</span>
+        <span class="subtext"><span class="trend up"><i class="fa-solid fa-arrow-up"></i> 16.2%</span> vs periodo anterior</span>
+      </div>
+    </div>
+    
+    <!-- Acciones Recientes -->
+    <div class="kpi-card glass-card red">
+      <div class="kpi-icon"><i class="fa-solid fa-bolt"></i></div>
+      <div class="kpi-info">
+        <span class="label">Acciones Recientes</span>
+        <span class="value">{{accionesRecientes | number}}</span>
+        <span class="subtext"><span class="trend up"><i class="fa-solid fa-arrow-up"></i> 9.2%</span> vs periodo anterior</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS AVANZADOS -->
+  <div class="filters-glass-panel">
+    <div class="filters-grid">
+      <div class="filter-group global-search">
+        <label>Búsqueda Global</label>
+        <div class="input-icon-wrapper">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" class="form-control" placeholder="Buscar usuario, acción, módulo, detalle..." [(ngModel)]="searchTerm" (keyup.enter)="onSearch()">
+        </div>
+      </div>
+      
+      <div class="filter-group">
+        <label>Usuario</label>
+        <select class="form-select" [(ngModel)]="selectedUsuario" (change)="onSearch()">
+          <option value="">Todos los usuarios</option>
+          <option value="Administrador">Administrador</option>
+          <option value="Evaluador">Evaluador</option>
+          <option value="Proveedor">Proveedor</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Módulo</label>
+        <select class="form-select" [(ngModel)]="selectedModulo" (change)="onSearch()">
+          <option value="">Todos los módulos</option>
+          <option value="Licitaciones">Licitaciones</option>
+          <option value="Propuestas">Propuestas</option>
+          <option value="Evaluaciones">Evaluaciones</option>
+          <option value="Seguridad">Seguridad</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Tipo de Acción</label>
+        <select class="form-select" [(ngModel)]="selectedAccion" (change)="onSearch()">
+          <option value="">Todos los tipos</option>
+          <option value="Creación">Creación</option>
+          <option value="Actualización">Actualización</option>
+          <option value="Eliminación">Eliminación</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Resultado</label>
+        <select class="form-select" [(ngModel)]="selectedResultado" (change)="onSearch()">
+          <option value="">Todos</option>
+          <option value="Exito">Éxito</option>
+          <option value="Fallido">Fallido</option>
+        </select>
+      </div>
+      
+      <div class="filter-group date-picker">
+        <label>Rango de Fechas</label>
+        <div class="input-icon-wrapper">
+          <i class="fa-regular fa-calendar"></i>
+          <input type="text" class="form-control" placeholder="01/01/2026 - 31/05/2026" [(ngModel)]="selectedFecha" readonly>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Tipo de Registro</label>
+        <select class="form-select" [(ngModel)]="selectedTipoRegistro" (change)="onSearch()">
+          <option value="">Todos los registros</option>
+          <option value="Sistema">Sistema</option>
+          <option value="Usuario">Usuario</option>
+          <option value="Seguridad">Seguridad</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>IP Origen</label>
+        <input type="text" class="form-control" placeholder="Ej: 192.168.0.1" [(ngModel)]="ipOrigen" (keyup.enter)="onSearch()">
+      </div>
+      
+      <div class="filter-actions-wrapper">
+        <button class="btn btn-primary" (click)="onSearch()"><i class="fa-solid fa-filter"></i> Filtrar</button>
+        <button class="btn btn-outline" (click)="clearFilters()"><i class="fa-solid fa-rotate-right"></i> Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD LAYOUT GRID -->
+  <div class="dashboard-layout">
+    
+    <!-- MAIN CONTENT: TABLE -->
+    <div class="main-content">
+      <div class="table-card glass-card">
+        <div class="card-header">
+          <div class="header-left">
+            <h2>Historial de Actividad</h2>
+            <span class="badge count-badge">{{totalElementsCount | number}}</span>
+          </div>
+        </div>
+
+        <div class="table-responsive" *ngIf="totalElementsCount > 0">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>FECHA / HORA</th>
+                <th>USUARIO</th>
+                <th>ACCIÓN</th>
+                <th>MÓDULO</th>
+                <th>DETALLE</th>
+                <th>RESULTADO</th>
+                <th>IP ORIGEN</th>
+                <th>TIPO</th>
+                <th class="actions-col">ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let record of pagedHistorialList">
+                <td class="date-col">
+                  <div class="date-time">
+                    <span class="date">{{ record.fecha | date:'dd/MM/yyyy' }}</span>
+                    <span class="time">{{ record.fecha | date:'hh:mm:ss a' }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="avatar-sm">{{ record.usuarioAvatar || 'US' }}</div>
+                    <div class="user-info">
+                      <span class="name">{{ record.usuarioNombre }}</span>
+                      <span class="role">{{ record.usuarioRol }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="action-badge" [ngClass]="(record.accion || '').toLowerCase().replace(' ', '-')">
+                    {{ record.accion || 'Actividad' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="module-cell">
+                    <i class="fa-solid {{ record.moduloIcon || 'fa-info-circle' }}"></i>
+                    <span>{{ record.modulo }}</span>
+                  </div>
+                </td>
+                <td><span class="detail-text" title="{{ record.detalle }}">{{ record.detalle }}</span></td>
+                <td>
+                  <div class="status-badge" [class.success]="record.resultado === 'Éxito'" [class.error]="record.resultado === 'Fallido'">
+                    <i class="fa-solid fa-check" *ngIf="record.resultado === 'Éxito'"></i>
+                    <i class="fa-solid fa-xmark" *ngIf="record.resultado === 'Fallido'"></i>
+                    {{ record.resultado || 'Éxito' }}
+                  </div>
+                </td>
+                <td><span class="ip-text">{{ record.ipOrigen || '-' }}</span></td>
+                <td>
+                  <div class="type-indicator" [ngClass]="(record.tipo || 'sistema').toLowerCase()">
+                    <div class="dot"></div>
+                    <span>{{ record.tipo || 'Sistema' }}</span>
+                  </div>
+                </td>
+                <td class="actions-col">
+                  <button class="action-btn" title="Ver Detalle" (click)="verDetalle(record)"><i class="fa-regular fa-eye"></i></button>
+                  <button class="action-btn" title="Opciones"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div class="empty-state-modern" *ngIf="totalElementsCount === 0" style="padding: 5rem 2rem; text-align: center; color: #64748b;">
+          <div class="empty-icon-box" style="font-size: 3.5rem; margin-bottom: 1rem; color: #cbd5e1;"><i class="fa-solid fa-database"></i></div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">No se encontraron registros</h3>
+          <p style="font-size: 0.9rem; max-width: 400px; margin: 0 auto;">No hay registros históricos de actividad que coincidan con los filtros seleccionados.</p>
+        </div>
+
+        <div class="pagination-container" *ngIf="totalElementsCount > 0">
+          <span class="page-info">Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ getMin(currentPage * pageSize, totalElementsCount) }} de {{totalElementsCount | number}} registros</span>
+          <div class="pagination-controls">
+            <button class="page-btn" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button *ngFor="let p of pages" class="page-btn" [class.active]="p === currentPage" (click)="changePage(p)">
+              {{p}}
+            </button>
+            <span class="page-dots" *ngIf="totalPagesCount > 5 && currentPage < totalPagesCount - 2">...</span>
+            <button class="page-btn" *ngIf="totalPagesCount > 5 && currentPage < totalPagesCount - 2" (click)="changePage(totalPagesCount)">
+              {{totalPagesCount | number}}
+            </button>
+            <button class="page-btn" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPagesCount">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <select class="form-select page-size-select" [(ngModel)]="pageSize" (change)="onSearch()">
+              <option [value]="10">10 por página</option>
+              <option [value]="25">25 por página</option>
+              <option [value]="50">50 por página</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="sidebar">
+      
+      <!-- Actividad por Módulo (Donut Chart) -->
+      <div class="analytics-card glass-card">
+        <h3>Actividad por Módulo</h3>
+        <div class="chart-container">
+          <div class="donut-chart-wrapper">
+            <svg viewBox="0 0 100 100" class="donut-chart">
+              <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f1f5f9" stroke-width="12"></circle>
+              <circle *ngFor="let stat of roleStats"
+                      cx="50" cy="50" r="38" fill="transparent"
+                      [attr.stroke]="stat.color"
+                      stroke-width="12"
+                      [attr.stroke-dasharray]="stat.dashArray"
+                      [attr.stroke-dashoffset]="stat.dashOffset"
+                      style="transition: all 1s ease-out; transform-origin: 50% 50%; transform: rotate(-90deg);">
+              </circle>
+            </svg>
+            <div class="donut-center-info">
+              <span class="total-number">{{totalRegistros | number}}</span>
+              <span class="total-label">Registros</span>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item" *ngFor="let stat of roleStats">
+              <div class="legend-label">
+                <span class="color-dot" [style.backgroundColor]="stat.color"></span>
+                {{stat.name}}
+              </div>
+              <div class="legend-values">
+                <span class="count">{{stat.count | number}}</span>
+                <span class="percentage">({{stat.percentage}}%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actividad Reciente (Timeline) -->
+      <div class="analytics-card glass-card">
+        <div class="card-header-flex">
+          <h3>Actividad Reciente</h3>
+          <a href="javascript:void(0)" class="link-primary">Ver todo</a>
+        </div>
+        <div class="timeline">
+          <div class="timeline-item" *ngFor="let act of recentActivity">
+            <div class="timeline-icon" [ngClass]="act.type">
+              <i class="fa-solid" [ngClass]="act.icon"></i>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="title">{{act.titulo}}</span>
+                <span class="time">{{act.tiempo}}</span>
+              </div>
+              <span class="detail">{{act.detalle}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información del Historial -->
+      <div class="info-card glass-card">
+        <h3>Información del Historial</h3>
+        <div class="info-content">
+          <div class="info-icon"><i class="fa-regular fa-clock"></i></div>
+          <p>
+            El historial muestra todas las actividades y cambios operativos realizados en el sistema. 
+            Úsalo para dar seguimiento a procesos, acciones y eventos importantes.
+          </p>
+        </div>
+        <a href="javascript:void(0)" class="link-primary">Más información <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+
+    </div>
+  </div>
+</div>

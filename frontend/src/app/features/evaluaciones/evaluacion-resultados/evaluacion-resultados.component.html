@@ -1,0 +1,493 @@
+<div class="detail-page-container">
+  
+  <!-- Loader Principal -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="spinner-container">
+      <div class="double-bounce1"></div>
+      <div class="double-bounce2"></div>
+    </div>
+    <p class="loading-text">CALCULANDO RANKING Y PROMEDIOS FINALES...</p>
+  </div>
+
+  <!-- Contenido Principal -->
+  <div class="header-breadcrumb-row" *ngIf="licitacion && !loading">
+    <button class="btn-back-circle" [routerLink]="['/licitaciones']" title="Volver al Listado">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <div class="breadcrumb-header-text">
+      <div class="breadcrumbs-modern">
+        <span class="crumb">DASHBOARD</span>
+        <span class="separator">></span>
+        <span class="crumb">EVALUACIONES</span>
+        <span class="separator">></span>
+        <span class="crumb">RESULTADOS</span>
+        <span class="separator">></span>
+        <span class="crumb active">DETALLE</span>
+      </div>
+      <h2 class="page-title-modern">Resultado de Evaluación - Detalle</h2>
+    </div>
+  </div>
+
+  <!-- TARJETA HÉROE SUPERIOR -->
+  <div class="licitacion-hero-card-grid" *ngIf="licitacion && !loading">
+    <!-- Info Principal -->
+    <div class="hero-licitacion-info">
+      <div class="hero-icon-container">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <div class="hero-details">
+        <div class="title-badge-row">
+          <h2 class="hero-licitacion-title">{{ licitacion.titulo }}</h2>
+          <span class="status-badge-premium ganadora">EVALUACIÓN FINALIZADA</span>
+        </div>
+        <p class="hero-codigo-ref">Licitación Pública - {{ licitacion.codigo || 'LP-2026-015' }}</p>
+        <p class="hero-description-text">{{ licitacion.descripcion || 'Análisis comparativo de propuestas recibidas y puntajes agregados.' }}</p>
+        
+        <div class="hero-meta-row">
+          <span class="meta-item">
+            <i class="fas fa-file-contract"></i>
+            Proceso: <strong>{{ licitacion.tipoProceso || 'Pública' }}</strong>
+          </span>
+          <span class="meta-separator">|</span>
+          <span class="meta-item">
+            <i class="fas fa-balance-scale"></i>
+            Método de Evaluación: <strong>{{ licitacion.metodoEvaluacion || 'Puntaje' }}</strong>
+          </span>
+        </div>
+        
+        <!-- Fecha de Evaluación -->
+        <div class="hero-meta-row" style="margin-top: 0.5rem; color: #64748b; font-size: 0.76rem;">
+          <span class="meta-item">
+            <i class="far fa-calendar-check"></i>
+            Fecha de evaluación final: <strong>{{ licitacion.fechaFin ? (licitacion.fechaFin | date:'dd/MM/yyyy, HH:mm') : '03/05/2026, 14:30' }}</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de Puntaje Máximo -->
+    <div class="hero-financials-panel">
+      <div class="financials-box">
+        <span class="fin-label">PUNTAJE MÁXIMO</span>
+        <span class="fin-value">{{ getMaxScore() | number:'1.1-2' }}</span>
+        <span class="fin-date">puntos totales</span>
+      </div>
+    </div>
+
+    <!-- Panel de Estado Actual -->
+    <div class="hero-financials-panel" style="border-left: 1px solid #e2e8f0; padding-left: 2rem;">
+      <div class="financials-box">
+        <span class="fin-label">ESTADO ACTUAL</span>
+        <div class="fin-status-pill mt-3" style="background: #e8fdf5; border-color: #a7f3d0; color: #047857;">
+          <i class="fas fa-award"></i>
+          <span style="font-weight: 800; text-transform: uppercase;">{{ licitacion.estado }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PESTAÑAS (TABS) -->
+  <div class="tabs-navigation-container" *ngIf="licitacion && !loading">
+    <button class="tab-nav-btn" [class.active]="currentTab === 'ranking'" (click)="selectTab('ranking')">
+      <i class="fas fa-list-ol icon-tab"></i> Ranking de Postulantes
+    </button>
+    <button class="tab-nav-btn" [class.active]="currentTab === 'resumen'" (click)="selectTab('resumen')">
+      <i class="fas fa-chart-pie icon-tab"></i> Resumen de Evaluación
+    </button>
+    <button class="tab-nav-btn" [class.active]="currentTab === 'criterios'" (click)="selectTab('criterios')">
+      <i class="fas fa-tasks icon-tab"></i> Detalle por Criterios
+    </button>
+    <button class="tab-nav-btn" [class.active]="currentTab === 'observaciones'" (click)="selectTab('observaciones')">
+      <i class="far fa-comments icon-tab"></i> Observaciones
+    </button>
+    <button class="tab-nav-btn" [class.active]="currentTab === 'historial'" (click)="selectTab('historial')">
+      <i class="fas fa-history icon-tab"></i> Historial
+    </button>
+  </div>
+
+  <!-- GRID DE CONTENIDO PRINCIPAL (DOS COLUMNAS) -->
+  <div class="grid-two-columns" *ngIf="licitacion && !loading">
+    
+    <!-- COLUMNA IZQUIERDA (PANELES ACTIVOS DE PESTAÑAS) -->
+    <div class="left-panel-stack">
+      
+      <!-- TAB 1: RANKING DE POSTULANTES -->
+      <div class="premium-detail-card" *ngIf="currentTab === 'ranking'">
+        <div class="card-title-header justify-between">
+          <div class="title-text-group">
+            <h3>Ranking de Postulantes</h3>
+            <p>Lista ponderada de puntajes ordenados de mayor a menor</p>
+          </div>
+          <span class="status-badge-premium inscrito" *ngIf="ranking.length > 0">
+            {{ ranking.length }} propuestas evaluadas
+          </span>
+        </div>
+        
+        <div class="card-body-content p-0">
+          <div class="prop-detail-list" *ngIf="ranking.length > 0">
+            
+            <div *ngFor="let p of ranking; let i = index" class="ranking-item-modern" 
+                 [class.winner]="i === 0"
+                 style="display: flex; align-items: center; justify-content: space-between; padding: 1.5rem; border-bottom: 1px solid #f1f5f9; background: #ffffff;">
+              
+              <!-- Badge de Posición e Icono Copa -->
+              <div class="rank-box" style="display: flex; align-items: center; gap: 1rem; min-width: 80px;">
+                <span class="position-badge" [class.first-place]="i === 0" 
+                      [style.background]="i === 1 ? '#e0f2fe' : i === 2 ? '#ffedd5' : ''"
+                      [style.color]="i === 1 ? '#0369a1' : i === 2 ? '#c2410c' : ''">
+                  #{{ i + 1 }}
+                </span>
+                <span class="winner-icon" *ngIf="i === 0" style="font-size: 1.25rem;">🏆</span>
+                <span class="winner-icon" *ngIf="i === 1" style="font-size: 1.2rem; opacity: 0.85;">🥈</span>
+                <span class="winner-icon" *ngIf="i === 2" style="font-size: 1.2rem; opacity: 0.85;">🥉</span>
+              </div>
+              
+              <!-- Info del Postulante -->
+              <div class="bidder-main-info" style="flex: 1; padding: 0 1rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                <div class="provider-name" style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">
+                  {{ p.usuario?.nombre || '' }} {{ p.usuario?.apellido || p.nombre || 'Postulante Anónimo' }}
+                </div>
+                <div class="ruc-spec" style="font-size: 0.75rem; color: #64748b; font-weight: 600;">
+                  RUC: {{ p.usuario?.ruc || p.usuario?.identificacion || '20104839201' }}
+                </div>
+                <div class="star-rating" style="display: flex; gap: 0.15rem; margin-top: 0.2rem;">
+                  <i class="fas fa-star" *ngFor="let s of getStarArray(p.estrellas)" style="color: #fbbf24; font-size: 0.8rem;"></i>
+                  <i class="far fa-star" *ngFor="let s of getStarArray(5 - p.estrellas)" style="color: #cbd5e1; font-size: 0.8rem;"></i>
+                </div>
+              </div>
+              
+              <!-- Progreso y Puntaje -->
+              <div class="score-analysis" style="min-width: 260px; display: flex; align-items: center; gap: 1.25rem; justify-content: flex-end;">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 0.2rem; max-width: 140px;">
+                  <span style="font-size: 0.65rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">PUNTAJE TOTAL</span>
+                  <div class="score-bar-container" style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 99px; overflow: hidden;">
+                    <div class="score-bar-fill" 
+                         [style.width.%]="(p.puntajeTotal / getMaxScore()) * 100"
+                         [style.background]="i === 0 ? '#10b981' : i === 1 ? '#2563eb' : '#f59e0b'"
+                         style="height: 100%; border-radius: 99px;">
+                    </div>
+                  </div>
+                </div>
+                <div class="score-numeric" style="text-align: right; min-width: 80px;">
+                  <span class="val" style="font-size: 1.15rem; font-weight: 800; color: #1e293b;">{{ p.puntajeTotal | number:'1.2-2' }}</span>
+                  <span class="max" style="font-size: 0.78rem; color: #94a3b8; font-weight: 600;"> / {{ getMaxScore() | number:'1.1-1' }}</span>
+                </div>
+              </div>
+
+              <!-- Botones de Acción de Adjudicación (Disponibles para Administradores o Área Solicitante) -->
+              <div class="item-actions" style="margin-left: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+                <!-- Botón de Ver Detalles para Trazabilidad Completa -->
+                <button class="btn-action-circle view" [routerLink]="['/propuestas', p.id]" title="Revisar Expediente y Trazabilidad Completa"
+                        style="width: 32px; height: 32px; border-radius: 50%; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                  <i class="fas fa-eye"></i>
+                </button>
+
+                <!-- Acciones de Adjudicar/Rechazar Adjudicación (Solo primer lugar de ranking y licitación pendiente de adjudicación) -->
+                <ng-container *ngIf="licitacion.estado !== 'ADJUDICADA' && licitacion.estado !== 'CONTRATADA' && i === 0 && isAreaSolicitanteOrAdmin">
+                  <button class="btn-adjudicate-action" (click)="adjudicar(p.id)" title="Aprobar Adjudicación"
+                          style="background: #22c55e; border-color: #22c55e; padding: 0.5rem 0.85rem; color: white; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-gavel"></i> Adjudicar
+                  </button>
+                  <button class="btn-adjudicate-action reject" (click)="rechazarAdjudicacion(p.id)" title="Rechazar Adjudicación"
+                          style="background: #ef4444; border-color: #ef4444; padding: 0.5rem 0.85rem; color: white; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+                    <i class="fas fa-times-circle"></i> Rechazar
+                  </button>
+                </ng-container>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-state-centered" *ngIf="ranking.length === 0">
+            <i class="fas fa-users-slash"></i>
+            <h3>No se encontraron propuestas</h3>
+            <p>No existen ofertas presentadas o evaluadas para este proceso de selección.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: RESUMEN DE EVALUACIÓN DETALLADO -->
+      <div class="premium-detail-card" *ngIf="currentTab === 'resumen'">
+        <div class="card-title-header">
+          <div class="title-icon blue"><i class="fas fa-file-invoice"></i></div>
+          <div class="title-text-group">
+            <h3>Resumen Técnico y Financiero</h3>
+            <p>Consolidado y desglose de puntuaciones promedio</p>
+          </div>
+        </div>
+        <div class="card-body-content">
+          <div class="three-columns-grid">
+            <div class="mini-info-card">
+              <div class="mini-header">
+                <i class="fas fa-laptop-code mini-icon"></i>
+                <h4>EVALUACIÓN TÉCNICA (60%)</h4>
+              </div>
+              <div class="mini-body budget-box">
+                <label>Puntaje Promedio</label>
+                <span class="budget-value" style="color: #2563eb;">{{ (getBestScore() * 0.6) | number:'1.2-2' }}</span>
+                <span class="currency-value">puntos de {{ (getMaxScore() * 0.6) | number:'1.1-1' }} máx.</span>
+              </div>
+            </div>
+            <div class="mini-info-card">
+              <div class="mini-header">
+                <i class="fas fa-hand-holding-usd mini-icon"></i>
+                <h4>EVALUACIÓN ECONÓMICA (30%)</h4>
+              </div>
+              <div class="mini-body budget-box">
+                <label>Puntaje Promedio</label>
+                <span class="budget-value" style="color: #10b981;">{{ (getBestScore() * 0.3) | number:'1.2-2' }}</span>
+                <span class="currency-value">puntos de {{ (getMaxScore() * 0.3) | number:'1.1-1' }} máx.</span>
+              </div>
+            </div>
+            <div class="mini-info-card">
+              <div class="mini-header">
+                <i class="fas fa-history mini-icon"></i>
+                <h4>FACTOR EXPERIENCIA (10%)</h4>
+              </div>
+              <div class="mini-body budget-box">
+                <label>Puntaje Promedio</label>
+                <span class="budget-value" style="color: #f59e0b;">{{ (getBestScore() * 0.1) | number:'1.2-2' }}</span>
+                <span class="currency-value">puntos de {{ (getMaxScore() * 0.1) | number:'1.1-1' }} máx.</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="technical-description-box" style="margin-top: 1.5rem;">
+            <strong>Nota metodológica:</strong> Las calificaciones se consolidan utilizando una ponderación estándar aprobada por el pliego administrativo. La oferta económica se calcula de manera inversamente proporcional al presupuesto base ofertado por el postor.
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: DETALLE POR CRITERIOS -->
+      <div class="premium-detail-card" *ngIf="currentTab === 'criterios'">
+        <div class="card-title-header">
+          <div class="title-icon green"><i class="fas fa-check-double"></i></div>
+          <div class="title-text-group">
+            <h3>Criterios de Evaluación y Rubros</h3>
+            <p>Puntajes máximos estipulados en las bases administrativas</p>
+          </div>
+        </div>
+        <div class="card-body-content p-0">
+          <ul class="prop-detail-list">
+            <li>
+              <div class="list-item-left">
+                <i class="fas fa-chevron-right icon-list"></i>
+                Capacidad Técnica e Infraestructura
+              </div>
+              <div class="list-item-right">Hasta {{ (getMaxScore() * 0.40) | number:'1.1-1' }} pts</div>
+            </li>
+            <li>
+              <div class="list-item-left">
+                <i class="fas fa-chevron-right icon-list"></i>
+                Calidad y Garantía del Equipamiento
+              </div>
+              <div class="list-item-right">Hasta {{ (getMaxScore() * 0.20) | number:'1.1-1' }} pts</div>
+            </li>
+            <li>
+              <div class="list-item-left">
+                <i class="fas fa-chevron-right icon-list"></i>
+                Oferta Económica Ponderada
+              </div>
+              <div class="list-item-right">Hasta {{ (getMaxScore() * 0.30) | number:'1.1-1' }} pts</div>
+            </li>
+            <li>
+              <div class="list-item-left">
+                <i class="fas fa-chevron-right icon-list"></i>
+                Experiencia del Postor en Proyectos Similares
+              </div>
+              <div class="list-item-right">Hasta {{ (getMaxScore() * 0.10) | number:'1.1-1' }} pts</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TAB 4: OBSERVACIONES -->
+      <div class="premium-detail-card" *ngIf="currentTab === 'observaciones'">
+        <div class="card-title-header">
+          <div class="title-icon blue"><i class="far fa-comment-dots"></i></div>
+          <div class="title-text-group">
+            <h3>Comentarios y Observaciones Finales</h3>
+            <p>Mensajes y anotaciones registrados por el comité evaluador</p>
+          </div>
+        </div>
+        <div class="card-body-content">
+          <div class="technical-description-box">
+            "La licitación se ha resuelto sin presentar ningún incidente técnico. Las propuestas evaluadas cumplen con las especificaciones técnicas mínimas requeridas. El primer lugar ha destacado principalmente por su alto puntaje en capacidad de infraestructura e inmediata disponibilidad de servicio."
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: HISTORIAL -->
+      <div class="premium-detail-card" *ngIf="currentTab === 'historial'">
+        <div class="card-title-header">
+          <div class="title-icon blue"><i class="fas fa-history"></i></div>
+          <div class="title-text-group">
+            <h3>Historial de Auditoría de Resultados</h3>
+            <p>Auditoría inmutable de firmas y revisiones técnicas</p>
+          </div>
+        </div>
+        <div class="card-body-content">
+          <div class="audit-history-timeline">
+            <div class="audit-timeline-item">
+              <span class="version-label">V2.0</span>
+              <div class="audit-text-block">
+                <div class="audit-meta">
+                  <span><i class="fas fa-user-shield"></i> COMITÉ DE ADJUDICACIÓN</span>
+                  <span class="separator">|</span>
+                  <span><i class="far fa-clock"></i> 03/05/2026 14:30</span>
+                </div>
+                <p class="comment-text">Firma digital de resultados finales de evaluación técnica. Cierre definitivo de etapa.</p>
+              </div>
+            </div>
+            <div class="audit-timeline-item">
+              <span class="version-label">V1.1</span>
+              <div class="audit-text-block">
+                <div class="audit-meta">
+                  <span><i class="fas fa-user"></i> JAHIR MARROQUIN</span>
+                  <span class="separator">|</span>
+                  <span><i class="far fa-clock"></i> 02/05/2026 10:15</span>
+                </div>
+                <p class="comment-text">Subida y cálculo automático de coeficientes financieros e importación de rubros.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTA INFORMATIVA ABAJO DEL COMPONENTE -->
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
+        <i class="fas fa-info-circle" style="color: #2563eb; font-size: 1.25rem;"></i>
+        <span style="font-size: 0.85rem; color: #1e40af; font-weight: 600; line-height: 1.45;">
+          El ranking de evaluación final se genera de manera automática utilizando los coeficientes y rúbricas aprobadas en el pliego administrativo inicial.
+        </span>
+      </div>
+
+    </div>
+
+    <!-- COLUMNA DERECHA (RESUMEN FIJO Y ACCIONES) -->
+    <div class="right-panel-stack">
+      
+      <!-- CARD RESUMEN EVALUACIÓN -->
+      <div class="premium-detail-card">
+        <div class="card-title-header">
+          <div class="title-icon blue"><i class="fas fa-chart-line"></i></div>
+          <div class="title-text-group">
+            <h3>Resumen de Evaluación</h3>
+            <p>Resultados finales del primer lugar</p>
+          </div>
+        </div>
+        <div class="card-body-content">
+          <ul class="prop-detail-list" style="margin-bottom: 1.5rem;">
+            <li style="padding: 0.65rem 0;">
+              <div class="list-item-left" style="font-size: 0.82rem; font-weight: 700; color: #475569;">
+                Puntaje Técnico
+              </div>
+              <div class="list-item-right" style="font-size: 0.82rem; font-weight: 700;">
+                {{ (getBestScore() * 0.6) | number:'1.2-2' }} <span style="color: #94a3b8; font-weight: 500;">/ {{ (getMaxScore() * 0.6) | number:'1.1-1' }}</span>
+              </div>
+            </li>
+            <!-- Barra de progreso Técnico -->
+            <div style="width: 100%; height: 5px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-bottom: 0.75rem;">
+              <div [style.width.%]="60" style="height: 100%; background: #10b981; border-radius: 99px;"></div>
+            </div>
+
+            <li style="padding: 0.65rem 0;">
+              <div class="list-item-left" style="font-size: 0.82rem; font-weight: 700; color: #475569;">
+                Puntaje Económico
+              </div>
+              <div class="list-item-right" style="font-size: 0.82rem; font-weight: 700;">
+                {{ (getBestScore() * 0.3) | number:'1.2-2' }} <span style="color: #94a3b8; font-weight: 500;">/ {{ (getMaxScore() * 0.3) | number:'1.1-1' }}</span>
+              </div>
+            </li>
+            <!-- Barra de progreso Económico -->
+            <div style="width: 100%; height: 5px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-bottom: 0.75rem;">
+              <div [style.width.%]="30" style="height: 100%; background: #10b981; border-radius: 99px;"></div>
+            </div>
+
+            <li style="padding: 0.65rem 0;">
+              <div class="list-item-left" style="font-size: 0.82rem; font-weight: 700; color: #475569;">
+                Puntaje de Experiencia
+              </div>
+              <div class="list-item-right" style="font-size: 0.82rem; font-weight: 700;">
+                {{ (getBestScore() * 0.1) | number:'1.2-2' }} <span style="color: #94a3b8; font-weight: 500;">/ {{ (getMaxScore() * 0.1) | number:'1.1-1' }}</span>
+              </div>
+            </li>
+            <!-- Barra de progreso Experiencia -->
+            <div style="width: 100%; height: 5px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-bottom: 0.75rem;">
+              <div [style.width.%]="10" style="height: 100%; background: #10b981; border-radius: 99px;"></div>
+            </div>
+
+            <li style="padding: 1rem 0 0.5rem 0; border-top: 1.5px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">PUNTAJE TOTAL</span>
+              <div style="font-size: 1.35rem; font-weight: 800; color: #10b981;">
+                {{ getBestScore() | number:'1.2-2' }} <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">/ {{ getMaxScore() | number:'1.1-1' }}</span>
+              </div>
+            </li>
+          </ul>
+
+          <!-- Resultado Final Banner -->
+          <div style="background: #e6fdf4; border: 1.5px solid #a7f3d0; border-radius: 10px; padding: 0.85rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 0.65rem; color: #047857; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">Resultado Final</span>
+              <span style="font-size: 0.95rem; color: #065f46; font-weight: 800;">SATISFACTORIO</span>
+            </div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #10b981; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+              <i class="fas fa-check"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD ACCIONES -->
+      <div class="premium-detail-card">
+        <div class="card-title-header">
+          <div class="title-icon green"><i class="fas fa-cog"></i></div>
+          <div class="title-text-group">
+            <h3>Acciones</h3>
+            <p>Exportar y descargar reportes oficiales</p>
+          </div>
+        </div>
+        <div class="card-body-content">
+          <div class="hero-actions-panel" style="width: 100%;">
+            <div class="actions-stack" style="width: 100%;">
+              
+              <button class="btn-stack-action blue-filled" (click)="descargarReportePDF()" style="width: 100%;">
+                <i class="fas fa-file-pdf"></i> Descargar Reporte (PDF)
+              </button>
+              
+              <button class="btn-stack-action green" (click)="exportToExcel()" style="width: 100%; border: 1.5px solid #a7f3d0; background: #ffffff; color: #047857;">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+              </button>
+              
+              <button class="btn-stack-action purple" (click)="imprimirResultado()" style="width: 100%; border: 1.5px solid #c084fc; background: #ffffff; color: #6b21a8;">
+                <i class="fas fa-print"></i> Imprimir Resultado
+              </button>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD NOTAS IMPORTANTES -->
+      <div class="premium-detail-card" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
+        <div class="card-title-header" style="border-bottom: none; padding: 1.25rem 1.25rem 0.5rem 1.25rem;">
+          <div class="title-text-group">
+            <h3 style="font-size: 0.8rem; font-weight: 800; color: #475569; letter-spacing: 0.5px; text-transform: uppercase;">
+              <i class="fas fa-exclamation-circle" style="color: #2563eb; margin-right: 0.35rem;"></i> Notas importantes
+            </h3>
+          </div>
+        </div>
+        <div class="card-body-content" style="padding: 0 1.25rem 1.25rem 1.25rem;">
+          <ul style="padding-left: 1.1rem; margin: 0; color: #64748b; font-size: 0.78rem; font-weight: 600; line-height: 1.6; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li>La evaluación fue realizada de acuerdo con los criterios establecidos en las bases del proceso.</li>
+            <li>La documentación de respaldo se encuentra disponible en la sección de documentos del expediente.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

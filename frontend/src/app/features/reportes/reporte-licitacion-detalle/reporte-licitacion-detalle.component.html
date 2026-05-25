@@ -1,0 +1,364 @@
+<div class="report-premium-container">
+  <!-- HEADER EJECUTIVO -->
+  <header class="report-premium-header fade-in">
+    <div class="header-content">
+      <div class="breadcrumb-mini">
+        <a (click)="volver()" class="breadcrumb-link"><i class="fas fa-arrow-left"></i> Volver a Reportes</a>
+        <span class="separator">/</span>
+        <span>Análisis Detallado</span>
+      </div>
+      <h1 class="title-primary">{{ licitacion?.titulo || 'Cargando Licitación...' }}</h1>
+      <p class="subtitle-secondary">
+        Código de Proceso: <strong class="highlight-code">#{{ licitacion?.id }}</strong> &bull; Area Requeridora: <strong>{{ licitacion?.area?.nombre }}</strong>
+      </p>
+    </div>
+    <div class="header-actions" *ngIf="licitacion">
+      <span class="status-badge-premium large" [ngClass]="licitacion.estado.toLowerCase()">
+        {{ licitacion.estado }}
+      </span>
+    </div>
+  </header>
+
+  <!-- LOADER STATE -->
+  <div class="loader-container" *ngIf="isLoading">
+    <div class="spinner-premium"></div>
+    <p>Compilando auditoría y registros financieros del proceso...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading && licitacion">
+    <!-- PANEL DE METRICAS CLAVE (KPIs) -->
+    <div class="metrics-grid fade-in delay-1">
+      <div class="metric-glass-card blue">
+        <div class="card-icon"><i class="fas fa-wallet"></i></div>
+        <div class="card-data">
+          <span class="label">Presupuesto Asignado</span>
+          <h3 class="value">{{ licitacion.presupuesto | currency:'USD':'symbol':'1.0-0' }}</h3>
+          <span class="subtext">Fondos institucionales aprobados</span>
+        </div>
+      </div>
+
+      <div class="metric-glass-card green">
+        <div class="card-icon"><i class="fas fa-file-signature"></i></div>
+        <div class="card-data">
+          <span class="label">Propuestas Recibidas</span>
+          <h3 class="value">{{ ranking?.length || 0 }} Ofertas</h3>
+          <span class="subtext" *ngIf="averageScore > 0">Puntaje Promedio: <strong>{{ averageScore }} / 100</strong></span>
+          <span class="subtext" *ngIf="averageScore === 0">Sin evaluaciones registradas</span>
+        </div>
+      </div>
+
+      <div class="metric-glass-card amber">
+        <div class="card-icon"><i class="fas fa-file-contract"></i></div>
+        <div class="card-data">
+          <span class="label">Monto del Contrato</span>
+          <h3 class="value">{{ contrato ? (contrato.monto | currency:'USD':'symbol':'1.0-0') : 'Sin formalizar' }}</h3>
+          <span class="subtext" *ngIf="contrato">Ahorro: <strong>{{ (licitacion.presupuesto - contrato.monto) | currency:'USD':'symbol':'1.0-0' }}</strong></span>
+          <span class="subtext" *ngIf="!contrato">En espera de adjudicación/firma</span>
+        </div>
+      </div>
+
+      <div class="metric-glass-card purple">
+        <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+        <div class="card-data">
+          <span class="label">Ejecución Presupuestal</span>
+          <h3 class="value">{{ budgetExecutionPercent }}%</h3>
+          <div class="progress-bar-mini" title="Consumo del presupuesto estimado">
+            <div class="progress-fill" [style.width.%]="budgetExecutionPercent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID DE DETALLES -->
+    <div class="detail-grid fade-in delay-2">
+      <!-- COLUMNA PRINCIPAL (70%) -->
+      <div class="main-column">
+        <!-- FICHA ESTRUCTURAL -->
+        <div class="premium-glass-card">
+          <div class="card-title-bar">
+            <h3><i class="fas fa-info-circle icon-primary"></i> Información General del Proceso</h3>
+          </div>
+          <div class="general-info-grid">
+            <div class="info-item">
+              <span class="info-label">Creado Por</span>
+              <span class="info-value">{{ licitacion.creadoPor?.nombreCompleto || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Fecha de Publicación</span>
+              <span class="info-value">{{ licitacion.fechaInicio | date:'dd/MM/yyyy, hh:mm a' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Fecha Límite</span>
+              <span class="info-value">{{ licitacion.fechaFin | date:'dd/MM/yyyy, hh:mm a' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Tipo de Licitación</span>
+              <span class="info-value">Licitación Pública de Conformidad</span>
+            </div>
+          </div>
+          <div class="description-section">
+            <h4 class="section-subtitle">Descripción del Requerimiento</h4>
+            <p class="description-text">{{ licitacion.descripcion || 'Sin descripción adjunta en el pliego de condiciones.' }}</p>
+          </div>
+        </div>
+
+        <!-- CONTRATO Y FIRMAS (SI EXISTE) -->
+        <div class="premium-glass-card" *ngIf="contrato">
+          <div class="card-title-bar">
+            <h3><i class="fas fa-file-contract icon-primary"></i> Estado de Formalización del Contrato</h3>
+            <span class="contract-code">CONT-{{ contrato.id }}</span>
+          </div>
+
+          <div class="contract-overview">
+            <div class="overview-box">
+              <span class="overview-lbl">Proveedor Adjudicado</span>
+              <h4 class="overview-val">{{ contrato.propuesta?.usuario?.nombreCompleto || 'Andrea Salazar' }}</h4>
+            </div>
+            <div class="overview-box">
+              <span class="overview-lbl">Fecha de Inicio</span>
+              <h4 class="overview-val">{{ contrato.fechaInicio | date:'dd/MM/yyyy' }}</h4>
+            </div>
+            <div class="overview-box">
+              <span class="overview-lbl">Fecha de Fin</span>
+              <h4 class="overview-val">{{ contrato.fechaFin | date:'dd/MM/yyyy' }}</h4>
+            </div>
+            <div class="overview-box">
+              <span class="overview-lbl">Estado Contrato</span>
+              <span class="status-badge-premium" [ngClass]="contrato.estado?.toLowerCase() || 'firmado'">
+                {{ contrato.estado || 'FIRMADO' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- SIGNATURES PROGRESS TIMELINE -->
+          <div class="signature-timeline-section">
+            <h4 class="section-subtitle">Progreso de Aprobaciones y Firmas</h4>
+            <div class="vertical-signatures-timeline">
+              <!-- PASO 1: PROVEEDOR -->
+              <div class="signature-step" [ngClass]="{'completed': contrato.firmadoProveedor, 'pending': !contrato.firmadoProveedor}">
+                <div class="step-icon">
+                  <i class="fas" [ngClass]="contrato.firmadoProveedor ? 'fa-check-circle' : 'fa-clock'"></i>
+                </div>
+                <div class="step-content">
+                  <div class="step-header">
+                    <h5>1. Firma de Aceptación Contractual (Proveedor)</h5>
+                    <span class="step-badge" [ngClass]="contrato.firmadoProveedor ? 'done' : 'wait'">
+                      {{ contrato.firmadoProveedor ? 'Firmado' : 'Pendiente' }}
+                    </span>
+                  </div>
+                  <p class="step-details" *ngIf="contrato.firmadoProveedor">
+                    Firmado digitalmente por <strong>{{ contrato.propuesta?.usuario?.nombreCompleto }}</strong> el {{ contrato.fechaFirmaProveedor | date:'dd/MM/yyyy, hh:mm a' }}
+                  </p>
+                  <p class="step-details" *ngIf="!contrato.firmadoProveedor">
+                    En espera de que el proveedor acceda con sus credenciales y acepte las cláusulas del contrato.
+                  </p>
+                </div>
+              </div>
+
+              <!-- PASO 2: ÁREA SOLICITANTE -->
+              <div class="signature-step" [ngClass]="{'completed': contrato.validadoArea, 'pending': !contrato.validadoArea}">
+                <div class="step-icon">
+                  <i class="fas" [ngClass]="contrato.validadoArea ? 'fa-check-circle' : 'fa-clock'"></i>
+                </div>
+                <div class="step-content">
+                  <div class="step-header">
+                    <h5>2. Validación de Conformidad Operativa (Área Solicitante)</h5>
+                    <span class="step-badge" [ngClass]="contrato.validadoArea ? 'done' : 'wait'">
+                      {{ contrato.validadoArea ? 'Conforme' : 'Pendiente' }}
+                    </span>
+                  </div>
+                  <p class="step-details" *ngIf="contrato.validadoArea">
+                    Validado y certificado técnicamente por el área solicitante dueña (<strong>{{ licitacion.creadoPor?.nombreCompleto }}</strong>) el {{ contrato.fechaValidacionArea | date:'dd/MM/yyyy, hh:mm a' }}
+                  </p>
+                  <p class="step-details" *ngIf="!contrato.validadoArea">
+                    Requiere validación de conformidad y correspondencia de las bases técnicas por el Área Solicitante dueña.
+                  </p>
+                </div>
+              </div>
+
+              <!-- PASO 3: AUTORIDAD -->
+              <div class="signature-step" [ngClass]="{'completed': contrato.firmadoAutoridad, 'pending': !contrato.firmadoAutoridad}">
+                <div class="step-icon">
+                  <i class="fas" [ngClass]="contrato.firmadoAutoridad ? 'fa-check-circle' : 'fa-clock'"></i>
+                </div>
+                <div class="step-content">
+                  <div class="step-header">
+                    <h5>3. Aprobación Final Institucional (Autoridad / Administrador)</h5>
+                    <span class="step-badge" [ngClass]="contrato.firmadoAutoridad ? 'done' : 'wait'">
+                      {{ contrato.firmadoAutoridad ? 'Aprobado' : 'Pendiente' }}
+                    </span>
+                  </div>
+                  <p class="step-details" *ngIf="contrato.firmadoAutoridad">
+                    Autorizado y ratificado institucionalmente el {{ contrato.fechaFirmaAutoridad | date:'dd/MM/yyyy, hh:mm a' }}
+                  </p>
+                  <p class="step-details" *ngIf="!contrato.firmadoAutoridad">
+                    Pendiente de firma digital por parte de la Autoridad o Administrador de Adquisiciones de la corporación.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LISTA DE PROPUESTAS Y RANKING -->
+        <div class="premium-glass-card">
+          <div class="card-title-bar">
+            <h3><i class="fas fa-trophy icon-primary"></i> Ranking Analítico de Propuestas</h3>
+            <span class="badge-count">{{ ranking?.length || 0 }} Ofertas</span>
+          </div>
+
+          <div class="table-responsive" *ngIf="ranking && ranking.length > 0">
+            <table class="modern-list-table">
+              <thead>
+                <tr>
+                  <th class="text-center">Lugar</th>
+                  <th>Proveedor / Representante</th>
+                  <th class="text-right">Oferta Económica</th>
+                  <th class="text-center">Puntaje Técnico</th>
+                  <th class="text-center">Reputación</th>
+                  <th class="text-center">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of ranking; let i = index" class="table-row-hover" [ngClass]="{'first-place': i === 0 && licitacion.estado === 'ADJUDICADA'}">
+                  <td class="text-center">
+                    <span class="rank-badge" [ngClass]="'rank-' + (i + 1)">
+                      {{ i + 1 }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="title-cell-premium">{{ item.usuario?.nombreCompleto || 'N/A' }}</div>
+                    <span class="sub-info">ID Propuesta: #{{ item.id }}</span>
+                  </td>
+                  <td class="text-right">
+                    <span class="amount-val">{{ item.montoFinanciero | currency }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="score-pill" [ngClass]="item.puntajeTotal >= 70 ? 'high' : 'low'">
+                      {{ item.puntajeTotal ? (item.puntajeTotal | number:'1.0-1') : 'Sin calificar' }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="stars-container" title="Puntaje Histórico">
+                      <i class="fas fa-star" *ngFor="let star of [1, 2, 3, 4, 5]" 
+                         [ngClass]="{'active': star <= (item.usuario?.reputacion || 5)}"></i>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <span class="status-badge-premium" [ngClass]="item.estado?.toLowerCase() || 'evaluada'">
+                      {{ item.estado || 'EVALUADA' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="empty-state-modern" *ngIf="!ranking || ranking.length === 0">
+            <div class="empty-icon-box"><i class="fas fa-inbox"></i></div>
+            <h3>Sin Propuestas</h3>
+            <p>Este proceso no ha recibido ofertas por parte de proveedores.</p>
+          </div>
+        </div>
+
+        <!-- HISTORIAL DE AUDITORÍA -->
+        <div class="premium-glass-card">
+          <div class="card-title-bar">
+            <h3><i class="fas fa-history icon-primary"></i> Trazabilidad de Auditoría del Proceso</h3>
+            <span class="badge-count">{{ historial?.length || 0 }} Eventos</span>
+          </div>
+
+          <div class="table-responsive" *ngIf="historial && historial.length > 0">
+            <table class="modern-list-table">
+              <thead>
+                <tr>
+                  <th>Fecha / Hora</th>
+                  <th>Operador / Rol</th>
+                  <th>Acción Realizada</th>
+                  <th>Observaciones / Justificaciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let log of historial" class="table-row-hover">
+                  <td>
+                    <div class="date-tag-mini">
+                      <i class="far fa-clock"></i> {{ log.fechaCambio | date:'dd/MM/yyyy, hh:mm a' }}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="title-cell-premium">{{ log.usuario || 'Sistema' }}</div>
+                    <span class="sub-info">Operación Segura</span>
+                  </td>
+                  <td>
+                    <span class="action-tag">{{ log.estadoAnterior }} &rarr; {{ log.estadoNuevo }}</span>
+                  </td>
+                  <td>
+                    <p class="observations-text">{{ log.observaciones || 'Actualización rutinaria del ciclo de vida de la licitación.' }}</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="empty-state-modern" *ngIf="!historial || historial.length === 0">
+            <div class="empty-icon-box"><i class="fas fa-shield-alt"></i></div>
+            <h3>Trazabilidad Limpia</h3>
+            <p>No se registran cambios de estado manuales para este proceso.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMNA LATERAL (30%) - CRONOGRAMA DE HITOS -->
+      <div class="side-column">
+        <div class="premium-glass-card timeline-card">
+          <div class="card-title-bar">
+            <h3><i class="fas fa-calendar-alt icon-primary"></i> Cronología del Proceso</h3>
+          </div>
+
+          <div class="hitos-vertical-timeline" *ngIf="hitos && hitos.length > 0">
+            <div class="timeline-node" *ngFor="let hito of hitos" [ngClass]="{'completed': hito.completado}">
+              <div class="node-bullet">
+                <i class="fas" [ngClass]="hito.completado ? 'fa-check' : 'fa-calendar'"></i>
+              </div>
+              <div class="node-content">
+                <span class="node-date">{{ hito.fechaProgramada | date:'dd MMM yyyy, hh:mm a' }}</span>
+                <h4 class="node-title">{{ hito.nombre }}</h4>
+                <p class="node-desc">{{ hito.descripcion }}</p>
+                <span class="node-status" [ngClass]="hito.completado ? 'done' : 'pending'">
+                  {{ hito.completado ? '✓ Ejecutado' : '⏳ Programado' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-state-modern" *ngIf="!hitos || hitos.length === 0">
+            <div class="empty-icon-box"><i class="fas fa-calendar-times"></i></div>
+            <h3>Sin Hitos</h3>
+            <p>No hay cronograma temporal predefinido para esta licitación.</p>
+          </div>
+        </div>
+
+        <!-- RESUMEN DE METADATOS -->
+        <div class="premium-glass-card meta-card">
+          <div class="card-title-bar">
+            <h3><i class="fas fa-shield-alt icon-primary"></i> Seguridad e Integridad</h3>
+          </div>
+          <div class="meta-list">
+            <div class="meta-row">
+              <span class="meta-label">Protocolo SHA-256</span>
+              <span class="meta-val code-font">7a8b...3c9d</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Servidor Origen</span>
+              <span class="meta-val">PROD-DB-01</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Encriptado</span>
+              <span class="meta-val">AES-256 GCM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

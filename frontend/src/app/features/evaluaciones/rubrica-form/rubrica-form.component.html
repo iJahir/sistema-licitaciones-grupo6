@@ -1,0 +1,68 @@
+<div class="form-container">
+  <div class="header">
+    <button class="btn-back" [routerLink]="['/licitaciones']">
+      <i class="icon-arrow-left"></i> Volver
+    </button>
+    <h1>Definir Rúbrica de Evaluación</h1>
+    <p class="subtitle" *ngIf="licitacion">Licitación: {{ licitacion.titulo }}</p>
+  </div>
+
+  <div class="form-card glass">
+    <form [formGroup]="rubricaForm" (ngSubmit)="onSubmit()">
+      <div class="form-group main-name">
+        <label for="nombre">Nombre de la Rúbrica</label>
+        <input type="text" id="nombre" formControlName="nombre" placeholder="Ej: Evaluación Técnica y Financiera 2026">
+      </div>
+
+      <div class="criteria-section">
+        <div class="section-header">
+          <h3>Criterios de Evaluación</h3>
+          <button type="button" class="btn-add" (click)="addCriterio()">
+            <i class="icon-plus"></i> Añadir Criterio
+          </button>
+        </div>
+
+        <div formArrayName="criterios" class="criteria-list">
+          <div *ngFor="let criterio of criterios.controls; let i=index" [formGroupName]="i" class="criterio-row card">
+            <div class="row-header">
+              <span>Criterio #{{ i + 1 }}</span>
+              <button type="button" class="btn-remove" (click)="removeCriterio(i)" [disabled]="criterios.length === 1">
+                <i class="icon-trash"></i>
+              </button>
+            </div>
+            
+            <div class="fields">
+              <div class="field name">
+                <label>Nombre del Criterio</label>
+                <input type="text" formControlName="nombre" placeholder="Ej: Experiencia del equipo">
+              </div>
+              <div class="field weight">
+                <label>Peso (%)</label>
+                <input type="number" formControlName="peso" min="1" max="100">
+              </div>
+              <div class="field max-score">
+                <label>Puntaje Máx.</label>
+                <input type="number" formControlName="puntajeMaximo" min="1">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-box" [class.valid]="getTotalPeso() === 100">
+        <div class="total-weight">
+          <span>Suma de Pesos:</span>
+          <strong>{{ getTotalPeso() }}%</strong>
+        </div>
+        <p class="error-msg" *ngIf="getTotalPeso() !== 100">La suma debe ser exactamente 100%</p>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-primary" [disabled]="rubricaForm.invalid || saving || getTotalPeso() !== 100">
+          <span *ngIf="!saving">Guardar Rúbrica</span>
+          <span *ngIf="saving">Guardando...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

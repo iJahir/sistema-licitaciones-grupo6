@@ -1,0 +1,316 @@
+<!-- KPI CARDS EXECUTIVE ROW -->
+<div class="kpi-cards-row animate-slide-up">
+  <div class="kpi-card card-glow border-purple">
+    <div class="kpi-iconbg bg-purple-light">
+      <i class="fa-solid fa-calendar-days text-purple"></i>
+    </div>
+    <div class="kpi-info">
+      <span class="kpi-value">{{ kpis.total }}</span>
+      <span class="kpi-label">Eventos del Mes</span>
+      <span class="kpi-subtext">Total programados</span>
+    </div>
+  </div>
+  <div class="kpi-card card-glow border-green">
+    <div class="kpi-iconbg bg-green-light">
+      <i class="fa-solid fa-circle-check text-green"></i>
+    </div>
+    <div class="kpi-info">
+      <span class="kpi-value">{{ kpis.completados }}</span>
+      <span class="kpi-label">Completados</span>
+      <span class="kpi-subtext">{{ getPercent(kpis.completados) }} del total</span>
+    </div>
+  </div>
+  <div class="kpi-card card-glow border-orange">
+    <div class="kpi-iconbg bg-orange-light">
+      <i class="fa-solid fa-clock text-orange"></i>
+    </div>
+    <div class="kpi-info">
+      <span class="kpi-value">{{ kpis.proximos }}</span>
+      <span class="kpi-label">Próximos</span>
+      <span class="kpi-subtext">{{ getPercent(kpis.proximos) }} del total</span>
+    </div>
+  </div>
+  <div class="kpi-card card-glow border-red">
+    <div class="kpi-iconbg bg-red-light">
+      <i class="fa-solid fa-triangle-exclamation text-red"></i>
+    </div>
+    <div class="kpi-info">
+      <span class="kpi-value">{{ kpis.vencidos }}</span>
+      <span class="kpi-label">Vencidos</span>
+      <span class="kpi-subtext">{{ getPercent(kpis.vencidos) }} del total</span>
+    </div>
+  </div>
+  <div class="kpi-card card-glow border-blue">
+    <div class="kpi-iconbg bg-blue-light">
+      <i class="fa-solid fa-file-invoice text-blue"></i>
+    </div>
+    <div class="kpi-info">
+      <span class="kpi-value">{{ getSinFechaDefinidaCount() }}</span>
+      <span class="kpi-label">Sin fecha definida</span>
+      <span class="kpi-subtext">{{ getPercent(getSinFechaDefinidaCount()) }} del total</span>
+    </div>
+  </div>
+</div>
+
+<!-- ADVANCED FILTERS BAR -->
+<div class="advanced-filters-bar card-glow animate-slide-up" style="animation-delay: 0.1s;">
+  <div class="filter-search-box">
+    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+    <input type="text" [(ngModel)]="searchText" (input)="applyFilters()" placeholder="Buscar eventos, licitaciones..." class="search-input" />
+  </div>
+  <div class="filter-dropdowns">
+    <div class="dropdown-item">
+      <label class="dropdown-lbl">Licitación</label>
+      <select [(ngModel)]="selectedLicitacionId" (change)="applyFilters()" class="dropdown-select">
+        <option value="">Todas</option>
+        <option *ngFor="let l of licitaciones" [value]="l.id">{{ l.titulo }}</option>
+      </select>
+    </div>
+    <div class="dropdown-item">
+      <label class="dropdown-lbl">Tipo de Evento</label>
+      <select [(ngModel)]="selectedTipoEvento" (change)="applyFilters()" class="dropdown-select">
+        <option value="">Todas</option>
+        <option value="LICITACION_PUBLICADA">Licitaciones</option>
+        <option value="PROPUESTA_RECIBIDA">Propuestas</option>
+        <option value="EVALUACION_EN_CURSO">Evaluaciones</option>
+        <option value="REUNION_EVALUACION">Adjudicaciones</option>
+        <option value="NOTA">Reuniones</option>
+        <option value="MANTENIMIENTO_SISTEMA">Vencimientos</option>
+      </select>
+    </div>
+    <div class="dropdown-item">
+      <label class="dropdown-lbl">Prioridad</label>
+      <select [(ngModel)]="selectedPrioridad" (change)="applyFilters()" class="dropdown-select">
+        <option value="">Todas</option>
+        <option value="1">Alta</option>
+        <option value="2">Media</option>
+        <option value="3">Baja</option>
+      </select>
+    </div>
+    <div class="dropdown-item">
+      <label class="dropdown-lbl">Responsable</label>
+      <select [(ngModel)]="selectedEstado" (change)="applyFilters()" class="dropdown-select">
+        <option value="">Todos</option>
+        <option value="Jahir Marroquín">Jahir Marroquín</option>
+        <option value="Comité Técnico">Comité Técnico</option>
+      </select>
+    </div>
+    <button class="btn btn-datepicker">
+      <i class="fa-solid fa-calendar-day"></i> Este mes
+    </button>
+  </div>
+  <div class="filter-action-buttons">
+    <button *ngIf="tokenService.isAdmin()" class="btn btn-primary-blue shadow-glow" (click)="openNewEventModal()">
+      <i class="fa-solid fa-plus"></i> Nuevo Evento
+    </button>
+    <button class="btn btn-outline-filters" [routerLink]="['/planificacion/eventos']">
+      <i class="fa-solid fa-filter"></i> Filtros
+    </button>
+  </div>
+</div>
+
+<!-- Main Calendar Grid Area with scrolling sidebar (2 Columns Layout) -->
+<div class="calendar-workspace animate-slide-up" style="animation-delay: 0.2s;">
+  
+  <!-- Left/Center Month Calendar Grid Card -->
+  <div class="calendar-main-card card-glow">
+    
+    <!-- Navigation sub-bar inside Card -->
+    <div class="calendar-nav-subbar">
+      <div class="left-nav">
+        <div class="nav-arrows-group">
+          <button class="nav-arrow-btn" (click)="prevMonth()"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="nav-arrow-btn" (click)="nextMonth()"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="btn-today-flat" (click)="goToToday()">Hoy</button>
+        </div>
+        <h2 class="month-title-display">{{ monthNames[selectedMonth] }} {{ selectedYear }}</h2>
+      </div>
+      <div class="right-nav">
+        <div class="btn-group-modes">
+          <button class="mode-btn active">Mes</button>
+          <button class="mode-btn">Semana</button>
+          <button class="mode-btn">Día</button>
+        </div>
+        <button class="btn btn-more-options" (click)="descargarCronogramaPdf()">
+          <span>Descargar PDF</span> <i class="fa-solid fa-file-pdf"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="calendar-grid-container">
+      <!-- Week Days Row -->
+      <div class="week-days-header-row">
+        <div class="day-name">DOM</div>
+        <div class="day-name">LUN</div>
+        <div class="day-name">MAR</div>
+        <div class="day-name">MIÉ</div>
+        <div class="day-name">JUE</div>
+        <div class="day-name">VIE</div>
+        <div class="day-name">SÁB</div>
+      </div>
+
+      <!-- Calendar Days Cells Grid -->
+      <div class="calendar-days-cells-grid">
+        <div class="day-cell" 
+             *ngFor="let day of calendarDays" 
+             [class.outside-month]="!day.isCurrentMonth"
+             [class.is-today]="day.isToday">
+          
+          <div class="day-number-bar">
+            <span class="num-lbl" [class.today-badge]="day.isToday">{{ day.dayNum }}</span>
+            <button *ngIf="tokenService.isAdmin()" class="quick-add-btn" title="Registrar evento en este día" (click)="openNewEventModal()">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+
+          <!-- Event pills in day cell -->
+          <div class="day-event-list">
+            <div class="day-event-pill" 
+                 *ngFor="let ev of day.events" 
+                 [style.border-left-color]="ev.color"
+                 [style.background]="ev.color + '15'"
+                 [style.color]="ev.color"
+                 (click)="showEventDetails(ev)"
+                 [title]="ev.titulo">
+              <span class="pill-dot" [style.background]="ev.color"></span>
+              <span class="pill-title font-semibold">{{ ev.titulo }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Legend Bar matching visual mockup -->
+    <div class="calendar-bottom-legend-bar">
+      <div class="legend-points">
+        <span class="legend-point"><span class="dot-indicator bg-blue"></span> Licitaciones</span>
+        <span class="legend-point"><span class="dot-indicator bg-green"></span> Propuestas</span>
+        <span class="legend-point"><span class="dot-indicator bg-amber"></span> Evaluaciones</span>
+        <span class="legend-point"><span class="dot-indicator bg-purple"></span> Adjudicaciones</span>
+        <span class="legend-point"><span class="dot-indicator bg-cyan"></span> Contratos</span>
+        <span class="legend-point"><span class="dot-indicator bg-red"></span> Reuniones</span>
+        <span class="legend-point"><span class="dot-indicator bg-slate"></span> Vencimientos</span>
+      </div>
+      <a class="view-legends-link" [routerLink]="['/planificacion/eventos']">
+        Ver todas las leyendas <i class="fa-solid fa-circle-info"></i>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Right Side Panel layout -->
+  <div class="calendar-side-panel card-glow">
+    
+    <!-- Section A: Próximos Eventos -->
+    <div class="side-panel-header">
+      <h4>Próximos Eventos</h4>
+      <a class="view-all-link" [routerLink]="['/planificacion/eventos']">Ver todos</a>
+    </div>
+
+    <div class="side-events-scroll">
+      <div class="side-event-item" 
+           *ngFor="let ev of filteredEvents | slice:0:5"
+           (click)="showEventDetails(ev)">
+        <div class="item-dot-indicator" [style.background-color]="ev.color"></div>
+        <div class="item-body">
+          <div class="item-header-meta">
+            <h5 class="item-title font-bold">{{ ev.titulo }}</h5>
+            <span class="item-date-tag">{{ ev.fechaEvento | date:'dd MMM' | uppercase }}</span>
+          </div>
+          <div class="item-details-meta">
+            <span class="ref-code">{{ ev.referenciaTipo === 'licitacion' ? ('LIC-' + ev.referenciaId) : (ev.referenciaTipo === 'contrato' ? 'CONT-' + ev.referenciaId : 'GENERAL') }}</span>
+            <span class="time-lbl">{{ ev.fechaEvento | date:'hh:mm a' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="no-events-placeholder" *ngIf="filteredEvents.length === 0">
+        <i class="fa-regular fa-calendar-times text-slate-300"></i>
+        <p>No hay eventos programados</p>
+      </div>
+    </div>
+
+    <!-- Section B: Eventos Críticos -->
+    <div class="side-panel-header gap-top">
+      <h4>Eventos Críticos</h4>
+      <a class="view-all-link" [routerLink]="['/planificacion/eventos']">Ver todos</a>
+    </div>
+
+    <div class="side-events-scroll">
+      <div class="side-event-item" 
+           *ngFor="let ev of criticalEvents"
+           (click)="showEventDetails(ev)">
+        <div class="item-dot-indicator" [style.background-color]="ev.color"></div>
+        <div class="item-body">
+          <div class="item-header-meta">
+            <h5 class="item-title font-bold">{{ ev.titulo }}</h5>
+            <span class="badge-urgent">{{ getDaysRemainingLabel(ev.fechaEvento) }}</span>
+          </div>
+          <div class="item-details-meta">
+            <span class="ref-code">{{ ev.referenciaTipo === 'licitacion' ? ('LIC-' + ev.referenciaId) : (ev.referenciaTipo === 'contrato' ? 'CONT-' + ev.referenciaId : 'GENERAL') }}</span>
+            <span class="time-lbl">{{ ev.fechaEvento | date:'hh:mm a' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="no-events-placeholder" *ngIf="criticalEvents.length === 0">
+        <i class="fa-regular fa-calendar-times text-slate-300"></i>
+        <p>No hay eventos críticos programados</p>
+      </div>
+    </div>
+
+    <!-- Section C: Acciones Rápidas -->
+    <div class="side-panel-header gap-top">
+      <h4>Acciones Rápidas</h4>
+    </div>
+    <div class="action-buttons-vertical">
+      <button *ngIf="tokenService.isAdmin()" class="action-btn-premium" (click)="openNewEventModal()">
+        <span class="icon-wrap bg-blue-dark"><i class="fa-solid fa-plus"></i></span>
+        <span class="label">Nuevo Evento</span>
+      </button>
+      <button class="action-btn-premium" (click)="descargarCronogramaPdf()">
+        <span class="icon-wrap bg-teal"><i class="fa-solid fa-file-pdf"></i></span>
+        <span class="label">Descargar Cronograma PDF</span>
+      </button>
+      <button class="action-btn-premium" (click)="configureAlerts()">
+        <span class="icon-wrap bg-amber"><i class="fa-solid fa-bell"></i></span>
+        <span class="label">Configurar Recordatorios</span>
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Eventos Recientes (Bottom row cards) -->
+<div class="eventos-recientes-section animate-slide-up" style="animation-delay: 0.3s;">
+  <div class="recent-header">
+    <h3 class="recent-title">Eventos Recientes</h3>
+    <a class="view-all-link" [routerLink]="['/planificacion/eventos']">Ver todos</a>
+  </div>
+  
+  <div class="recent-cards-row">
+    <div class="recent-card" 
+         *ngFor="let ev of recentEventsList" 
+         [style.border-left-color]="ev.color"
+         [style.border-left-width]="'4px'"
+         (click)="showEventDetails(ev)">
+      <div class="card-left-icon" [style.background-color]="ev.color + '15'" [style.color]="ev.color">
+        <i class="fa-solid" [ngClass]="ev.icon"></i>
+      </div>
+      <div class="card-info">
+        <h4 class="card-title">{{ ev.titulo }}</h4>
+        <span class="card-ref">{{ ev.referenciaTipo === 'licitacion' ? ('LIC-' + ev.referenciaId) : (ev.referenciaTipo === 'contrato' ? 'CONT-' + ev.referenciaId : 'GENERAL') }}</span>
+        <span class="card-datetime">{{ ev.fechaEvento | date:'dd/MM/yyyy • hh:mm a' }}</span>
+        <span class="card-status-badge" 
+              [style.background-color]="ev.color" 
+              [style.color]="'#fff'">
+          {{ ev.estado || 'Activo' }}
+        </span>
+      </div>
+    </div>
+    
+    <div class="no-events-placeholder" *ngIf="recentEventsList.length === 0" style="width: 100%; text-align: center; padding: 2rem; background: rgba(255, 255, 255, 0.03); border-radius: 12px;">
+      <i class="fa-regular fa-calendar-times text-slate-300" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+      <p>No hay eventos registrados recientemente</p>
+    </div>
+  </div>
+</div>

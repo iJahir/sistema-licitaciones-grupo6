@@ -1,0 +1,148 @@
+<div class="report-premium-container">
+  <!-- HEADER EJECUTIVO -->
+  <header class="report-premium-header fade-in">
+    <div class="header-content">
+      <div class="breadcrumb-mini">Reportes Estratégicos</div>
+      <h1 class="title-primary">Adjudicaciones por Periodo</h1>
+      <p class="subtitle-secondary">Monitoreo de resoluciones definitivas, adjudicatarios y presupuestos consolidados</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-premium secondary" (click)="openFormatSelector()">
+        <i class="fas fa-file-export"></i>
+        <span>Exportar Reporte</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD DE MÉTRICAS -->
+  <div class="metrics-grid fade-in delay-1">
+    <div class="metric-glass-card blue">
+      <div class="card-icon"><i class="fas fa-trophy"></i></div>
+      <div class="card-data">
+        <span class="label">Resoluciones Adjudicadas</span>
+        <h3 class="value">{{ reportData?.totalAdjudicaciones || 0 }}</h3>
+      </div>
+    </div>
+
+    <div class="metric-glass-card green">
+      <div class="card-icon"><i class="fas fa-coins"></i></div>
+      <div class="card-data">
+        <span class="label">Monto Total Adjudicado</span>
+        <h3 class="value">{{ reportData?.montoTotalAdjudicado | currency:'USD':'symbol':'1.0-0' }}</h3>
+      </div>
+    </div>
+
+    <div class="metric-glass-card amber">
+      <div class="card-icon"><i class="fas fa-calculator"></i></div>
+      <div class="card-data">
+        <span class="label">Monto Promedio</span>
+        <h3 class="value">{{ reportData?.promedioMontoAdjudicado | currency:'USD':'symbol':'1.0-0' }}</h3>
+      </div>
+    </div>
+
+    <div class="metric-glass-card purple">
+      <div class="card-icon"><i class="fas fa-building"></i></div>
+      <div class="card-data">
+        <span class="label">Proveedores Beneficiados</span>
+        <h3 class="value">{{ reportData?.items ? (reportData.items | keyvalue)?.length || 0 : 0 }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE FILTROS AVANZADA -->
+  <div class="filters-glass-card fade-in delay-2">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label><i class="fas fa-filter"></i> Unidad / Área Requirente</label>
+        <div class="input-glass">
+          <select [(ngModel)]="filters.areaId" (change)="applyFilters()">
+            <option value="">Todas las Áreas</option>
+            <option *ngFor="let area of areas" [value]="area.id">{{ area.nombre }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label><i class="fas fa-calendar-alt"></i> Desde</label>
+        <div class="input-glass">
+          <input type="date" [(ngModel)]="filters.fechaInicio" (change)="applyFilters()">
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label><i class="fas fa-calendar-check"></i> Hasta</label>
+        <div class="input-glass">
+          <input type="date" [(ngModel)]="filters.fechaFin" (change)="applyFilters()">
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn-glass clear" (click)="resetFilters()" title="Limpiar todos los filtros">
+          <i class="fas fa-sync-alt"></i>
+          <span>Reiniciar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE RESULTADOS PREMIUM -->
+  <div class="premium-glass-card fade-in delay-3">
+    <div class="card-title-bar">
+      <h3>Historial de Adjudicaciones en el Periodo</h3>
+      <div class="loader-inline" *ngIf="isLoading">
+        <div class="spinner-mini"></div>
+        <span>Sincronizando...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="modern-list-table">
+        <thead>
+          <tr>
+            <th>ID Lic.</th>
+            <th>Licitación / Objeto de Gasto</th>
+            <th>Área Requirente</th>
+            <th>Proveedor Ganador</th>
+            <th class="text-right">Monto Adjudicado</th>
+            <th class="text-center">Fecha Adjudicación</th>
+            <th class="text-center">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of reportData?.items" class="table-row-hover">
+            <td><span class="id-tag">#{{ item.licitacionId }}</span></td>
+            <td>
+              <div class="title-cell-premium">{{ item.licitacionTitulo }}</div>
+            </td>
+            <td>
+              <span class="area-tag">{{ item.areaNombre || 'N/A' }}</span>
+            </td>
+            <td>
+              <span class="amount-val">{{ item.proveedorNombre }}</span>
+            </td>
+            <td class="text-right">
+              <span class="amount-val text-success font-bold">{{ item.montoAdjudicado | currency:'USD' }}</span>
+            </td>
+            <td class="text-center">
+              <div class="date-tag-mini">
+                <i class="far fa-clock"></i> {{ item.fechaAdjudicacion | date:'dd/MM/yyyy' }}
+              </div>
+            </td>
+            <td class="text-center">
+              <span class="status-badge-premium adjudicada">
+                {{ item.estado }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state-modern" *ngIf="reportData?.items?.length === 0 && !isLoading">
+      <div class="empty-icon-box"><i class="fas fa-search-minus"></i></div>
+      <h3>Sin Adjudicaciones</h3>
+      <p>No se encontraron procesos de licitación adjudicados que coincidan con los filtros aplicados.</p>
+    </div>
+  </div>
+</div>

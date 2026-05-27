@@ -1,0 +1,222 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' 
+      xmlns:w='urn:schemas-microsoft-com:office:word' 
+      xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="utf-8">
+<title>Guión Técnico de Exposición - Grupo 6</title>
+<!--[if gte mso 9]>
+<xml>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:Zoom>100</w:Zoom>
+<w:DoNotOptimizeForBrowser/>
+</w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.6;
+    margin: 20px;
+    background-color: #ffffff;
+  }
+  h1 {
+    color: #1e3a8a;
+    font-size: 22pt;
+    border-bottom: 2px solid #3b82f6;
+    padding-bottom: 5px;
+    margin-top: 30px;
+    text-transform: uppercase;
+  }
+  h2 {
+    color: #2563eb;
+    font-size: 15pt;
+    margin-top: 20px;
+    border-left: 5px solid #3b82f6;
+    padding-left: 10px;
+  }
+  .role-badge {
+    display: inline-block;
+    background-color: #eff6ff;
+    color: #2563eb;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 10pt;
+    margin-bottom: 10px;
+    border: 1px solid #bfdbfe;
+  }
+  .time-badge {
+    display: inline-block;
+    background-color: #fef2f2;
+    color: #ef4444;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 10pt;
+    margin-bottom: 10px;
+    border: 1px solid #fecaca;
+  }
+  .screen-box {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid #64748b;
+    padding: 12px;
+    margin: 15px 0;
+    font-size: 10pt;
+    border-radius: 4px;
+  }
+  .speech-box {
+    background-color: #fafafa;
+    border: 1px solid #cbd5e1;
+    border-left: 5px solid #1e3a8a;
+    padding: 15px;
+    margin: 15px 0;
+    font-size: 11pt;
+    font-style: italic;
+    color: #0f172a;
+    text-align: justify;
+    line-height: 1.7;
+    border-radius: 4px;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+</head>
+<body>
+
+<div align="center" style="margin-bottom: 40px;">
+  <p style="font-size: 14pt; color: #64748b; margin: 0;">ESTÁNDARES DE PROGRAMACIÓN (EPRO)</p>
+  <h1 style="font-size: 26pt; color: #1e3a8a; margin: 10px 0; border: none; padding: 0;">GUIÓN TÉCNICO DE EXPOSICIÓN</h1>
+  <p style="font-size: 18pt; color: #2563eb; margin: 5px 0; font-weight: bold;">Estrategia de Sustentación por Roles</p>
+  <p style="font-size: 12pt; color: #475569;">Sistema de Licitaciones y Concursos Internos - Grupo 6</p>
+  <hr style="border: 1px solid #e2e8f0; width: 80%; margin: 20px auto;">
+  <p style="font-size: 10pt; color: #64748b;">Este documento contiene los discursos estructurados de forma secuencial y por roles técnicos de cada miembro del grupo. Cada apartado inicia en una nueva página para facilitar su impresión y estudio individual.</p>
+</div>
+
+<div class="page-break"></div>
+
+<!-- INTEGRANTE 1: ALDO JAHIR MARROQUIN -->
+<h2>1. MARROQUIN VILLATORO, ALDO JAHIR</h2>
+<div>
+  <span class="role-badge">Rol: DevOps & Security (Coordinador y Líder de Seguridad)</span>
+  <span class="time-badge">Tiempo: 0:00 - 2:30</span>
+</div>
+
+<div class="screen-box">
+  <b>&bull; Qué mostrar en pantalla:</b> Diapositiva de Portada con el título del proyecto y los nombres de los integrantes + Diapositiva de la Introducción, descripción del problema y la tabla de requerimientos funcionales/no funcionales (el 15% de la rúbrica).
+</div>
+
+<div class="speech-box">
+  "Buenos días, estimado docente y miembros del jurado. Mi nombre es <b>Jahir Marroquin</b>, coordinador del Grupo 6. Hoy tenemos el agrado de presentarles nuestra solución de ingeniería de software: el <b>Sistema de Licitaciones y Concursos Internos</b>.<br><br>
+  Los procesos de compras corporativas suelen sufrir de burocracia, falta de transparencia y una nula trazabilidad debido al uso de herramientas manuales. Nuestro sistema resuelve de raíz estos problemas, permitiendo a múltiples departamentos publicar concursos, recibir ofertas confidenciales de proveedores, evaluarlas mediante rúbricas objetivas y auditar cada clic en tiempo real.<br><br>
+  Metodológicamente, el proyecto cumple con los estándares exigidos: definimos 5 requerimientos funcionales clave —como la gestión de estados y la adjudicación transaccional— y 3 requerimientos no funcionales críticos, donde destaca la seguridad criptográfica y el desacoplamiento de capas.<br><br>
+  A nivel de DevOps y Seguridad, configuramos una arquitectura <b>100% Stateless basada en JWT</b>. Criptográficamente, protegemos la base de datos aplicando la función hash irreversible <b>BCrypt</b> para contraseñas. Para el despliegue de producción, diseñamos una infraestructura en la nube usando contenedores <b>Docker en AWS Elastic Beanstalk</b> y base de datos <b>Amazon RDS para SQL Server</b>, garantizando alta disponibilidad con un costo operativo controlado de solo $148 USD mensuales.<br><br>
+  Para profundizar en el diseño global, cedo la palabra a nuestro Lead Developer, José Duglas."
+</div>
+
+<div class="page-break"></div>
+
+<!-- INTEGRANTE 2: JOSÉ DUGLAS FIGUEROA -->
+<h2>2. FIGUEROA BERRIOS, JOSÉ DUGLAS</h2>
+<div>
+  <span class="role-badge">Rol: Lead Developer (Capa de Backend y Arquitectura)</span>
+  <span class="time-badge">Tiempo: 2:30 - 5:00</span>
+</div>
+
+<div class="screen-box">
+  <b>&bull; Qué mostrar en pantalla:</b> Diapositiva de la Arquitectura Multicapa (N-Tier) de Spring Boot + Editor de código o diapositiva detallando el archivo <code>WebSecurityConfig.java</code> y la protección de endpoints.
+</div>
+
+<div class="speech-box">
+  "Gracias, Jahir. Buenos días. Como Lead Developer del proyecto, mi objetivo fue garantizar que el sistema cumpliera con el estándar de arquitectura corporativa de nivel Enterprise. Para el backend seleccionamos la robustez de <b>Java 21</b> junto con <b>Spring Boot 3.4.2</b>.<br><br>
+  Implementamos una <b>Arquitectura Multicapa limpia</b>, dividiendo el sistema en 4 niveles de abstracción: <b>Entidades</b> para mapear el modelo relacional, <b>Repositorios</b> encargados del acceso eficiente a datos mediante Spring Data JPA, <b>Servicios</b> donde encapsulamos el 100% de la lógica de negocio y <b>Controladores</b> que exponen endpoints HTTP REST seguros.<br><br>
+  La joya de la seguridad del backend reside en nuestro componente <code>WebSecurityConfig.java</code>. Habilitamos la anotación <code>@EnableMethodSecurity</code>, lo que nos permite un control de acceso basado en roles jerárquicos a nivel de cada método del controlador mediante expresiones <code>@PreAuthorize</code>. Las sesiones son completamente sin estado; cada petición es filtrada en red por <code>AuthTokenFilter</code>, el cual valida la firma del token criptográfico JWT antes de dar acceso al hilo de ejecución.<br><br>
+  Ahora, nuestro Backend Specialist, Brayan Neftaly, les explicará cómo procesamos la lógica de negocio transaccional."
+</div>
+
+<div class="page-break"></div>
+
+<!-- INTEGRANTE 3: BRAYAN NEFTALY HERNANDEZ -->
+<h2>3. HERNANDEZ LOPES, BRAYAN NEFTALY</h2>
+<div>
+  <span class="role-badge">Rol: Backend & Reporting Specialist (Lógica de Negocio y Reportes)</span>
+  <span class="time-badge">Tiempo: 5:00 - 7:30</span>
+</div>
+
+<div class="screen-box">
+  <b>&bull; Qué mostrar en pantalla:</b> Diapositiva sobre la Máquina de Estados de Evaluaciones y el recálculo dinámico + Fragmento de código en <code>EvaluacionService.java</code> o la pantalla de descarga de reportes PDF/Excel en la aplicación.
+</div>
+
+<div class="speech-box">
+  "Gracias, Duglas. Buenos días. Mi rol se centró en desarrollar el motor de cálculo y el sistema de reportes en el servidor. La lógica más compleja de la plataforma reside en <code>EvaluacionService.java</code>.<br><br>
+  Cuando un evaluador califica una propuesta, el sistema calcula de forma dinámica su nota sobre 50 puntos y la traduce a una escala de 5 estrellas. Para asegurar la consistencia del negocio, el guardado de evaluaciones está marcado con la anotación <code>@Transactional</code> de Spring, garantizando transacciones atómicas. Si el promedio de calificaciones supera el 80% ponderado, el sistema cambia automáticamente el estado del proveedor a <code>PENDIENTE_ADJUDICACION</code> y el de la licitación a <code>EVALUADA</code>.<br><br>
+  Por otro lado, implementamos la generación en caliente de documentos binarios en memoria RAM. Para los informes Excel de licitaciones y finanzas, utilizamos <b>Apache POI</b>, y para el renderizado vectorial de los contratos de adjudicación en formato PDF, empleamos <b>OpenPDF</b>.<br><br>
+  Estos archivos se transmiten directamente al cliente en formato de bytes, asegurando un rendimiento menor a 2 segundos y garantizando que el documento no pueda ser manipulado en el camino. Los dejo con nuestro Frontend Specialist, David Enrique."
+</div>
+
+<div class="page-break"></div>
+
+<!-- INTEGRANTE 4: DAVID ENRIQUE CHÁVEZ -->
+<h2>4. CHÁVEZ LAZO, DAVID ENRIQUE</h2>
+<div>
+  <span class="role-badge">Rol: Frontend Specialist (Interfaz, Enrutamiento y Angular)</span>
+  <span class="time-badge">Tiempo: 7:30 - 10:00</span>
+</div>
+
+<div class="screen-box">
+  <b>&bull; Qué mostrar en pantalla:</b> Diapositiva de la Estructura Modular de Angular (Core-Shared-Features) + Código de <code>auth.interceptor.ts</code> y la estructura de rutas en <code>app.routes.ts</code>.
+</div>
+
+<div class="speech-box">
+  "Gracias, Brayan. Buenos días. En la capa de cliente, decidimos utilizar <b>Angular v21</b>, la última versión de este framework robusto de Google, programado bajo estrictos estándares de <b>TypeScript</b>.<br><br>
+  Para evitar el desorden visual y de código, diseñamos una <b>Clean Modular Architecture</b> dividida en tres pilares: <b>Core</b>, que maneja servicios globales de sesión; <b>Shared</b>, que unifica los componentes visuales de layout; y <b>Features</b>, que encapsula cada módulo del negocio por separado.<br><br>
+  Un aspecto técnico clave de nuestro frontend es el <b><code>authInterceptor</code></b>. Utilizando el patrón de diseño de Cadena de Responsabilidad, este interceptor de red captura automáticamente cualquier petición HTTP dirigida a nuestras APIs inyectando la cabecera <code>Authorization: Bearer [JWT]</code>. Esto nos evita tener que escribir la lógica de seguridad en cada componente del sistema.<br><br>
+  Además, protegemos el enrutamiento de la aplicación a través de <b>Guards reactivos</b>, lo que previene que usuarios no autorizados puedan acceder a paneles administrativos simplemente escribiendo la URL en el navegador. Recientemente registramos de forma exitosa la ruta <code>/proveedores</code> para dar acceso dinámico al directorio de empresas.<br><br>
+  Los dejo con nuestro Administrador de Base de Datos, Edwin Romero."
+</div>
+
+<div class="page-break"></div>
+
+<!-- INTEGRANTE 5: EDWIN ANTONIO ROMERO -->
+<h2>5. ROMERO TURCIOS, EDWIN ANTONIO</h2>
+<div>
+  <span class="role-badge">Rol: Database Administrator (Persistencia y SQL Server)</span>
+  <span class="time-badge">Tiempo: 10:00 - 12:30</span>
+</div>
+
+<div class="screen-box">
+  <b>&bull; Qué mostrar en pantalla:</b> Diapositiva con el Diagrama Entidad-Relación de la base de datos + Consola de base de datos SQL Server o las propiedades del pool de conexiones HikariCP.
+</div>
+
+<div class="speech-box">
+  "Gracias, David. Buenos días. Mi responsabilidad en el equipo fue el diseño del modelo de datos, la persistencia y la optimización de las consultas en <b>Microsoft SQL Server</b>.<br><br>
+  El esquema de base de datos fue normalizado en tercera forma normal para evitar la redundancia y garantizar la integridad referencial. Contamos con tablas estructuradas como <code>usuarios</code> (la cual centraliza los perfiles de administradores, evaluadores y proveedores), <code>licitaciones</code>, <code>propuestas</code>, <code>evaluaciones</code> y la tabla inmutable de <code>auditoria</code>.<br><br>
+  Configuramos la conexión mediante el pool de conexiones <b>HikariCP</b> en Spring Boot, lo que permite reciclar conexiones de base de datos y tolerar altas cargas concurrentes sin degradar la memoria. Para garantizar la seguridad en producción, diseñamos un esquema de backups híbrido: backups completos semanales almacenados en almacenamiento en frío, diferenciales diarios y respaldos de log de transacciones por hora para permitir restauraciones en un punto específico en el tiempo (PITR).<br><br>
+  Ahora, nuestro QA & Audit Engineer, Edwin Ernesto, cerrará la exposición con la trazabilidad y la demo activa."
+</div>
+
+<div class="page-break"></div>
+
+<!-- INTEGRANTE 6: EDWIN ERNESTO SERRANO -->
+<h2>6. SERRANO GÓMEZ, EDWIN ERNESTO</h2>
+<div>
+  <span class="role-badge">Rol: QA & Audit Engineer (Pruebas de Calidad, Auditoría y Cierre de Demo)</span>
+  <span class="time-badge">Tiempo: 12:30 - 15:00</span>
+</div>
+
+<div class="screen-box">
+  <b>&bull; Qué mostrar en pantalla:</b> Vista de la tabla de Auditoría en Vivo en la Aplicación + Consola o reporte de cobertura de pruebas unitarias (JUnit / Vitest).
+</div>
+
+<div class="speech-box">
+  "Gracias, Edwin. Buenos días. Para finalizar, mi rol consistió en asegurar que el software desarrollado cumpliera con los más altos estándares de calidad antes de salir a producción, y garantizar la trazabilidad de la plataforma.<br><br>
+  En la fase de pruebas, implementamos un plan dual: en el backend ejecutamos pruebas unitarias transaccionales con <b>JUnit</b>, y en el frontend rompimos con el esquema tradicional de Karma implementando <b>Vitest con jsdom</b>, logrando ejecutar más de 100 pruebas asíncronas en milisegundos.<br><br>
+  Sin embargo, el pilar de cumplimiento de este sistema es nuestro <b>Módulo de Auditoría</b>. Como pueden observar en pantalla [mostrar la interfaz de auditoría en vivo], cada inicio de sesión, cambio de estado, o registro de propuesta guarda una huella digital inmutable: dirección IP, navegador, timestamp y metadata. Esto nos da un nivel de trazabilidad de nivel bancario.<br><br>
+  En conclusión, hemos desarrollado una <b>solución robusta, segura y escalable</b> que cumple con cada directriz de estándares de programación. Muchas gracias por su atención, y el Grupo 6 queda a su entera disposición para la ronda de preguntas técnicas."
+</div>
+
+</body>
+</html>

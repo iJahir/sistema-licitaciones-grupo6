@@ -224,13 +224,16 @@ public class CalendarioEventoService {
     }
 
     private String getIconForTipo(TipoEvento tipo) {
-        switch (tipo) {
-            case NOTA: return "fa-file-lines";
-            case MANTENIMIENTO_SISTEMA: return "fa-wrench";
-            case REUNION_EVALUACION: return "fa-users";
-            case EVENTO_GENERAL: return "fa-bell";
-            default: return "fa-info-circle";
+        if (tipo == TipoEvento.NOTA) {
+            return "fa-file-lines";
+        } else if (tipo == TipoEvento.MANTENIMIENTO_SISTEMA) {
+            return "fa-wrench";
+        } else if (tipo == TipoEvento.REUNION_EVALUACION) {
+            return "fa-users";
+        } else if (tipo == TipoEvento.EVENTO_GENERAL) {
+            return "fa-bell";
         }
+        return "fa-info-circle";
     }
 
     public void registrarEvento(String titulo, String desc, TipoEvento tipo, LocalDateTime fecha, Long refId, String refTipo, Integer prioridad, Usuario user) {

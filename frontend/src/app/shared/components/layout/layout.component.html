@@ -99,6 +99,11 @@
             <i class="fa-solid fa-users-gear m-icon i-usuarios"></i> <span>Usuarios</span>
           </li>
 
+          <li routerLink="/proveedores" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
+              *ngIf="hasAnyRole('ADMINISTRADOR','ADMIN','SUPER_ADMIN','AUTORIDAD','GESTOR_LICITACIONES')">
+            <i class="fa-solid fa-handshake m-icon i-proveedores"></i> <span>Proveedores</span>
+          </li>
+
           <li routerLink="/administracion/roles-permisos" routerLinkActive="active" (click)="isSidebarMobileOpen = false"
               *ngIf="hasAnyRole('ADMINISTRADOR','ADMIN','SUPER_ADMIN','AUTORIDAD')">
             <i class="fa-solid fa-user-shield m-icon i-roles"></i> <span>Roles y Permisos</span>
